@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{38767D2D-14D8-4744-9A60-779315B279FC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Spider</RootNamespace>
+    <AssemblyName>SpiderView</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CefSharp, Version=0.12.4596.50, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\CefSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="CefSharp.Example, Version=0.12.4596.54, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\CefSharp.Example.dll</HintPath>
+    </Reference>
+    <Reference Include="CefSharp.WinForms, Version=0.12.4596.53, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\CefSharp.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="CefSharp.Wpf, Version=0.12.4596.54, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\CefSharp.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="DotLiquid, Version=1.7.0.0, Culture=neutral, PublicKeyToken=82e46016ecf9f07c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\SpiderViewed\SpiderView\bin\Debug\DotLiquid.dll</HintPath>
+    </Reference>
+    <Reference Include="LuaInterface, Version=2.0.0.25532, Culture=neutral, PublicKeyToken=1e1fb15b02227b8a, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\LuaInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="App.Designer.cs">
+      <DependentUpon>App.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Board.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Board.Designer.cs">
+      <DependentUpon>Board.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Class1.cs" />
+    <Compile Include="Element.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SectionView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SectionView.Designer.cs">
+      <DependentUpon>SectionView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SpiderHost.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SpiderHost.Designer.cs">
+      <DependentUpon>SpiderHost.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SpiderView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SpiderView.Designer.cs">
+      <DependentUpon>SpiderView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SPListItem.cs" />
+    <Compile Include="SPListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SPListView.designer.cs">
+      <DependentUpon>SPListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Style.cs">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="System.Drawing.Html\CssAnonymousBlockBox.cs" />
+    <Compile Include="System.Drawing.Html\CssAnonymousBox.cs" />
+    <Compile Include="System.Drawing.Html\CssBlock.cs" />
+    <Compile Include="System.Drawing.Html\CssBox.cs" />
+    <Compile Include="System.Drawing.Html\CssBoxWord.cs" />
+    <Compile Include="System.Drawing.Html\CssBoxWordSplitter.cs" />
+    <Compile Include="System.Drawing.Html\CssConstants.cs" />
+    <Compile Include="System.Drawing.Html\CssDefaults.cs" />
+    <Compile Include="System.Drawing.Html\CssDrawingHelper.cs" />
+    <Compile Include="System.Drawing.Html\CssLayoutEngine.cs" />
+    <Compile Include="System.Drawing.Html\CssLength.cs" />
+    <Compile Include="System.Drawing.Html\CssLineBox.cs" />
+    <Compile Include="System.Drawing.Html\CssPropertyAttribute.cs" />
+    <Compile Include="System.Drawing.Html\CssPropertyInheritedAttribute.cs" />
+    <Compile Include="System.Drawing.Html\CssRectangle.cs" />
+    <Compile Include="System.Drawing.Html\CssTable.cs" />
+    <Compile Include="System.Drawing.Html\CssValue.cs" />
+    <Compile Include="System.Drawing.Html\HtmlConstants.cs" />
+    <Compile Include="System.Drawing.Html\HtmlLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="System.Drawing.Html\HtmlPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="System.Drawing.Html\HtmlRenderer.cs" />
+    <Compile Include="System.Drawing.Html\HtmlTag.cs" />
+    <Compile Include="System.Drawing.Html\HtmlToolTip.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="System.Drawing.Html\InitialContainer.cs" />
+    <Compile Include="System.Drawing.Html\Parser.cs" />
+    <Compile Include="TabBar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabBar.Designer.cs">
+      <DependentUpon>TabBar.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Board.resx">
+      <DependentUpon>Board.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SectionView.resx">
+      <DependentUpon>SectionView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SpiderView.resx">
+      <DependentUpon>SpiderView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SPListItem.resx">
+      <DependentUpon>SPListItem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SPListView.resx">
+      <DependentUpon>SPListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabBar.resx">
+      <DependentUpon>TabBar.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\skin.png" />
+    <Content Include="System.Drawing.Html\System.Drawing.Html.csproj" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
