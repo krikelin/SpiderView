@@ -353,6 +353,8 @@ namespace Spider.Preprocessor
             input = a.Replace(input, "");
             #endregion
 
+            this.RuntimeMachine.SetVariable("data", obj);
+
             /**
              * Begin normal operation
              * */

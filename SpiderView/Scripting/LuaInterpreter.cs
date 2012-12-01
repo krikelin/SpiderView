@@ -71,13 +71,14 @@ namespace Spider.Scripting
         {
            
 
-                this.lua.RegisterFunction(function,target, func.Method);
+             this.lua.RegisterFunction(function,target, func.Method);
             
         }
 
 
         public void SetVariable(string variable, object val)
         {
+            
             this.lua[variable] = val;
         }
     }

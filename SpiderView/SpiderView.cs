@@ -150,20 +150,20 @@ namespace Spider
             var sections = element.GetElementsByTagName("section");
             foreach (XmlElement _section in sections)
             {
-                SectionView section = this.Sections[_section.GetAttribute("id")];
-                section.Board.Children.Clear();
-                section.Board.LoadNodes(_section);
-                section.Board.AutoResize();
+                if(this.Sections.ContainsKey(_section.GetAttribute("id"))) {
+                   
+                    SectionView section = this.Sections[_section.GetAttribute("id")];
+                    section.Board.Children.Clear();
+                    section.Board.LoadNodes(_section);
+                    section.Board.AutoResize();
+                } else{
+                    AddSection(_section);
+                }
             }
             
         }
-        
-        public void LoadNodes(XmlElement element)
-        {
-            var sections = element.GetElementsByTagName("section");
-            foreach (XmlElement _section in sections)
-            {
-                Tab tab = new Tab();
+        public void AddSection(XmlElement _section) {
+            Tab tab = new Tab();
                 tab.Title = _section.GetAttribute("title");
                 tab.ID = _section.GetAttribute("id");
                 this.tabBar.Tabs.Add(tab);
@@ -179,7 +179,14 @@ namespace Spider
                         childBoard.Padding = new Padding(_section.GetAttribute("padding"));
                 this.deck.Controls.Add(sv);
                 sv.Dock = DockStyle.Fill;
-                
+        }
+        public void LoadNodes(XmlElement element)
+        {
+            var sections = element.GetElementsByTagName("section");
+            foreach (XmlElement _section in sections)
+            {
+
+                AddSection(_section);
 
             }
             tabBar.ActiveTab = tabBar.Tabs[0];
