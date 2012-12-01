@@ -35,12 +35,66 @@ namespace Spider
         public Padding Padding = new Padding("0");
         public List<Element> Children = new List<Element>();
         public String template = "";
-        
+
+        /// <summary>
+        /// Event args for scripting invokes
+        /// </summary>
+        public class ScriptInvokeEventArgs
+        {
+            /// <summary>
+            /// The command to execute
+            /// </summary>
+            public String Command { get; set; }
+
+            /// <summary>
+            /// The element that hosted the command
+            /// </summary>
+            public Element Element { get; set; }
+
+            /// <summary>
+            /// The spider view that was invoked
+            /// </summary>
+            public SpiderView View { get; set; }
+
+            /// <summary>
+            /// The event that raised the code
+            /// </summary>
+            public String Event { get; set; }
+        }
+        /// <summary>
+        /// Delegate for scripting event handlers
+        /// </summary>
+        /// <param name="sender">The sender</param>
+        /// <param name="e">Script event args</param>
+        public delegate void ScriptEventHandler(object sender, ScriptInvokeEventArgs e);
+
+        /// <summary>
+        /// Occurs when a script is rised
+        /// </summary>
+        public event ScriptEventHandler ScriptCalled;
+
+        /// <summary>
+        /// Occurs when a script is loaded
+        /// </summary>
+        public event ScriptEventHandler ScriptLoaded;
+
+        /// <summary>
+        /// Invoke script message
+        /// </summary>
+        /// <param name="e">Script event handler</param>
+        public void InvokeScript(ScriptInvokeEventArgs e)
+        {
+            if (ScriptCalled != null)
+            {
+                ScriptCalled(this, e);
+            }
+        }
         public Board(SpiderView spiderView)
         {
             this.SpiderView = spiderView;
             this.Stylesheet = (this.SpiderView).Stylesheet;
-
+            this.Click += Board_Click;
+            this.MouseClick += Board_MouseClick;
             InitializeComponent();
 
             this.Paint += Board_Paint;
@@ -53,6 +107,24 @@ namespace Spider
             tmrDraw.Interval = 100;
             tmrDraw.Start();
             this.MouseMove += Board_MouseMove;
+        }
+
+        void Board_MouseClick(object sender, MouseEventArgs e)
+        {
+            int x = e.X;
+            int y = e.Y;
+            foreach (Element elm in this.Children)
+            {
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.CheckClick(e.X, e.Y);
+                }
+            }
+        }
+
+        void Board_Click(object sender, EventArgs e)
+        {
+            
         }
         public Board()
         {

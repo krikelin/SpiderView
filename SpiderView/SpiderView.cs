@@ -18,7 +18,7 @@ namespace Spider
     /// </summary>
     public partial class SpiderView : UserControl
     {
-       
+        public Interpreter Scripting;
         /// <summary>
         /// Delegator that deelgates update of view
         /// </summary>
@@ -44,10 +44,16 @@ namespace Spider
                 this.timer.Interval = value;
             }
         }
+        public void refresh(Object obj)
+        {
+            this.Refresh(obj);
+        }
         private System.Windows.Forms.Timer timer;
         public SpiderView()
         {
-            
+                
+            this.Scripting = new Scripting.LuaInterpreter(this);
+            this.Scripting.PushFunction("refresh", GetType().GetMethod("refresh"));
 
             this.timer = new Timer();
             InitializeComponent();
@@ -64,6 +70,11 @@ namespace Spider
             this.tabBar.TabChange += tabBar_TabChange;
             this.timer.Tick += timer_Tick;
             this.timer.Interval = 1000;
+            this.Click += SpiderView_Click;
+        }
+
+        void SpiderView_Click(object sender, EventArgs e)
+        {
             
         }
 
@@ -102,6 +113,21 @@ namespace Spider
             String DOM = template.Render(Hash.FromAnonymousObject(obj));
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(DOM);
+            XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");
+            foreach (XmlElement elmScript in scripts)
+            {
+                if (elmScript.HasAttribute("type"))
+                {
+                    if (elmScript.GetAttribute("type") == "text/lua")
+                    {
+                        if (elmScript.HasAttribute("src"))
+                            Scripting.LoadFile(elmScript.GetAttribute("src"));
+                        else
+                            Scripting.LoadScript(elmScript.InnerText);
+
+                    }
+                }
+            }
             if (this.Sections.Count > 0)
             {
                 this.LoadNodesAgain(xmlDoc.DocumentElement);
@@ -110,6 +136,7 @@ namespace Spider
             {
                 this.LoadNodes(xmlDoc.DocumentElement);
             }
+            
            
         }
         public void LoadNodesAgain(XmlElement element)
@@ -139,14 +166,22 @@ namespace Spider
                 SectionView sv = new SectionView(childBoard, this);
                 Sections.Add(tab.ID, sv);
                 childBoard.LoadNodes(_section);
+                childBoard.ScriptCalled += childBoard_ScriptCalled;
                 childBoard.AutoResize();
                 childBoard.Width = 1280;
+                if(_section.HasAttribute("padding"))
+                        childBoard.Padding = new Padding(_section.GetAttribute("padding"));
                 this.deck.Controls.Add(sv);
                 sv.Dock = DockStyle.Fill;
                 
 
             }
             tabBar.ActiveTab = tabBar.Tabs[0];
+        }
+
+        void childBoard_ScriptCalled(object sender, Board.ScriptInvokeEventArgs e)
+        {
+            Scripting.InvokeFunction(e.Command, e);
         }
 
         private TabBar tabBar;

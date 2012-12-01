@@ -120,20 +120,30 @@ namespace Spider
         {
             
             
-                this.OnClick(x, y);
-               
-                foreach (Element elm in Children)
+            this.OnClick(x, y);
+            Graphics g = this.Board.CreateGraphics();
+            g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+            this.OnClick(x, y);
+
+            if (this.ElementEventHandlers.ContainsKey("click"))
+            {
+                this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.ElementEventHandlers["click"], Element = this, Event = "click", View = this.Board.SpiderView });
+
+            }
+
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in Children)
+            {
+
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
-                    x -= elm.X;
-                    y -= elm.Y;
-                    if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
-                    {
-                        elm.CheckHover(x, y);
-                    }
-                    x += elm.X;
-                    y += elm.Y;
+                    elm.CheckClick(x, y);
                 }
-            
+            }
+            x += this.X;
+            y += this.Y;
+
 
         }
         private Color ParseColorAttribute(String propertyName, String attribute, XmlElement elm)
@@ -178,6 +188,7 @@ namespace Spider
         public int AbsoluteWidth = 0, AbsoluteHeight = 0;
         public String Name { get; set; }
         public Style Stylesheet = new Style();
+        public Dictionary<String, String> ElementEventHandlers = new Dictionary<string, string>();
         private XmlNode node;
         public String Hyperlink { get; set; }
         int flex = 0;
@@ -189,8 +200,17 @@ namespace Spider
             this.BackColor = ParseColorAttribute("BackColor", ("bgcolor"), node);
 
             this.ForeColor = ParseColorAttribute("ForeColor", "color", node);
-            
-            
+            foreach(XmlAttribute attribute in node.Attributes) 
+            {
+                if(attribute.Name.StartsWith("on")) {
+                    this.ElementEventHandlers.Add(attribute.Name.Substring(2), node.GetAttribute(attribute.Name));
+                }
+
+            }
+            if (node.HasAttribute("onclick"))
+            {
+               
+            }
             if (node.HasAttribute("margin"))
             {
                 this.Margin = new Margin(node.GetAttribute("margin"));
@@ -271,7 +291,7 @@ namespace Spider
             {
                 this.Stylesheet = (Parent.Stylesheet != null ? Parent.Stylesheet : Board.Stylesheet);
             }
-       
+            //g.FillRectangle(new SolidBrush(BackColor), this.X - this.Margin.Left - (this.Parent != null ? this.Parent.Padding.Left : 0), this.Y - Margin.Top - (this.Parent != null ? this.Parent.Padding.Top : 0), this.Width + Margin.Right, this.Height + Margin.Bottom);
            foreach(Element elm in this.Children)
            {
                 x += elm.X;
@@ -280,11 +300,11 @@ namespace Spider
                 {
                   //  g.FillRectangle(new SolidBrush(elm.BackColor), new Rectangle(x + elm.X , y +elm.Y + this.Padding.Top, elm.Width - this.Padding.Left * 2, elm.Height - this.Padding.Top * 2));
                 }
-                elm.Draw(g, ref x, ref y);
+                elm.Draw(g, ref x, ref y);                      
                x -= elm.X;
                y -=elm.Y;
            }
-           g.DrawRectangle(new Pen(Color.Red), new Rectangle(X, Y, Width, Height));
+          // g.DrawRectangle(new Pen(Color.Red), new Rectangle(X, Y, Width, Height));
 #if(DEBUG)
             if(mouseOver) {
                 g.DrawRectangle(new Pen(Color.Red), new Rectangle(X, Y, Width, Height));
@@ -445,7 +465,17 @@ namespace Spider
         {
             
         }
-       
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            int spacingLeft = this.Parent != null ? this.Parent.Margin.Left : this.Board.Padding.Left;
+            int spacingTop = this.Parent != null ? this.Parent.Margin.Top : this.Board.Padding.Top;
+            int spacingBottom = this.Parent != null ? this.Parent.Margin.Bottom * 2 :  this.Board.Padding.Bottom*2;
+            int spacingRight = this.Parent != null ? this.Parent.Margin.Right * 2 : this.Board.Padding.Right * 2;
+
+            g.FillRectangle(new SolidBrush(BackColor), x + spacingLeft, y + spacingTop, Width - spacingRight, Height - spacingBottom);
+         //   g.FillRectangle(new SolidBrush(BackColor), x, y, this.Width,this.Height);
+            base.Draw(g, ref x, ref y);
+        }
 
       
 
@@ -565,12 +595,17 @@ namespace Spider
             : base(parent, node)
         {
         }
-        public void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y)
         {
-            base.Draw(g, ref x, ref y);
-            
-        }
+            int spacingLeft = this.Parent != null ? this.Parent.Margin.Left : this.Board.Padding.Left;
+            int spacingTop = this.Parent != null ? this.Parent.Margin.Top : this.Board.Padding.Top;
+            int spacingBottom = this.Parent != null ? this.Parent.Margin.Bottom * 2 : this.Board.Padding.Bottom * 2;
+            int spacingRight = this.Parent != null ? this.Parent.Margin.Right * 2 : this.Board.Padding.Right * 2;
 
+            g.FillRectangle(new SolidBrush(BackColor), x + spacingLeft, y + spacingTop, Width - spacingRight, Height - spacingBottom);
+            //   g.FillRectangle(new SolidBrush(BackColor), x, y, this.Width,this.Height);
+            base.Draw(g, ref x, ref y);
+        }
 
 
         public override void PackChildren()

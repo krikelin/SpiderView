@@ -41,9 +41,9 @@ namespace Spider
             EntryColor = bitmap.GetPixel(4, 0);
             SelectedBackColor = bitmap.GetPixel(6, 0);
             ListBackgroundColor = bitmap.GetPixel(7, 0);
-            Parts.Add("TabBar", sliceBitmap(bitmap, new Rectangle(48, 1, 2, 28)));
-            Parts.Add("TabBarActive", sliceBitmap(bitmap, new Rectangle(0, 1, 42, 28)));
-            Parts.Add("Divider", sliceBitmap(bitmap, new Rectangle(0, 29, 50, 23)));
+            Parts.Add("TabBar", sliceBitmap(bitmap, new Rectangle(48, 1, 2, 23)));
+            Parts.Add("TabBarActive", sliceBitmap(bitmap, new Rectangle(0, 1, 42, 23)));
+            Parts.Add("Divider", sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)));
         }
         public Bitmap sliceBitmap(Bitmap src, Rectangle region)
         {

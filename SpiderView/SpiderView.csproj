@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,29 +31,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CefSharp, Version=0.12.4596.50, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\CefSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="CefSharp.Example, Version=0.12.4596.54, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\CefSharp.Example.dll</HintPath>
-    </Reference>
-    <Reference Include="CefSharp.WinForms, Version=0.12.4596.53, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\CefSharp.WinForms.dll</HintPath>
-    </Reference>
-    <Reference Include="CefSharp.Wpf, Version=0.12.4596.54, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\CefSharp.Wpf.dll</HintPath>
-    </Reference>
     <Reference Include="DotLiquid, Version=1.7.0.0, Culture=neutral, PublicKeyToken=82e46016ecf9f07c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\SpiderViewed\SpiderView\bin\Debug\DotLiquid.dll</HintPath>
     </Reference>
-    <Reference Include="LuaInterface, Version=2.0.0.25532, Culture=neutral, PublicKeyToken=1e1fb15b02227b8a, processorArchitecture=x86">
+    <Reference Include="lua511, Version=0.0.0.0, Culture=neutral, PublicKeyToken=1e1fb15b02227b8a, processorArchitecture=x86">
+      <HintPath>..\..\SpiderViewed\SpiderView\bin\Debug\lua511.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\LuaInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="LuaInterface, Version=2.0.0.25532, Culture=neutral, PublicKeyToken=1e1fb15b02227b8a, processorArchitecture=x86">
+      <HintPath>..\..\LerosClient\LerosClient\bin\Debug\LuaInterface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -86,6 +74,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Scripting\Interpreter.cs" />
+    <Compile Include="Scripting\LuaInterpreter.cs" />
     <Compile Include="SectionView.cs">
       <SubType>UserControl</SubType>
     </Compile>
