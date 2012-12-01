@@ -116,6 +116,8 @@ namespace Spider
 #endif
             String DOM = Preprocessor.Preprocess(this.template, obj);
             XmlDocument xmlDoc = new XmlDocument();
+            if (DOM == "NONCHANGE")
+                return;
             xmlDoc.LoadXml(DOM);
             XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");
             foreach (XmlElement elmScript in scripts)

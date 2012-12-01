@@ -161,7 +161,7 @@ namespace Spider.Preprocessor
                 String Parseable = Line.Substring(startIndex,  endToken -  startIndex);
 
                 // Convert the inline token to concation
-                Line = Line.Replace("@{" + Parseable + "}",  "\" + ( "  + Parseable + " ) + \"");
+                Line = Line.Replace("@{" + Parseable + "}",  "\" .. ( "  + Parseable + " ) .. \"");
                 IndexOf = endToken;
                
             }
@@ -409,7 +409,7 @@ namespace Spider.Preprocessor
                  // Check if at an overgoing to an code block
                 if(codeMode)
                 {
-                    if((startCase && input[i] == '?' && input[i+1] == '>') ||( input[i] == '\n' && !startCase))
+                    if((startCase && (input[i] == '?' ||input[i] == '%') && input[i+1] == '>') ||( input[i] == '\n' && !startCase))
                     {
                         codeMode=false;
 
@@ -476,7 +476,7 @@ namespace Spider.Preprocessor
                     }
                     try
                     {
-                        if ((((input[i] == '\n' || input[i] == ' ') && input[i + 1] == '%')) || (input[i] == '<' && input[i + 1] == '?'))
+                        if ((((input[i] == '\n' || input[i] == ' ' || input[i] == '\t') && input[i + 1] == '%' && input[i + 2] != '>')) || (input[i] == '<' && input[i + 1] == '?'))
                         {
                             startCase = (input[i] == '<' && input[i + 1] == '?');
                             codeMode = true;
