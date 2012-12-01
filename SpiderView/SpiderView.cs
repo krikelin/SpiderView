@@ -19,6 +19,7 @@ namespace Spider
     public partial class SpiderView : UserControl
     {
         public Interpreter Scripting;
+        public Preprocessor.Preprocessor Preprocessor;
         /// <summary>
         /// Delegator that deelgates update of view
         /// </summary>
@@ -53,7 +54,8 @@ namespace Spider
         {
                 
             this.Scripting = new Scripting.LuaInterpreter(this);
-            this.Scripting.PushFunction("refresh", GetType().GetMethod("refresh"));
+            this.Preprocessor = new Preprocessor.LuaMako(this);
+            this.Scripting.RegisterFunction("refresh", GetType().GetMethod("refresh"));
 
             this.timer = new Timer();
             InitializeComponent();
@@ -107,10 +109,12 @@ namespace Spider
         }
         public void Refresh(Object obj)
         {
-            //Preprocessor processor = new Preprocessor();
-
+            
+#if(false)
             Template template = Template.Parse(this.template);
             String DOM = template.Render(Hash.FromAnonymousObject(obj));
+#endif
+            String DOM = Preprocessor.Preprocess(this.template, obj);
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(DOM);
             XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");

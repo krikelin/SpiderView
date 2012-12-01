@@ -30,14 +30,14 @@ namespace Spider.Scripting
         }
         public void LoadScript(string code)
         {
-            this.lua.LoadString(code, "");
+            this.lua.DoString(code, "");
         }
-        public void RunCode(string code)
+        public object[] RunCode(string code)
         {
-            this.lua.DoString(code);
+            return this.lua.DoString(code);
         }
 
-        public void PushFunction(string function, System.Reflection.MethodBase func)
+        public void RegisterFunction(string function, System.Reflection.MethodBase func)
         {
             this.lua.RegisterFunction(function, null, func);
         }
@@ -52,17 +52,33 @@ namespace Spider.Scripting
         /// </summary>
         /// <param name="function"></param>
         /// <param name="arguments"></param>
-        public void InvokeFunction(string function, params object[] arguments)
+        public object[] InvokeFunction(string function, params object[] arguments)
         {
             try
             {
-                LuaFunction func = this.lua.GetFunction(function);
-                func.Call(arguments);
+                
+                LuaFunction func = this.lua.GetFunction( function);
+                return func.Call(arguments);
             }
             catch (Exception e)
             {
-
+                return new Object[] { };
             }
+        }
+
+
+        public void RegisterFunction(string function, Delegate func)
+        {
+           
+
+                this.lua.RegisterFunction(function,null, func.Method);
+            
+        }
+
+
+        public void SetVariable(string variable, object val)
+        {
+            this.lua[variable] = val;
         }
     }
 }

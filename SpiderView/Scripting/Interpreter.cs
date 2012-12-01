@@ -16,7 +16,7 @@ namespace Spider
         /// </summary>
         /// <param name="function">Function name</param>
         /// <param name="arguments">Arguments to send</param>
-        void InvokeFunction(String function, params Object[] arguments);
+        object[] InvokeFunction(String function, params Object[] arguments);
         /// <summary>
         /// Gets the content type of the script engine
         /// </summary>
@@ -36,15 +36,16 @@ namespace Spider
         /// Runs the code
         /// </summary>
         /// <param name="code"></param>
-        void RunCode(String code);
+        object[] RunCode(String code);
 
         /// <summary>
         /// Register a function in the cloud
         /// </summary>
         /// <param name="function"></param>
         /// <param name="func"></param>
-        void PushFunction(String function, System.Reflection.MethodBase func);
-
+        void RegisterFunction(String function, System.Reflection.MethodBase func);
+        void RegisterFunction(String function, Delegate func);
+        void SetVariable(String variable, object val);
         /// <summary>
         /// Gets the view the script is attached to
         /// </summary>
