@@ -43,8 +43,8 @@ namespace Spider
         /// </summary>
         /// <param name="function"></param>
         /// <param name="func"></param>
-        void RegisterFunction(String function, System.Reflection.MethodBase func);
-        void RegisterFunction(String function, Delegate func);
+        void RegisterFunction(String function, System.Reflection.MethodBase func, Object target);
+        void RegisterFunction(String function, Delegate func, Object target);
         void SetVariable(String variable, object val);
         /// <summary>
         /// Gets the view the script is attached to

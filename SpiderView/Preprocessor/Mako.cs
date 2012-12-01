@@ -6,6 +6,7 @@ using System.Net;
 using System.Xml;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Reflection;
 namespace Spider.Preprocessor
 {
     /// <summary>
@@ -58,7 +59,7 @@ namespace Spider.Preprocessor
         /// </summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        public object __printx( string values)
+        public object __printx( string values = "")
         {
             Output += values.Replace("%BR%","\n").Replace("¤","\"");
             return true;
@@ -475,7 +476,7 @@ namespace Spider.Preprocessor
                     }
                     try
                     {
-                        if (((input[i] == '\n' && input[i + 1] == '%')) || (input[i] == '<' && input[i + 1] == '?'))
+                        if ((((input[i] == '\n' || input[i] == ' ') && input[i + 1] == '%')) || (input[i] == '<' && input[i + 1] == '?'))
                         {
                             startCase = (input[i] == '<' && input[i + 1] == '?');
                             codeMode = true;
@@ -510,8 +511,8 @@ namespace Spider.Preprocessor
                 CallStack += "\");";
             }
             // Run the code
-            RuntimeMachine.RegisterFunction("__printx",new Func<String,object>( __printx));
-            RuntimeMachine.RegisterFunction("synchronize_data", new Func<String, object>(synchronize_data));
+            RuntimeMachine.RegisterFunction("__printx", (MethodBase)new printx_func(__printx).Method, this);
+            RuntimeMachine.RegisterFunction("synchronize_data", (MethodBase)new synchronize_func(synchronize_data).Method, this);
             CallStack = finalOutput.ToString();
            
             CallStack = CallStack.Replace("\r", "");
@@ -539,7 +540,11 @@ namespace Spider.Preprocessor
                 }
                 catch (Exception e)
                 {
-                    // clear output
+                    using (System.IO.StreamReader SR = new System.IO.StreamReader("error.xml"))
+                    {
+                        return SR.ReadToEnd();
+                    }
+                    /*// clear output
                     this.Output = "";
                     // Load error page
                     using (System.IO.StreamReader SR = new System.IO.StreamReader("views\\error.xml"))
@@ -549,8 +554,8 @@ namespace Spider.Preprocessor
                         RuntimeMachine.SetFunction("__printx", new Func<String, object>(__printx));
                         RuntimeMachine.SetVariable("error", e.ToString() + "\n " );
 
-                        RuntimeMachine.RunCode((errorView));*/
-                    }
+                        RuntimeMachine.RunCode((errorView));
+                    }*/
                 }
                 return this.Output;
             }
@@ -562,4 +567,7 @@ namespace Spider.Preprocessor
 
         }
     }
+    public delegate object synchronize_func(String uri);
+    public delegate object printx_func(string msg = "");
+
 }

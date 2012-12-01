@@ -35,12 +35,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\SpiderViewed\SpiderView\bin\Debug\DotLiquid.dll</HintPath>
     </Reference>
-    <Reference Include="lua511, Version=0.0.0.0, Culture=neutral, PublicKeyToken=1e1fb15b02227b8a, processorArchitecture=x86">
+    <Reference Include="lua511">
       <HintPath>..\..\SpiderViewed\SpiderView\bin\Debug\lua511.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="LuaInterface, Version=2.0.0.25532, Culture=neutral, PublicKeyToken=1e1fb15b02227b8a, processorArchitecture=x86">
-      <HintPath>..\..\LerosClient\LerosClient\bin\Debug\LuaInterface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -68,6 +64,22 @@
     </Compile>
     <Compile Include="Class1.cs" />
     <Compile Include="Element.cs" />
+    <Compile Include="LuaInterface\CheckType.cs" />
+    <Compile Include="LuaInterface\GenerateEventAssembly.cs" />
+    <Compile Include="LuaInterface\Lua.cs" />
+    <Compile Include="LuaInterface\LuaBase.cs" />
+    <Compile Include="LuaInterface\LuaException.cs" />
+    <Compile Include="LuaInterface\LuaFunction.cs" />
+    <Compile Include="LuaInterface\LuaGlobalAttribute.cs" />
+    <Compile Include="LuaInterface\LuaHideAttribute.cs" />
+    <Compile Include="LuaInterface\LuaRegistrationHelper.cs" />
+    <Compile Include="LuaInterface\LuaScriptException.cs" />
+    <Compile Include="LuaInterface\LuaTable.cs" />
+    <Compile Include="LuaInterface\LuaUserData.cs" />
+    <Compile Include="LuaInterface\Metatables.cs" />
+    <Compile Include="LuaInterface\MethodWrapper.cs" />
+    <Compile Include="LuaInterface\ObjectTranslator.cs" />
+    <Compile Include="LuaInterface\ProxyType.cs" />
     <Compile Include="Preprocessor\Liquidcs.cs" />
     <Compile Include="Preprocessor\LuaPreprocessor.cs" />
     <Compile Include="Preprocessor\Mako.cs" />
@@ -174,6 +186,9 @@
   <ItemGroup>
     <None Include="Resources\skin.png" />
     <Content Include="System.Drawing.Html\System.Drawing.Html.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LuaInterface\Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -37,9 +37,9 @@ namespace Spider.Scripting
             return this.lua.DoString(code);
         }
 
-        public void RegisterFunction(string function, System.Reflection.MethodBase func)
+        public void RegisterFunction(string function, System.Reflection.MethodBase func, Object target)
         {
-            this.lua.RegisterFunction(function, null, func);
+            this.lua.RegisterFunction(function, target, func);
         }
 
         public SpiderView View
@@ -67,11 +67,11 @@ namespace Spider.Scripting
         }
 
 
-        public void RegisterFunction(string function, Delegate func)
+        public void RegisterFunction(string function, Delegate func, Object target)
         {
            
 
-                this.lua.RegisterFunction(function,null, func.Method);
+                this.lua.RegisterFunction(function,target, func.Method);
             
         }
 

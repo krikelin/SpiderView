@@ -55,7 +55,7 @@ namespace Spider
                 
             this.Scripting = new Scripting.LuaInterpreter(this);
             this.Preprocessor = new Preprocessor.LuaMako(this);
-            this.Scripting.RegisterFunction("refresh", GetType().GetMethod("refresh"));
+            this.Scripting.RegisterFunction("refresh", GetType().GetMethod("refresh"), this);
 
             this.timer = new Timer();
             InitializeComponent();
