@@ -12,14 +12,17 @@ namespace Spider
     [Serializable]
     public partial class SPListView : UserControl
     {
+        public Selector Selector { get; set; }
+        public Selector SelectedStyle { get; set; }
         public Style stylesheet;
         public SPListView(Spider.Style stylesheet)
         {
             InitializeComponent();
             this.Items = new List<SPListItem>();
-            this.BackColor = stylesheet.BackColor;
-            this.ForeColor = stylesheet.ForeColor;
+
             this.stylesheet = stylesheet;
+            this.SelectedStyle = stylesheet.Selectors["::selection"];
+            this.Selector = stylesheet.Selectors["ListView"];
         }
         public int GetIndexByName(String name)
         {
@@ -57,7 +60,7 @@ namespace Spider
         {
             try
             {
-                Color foreColor = Item.CustomColor ? Item.Color : this.stylesheet.ForeColor;
+                Color foreColor = Item.CustomColor ? Item.Color : this.Selector.ForeColor;
                 if (Item.Text.StartsWith("#"))
                 {
                     foreColor = Color.FromArgb(150, 150, 150);
@@ -93,9 +96,9 @@ namespace Spider
                         {
 
                             // g.DrawImage(Properties.Resources.menu_selection, 0, pos, this.Width * 500, Properties.Resources.menu_selection.Height);
-                            g.FillRectangle(new SolidBrush(stylesheet.SelectedBackColor), new Rectangle(0, pos, this.Width * 500, 16));
+                            g.FillRectangle(new SolidBrush(SelectedStyle.BackColor), new Rectangle(0, pos, this.Width * 500, 16));
 
-                            foreColor = this.stylesheet.SelectedForeColor;
+                            foreColor = SelectedStyle.ForeColor;
                         }
                         else if (Item.Touched)
                         {
@@ -151,9 +154,9 @@ namespace Spider
             BufferedGraphicsContext c = new BufferedGraphicsContext();
             BufferedGraphics bg = c.Allocate(gr, new Rectangle(0, 0, this.Width, this.Height));
             Graphics g = bg.Graphics;
-            g.FillRectangle(new SolidBrush(stylesheet.BackColor), 0, 0, this.Width, this.Height);
+            g.FillRectangle(new SolidBrush(Selector.BackColor), 0, 0, this.Width, this.Height);
             int pos = -ScrollY;
-            int level = 0;
+            int level = 0;           
             if (Items != null)
                 foreach (SPListItem Item in Items)
                 {
@@ -201,8 +204,8 @@ namespace Spider
 
             InitializeComponent();
             this.Items = new List<SPListItem>();
-            this.BackColor = stylesheet.BackColor;
-            this.ForeColor = stylesheet.ForeColor;
+            this.BackColor = Selector.BackColor;
+            this.ForeColor = Selector.ForeColor;
 
         }
         public SPListItem GetAppByUri(Uri uri)

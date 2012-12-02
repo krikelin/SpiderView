@@ -50,6 +50,7 @@ namespace Spider
             this.Refresh(obj);
         }
         private System.Windows.Forms.Timer timer;
+        public Selector Selector;
         public SpiderView()
         {
                 
@@ -68,7 +69,9 @@ namespace Spider
             this.Controls.Add(tabBar);
             deck.Dock = DockStyle.Fill;
             this.tabBar.Dock = DockStyle.Top;
-            this.BackColor = Stylesheet.BackColor;
+            Selector = Stylesheet.Selectors["Body"];
+            this.BackColor = Selector.BackColor;
+            this.ForeColor = Selector.ForeColor;
             this.tabBar.TabChange += tabBar_TabChange;
             this.timer.Tick += timer_Tick;
             this.timer.Interval = 1000;
@@ -147,9 +150,31 @@ namespace Spider
         }
         public void LoadNodesAgain(XmlElement element)
         {
+
+            // Remove all gone sections
             var sections = element.GetElementsByTagName("section");
+            for (int i = 0 ; i < Sections.Keys.Count; i++)
+            {
+                var key = Sections.Keys.ElementAt(i);
+               bool found = false;
+               foreach (XmlElement elm in sections)
+               {
+                   if (elm.GetAttribute("id") == Sections.Keys.ElementAt(i))
+                       found = true;
+               }
+               if (!found)
+               {
+                   tabBar.Tabs.Remove(tabBar.Tabs.Find(tab => tab.ID == key));
+                   SectionView childBoard = Sections[key];
+                   this.deck.Controls.Remove(childBoard);
+                   Sections.Remove(key);
+               }
+
+
+            }
             foreach (XmlElement _section in sections)
             {
+                
                 if(this.Sections.ContainsKey(_section.GetAttribute("id"))) {
                    
                     SectionView section = this.Sections[_section.GetAttribute("id")];
@@ -175,8 +200,8 @@ namespace Spider
                 childBoard.ScriptCalled += childBoard_ScriptCalled;
                 childBoard.AutoResize();
                 childBoard.Width = 1280;
-                if(_section.HasAttribute("padding"))
-                        childBoard.Padding = new Padding(_section.GetAttribute("padding"));
+                //if(_section.HasAttribute("padding"))
+                //        childBoard.Padding = new Spider.Padding(_section.GetAttribute("padding"));
                 this.deck.Controls.Add(sv);
                 sv.Dock = DockStyle.Fill;
         }

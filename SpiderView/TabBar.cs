@@ -13,12 +13,15 @@ namespace Spider
     public partial class TabBar : UserControl
     {
         public SpiderView SpiderView;
-        private Image tabBar;
+        public Selector Selector { get; set; }
+        public Selector ActiveTabSelector { get; set; }
         public TabBar(SpiderView spiderView)
         {
             InitializeComponent();
             this.SpiderView = spiderView;
-            tabBar = this.SpiderView.Stylesheet.Parts["TabBar"];
+            this.Selector = spiderView.Stylesheet.Selectors["TabBar"];
+            this.ActiveTabSelector = spiderView.Stylesheet.Selectors["TabBar::active"];
+            
             this.Resize += TabBar_Resize;
             
         }
@@ -39,19 +42,20 @@ namespace Spider
             try
             {
                 BufferedGraphics graphics = bgc.Allocate(g, new Rectangle(0, 0, this.Width, this.Height));
-                graphics.Graphics.DrawImage(tabBar, 0, 0, (int)((float)this.Width * 2), this.Height);
+                if(Selector.BackgroundImage != null)
+                  graphics.Graphics.DrawImage(Selector.BackgroundImage, 0, 0, (int)((float)this.Width * 2), this.Height);
                 int x = 0;
                 foreach (Tab tab in Tabs)
                 {
                     Color fgColor = Color.Black;
                     if (tab == ActiveTab)
                     {
-                        fgColor = SpiderView.Stylesheet.ForeColor;
-                        graphics.Graphics.FillRectangle(new SolidBrush(SpiderView.Stylesheet.BackColor), new Rectangle(x, 0, tab.Width, this.Height));
+                        fgColor = this.Selector.ForeColor;
+                        graphics.Graphics.FillRectangle(new SolidBrush(ActiveTabSelector.BackColor), new Rectangle(x, 0, tab.Width, this.Height));
                     }
 
-                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(Color.White), new Point(x + 15, 5));
-                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(fgColor), new Point(x + 15, 4));
+                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabSelector.TextShadowColor), new Point(x + 15, 5));
+                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabSelector.ForeColor), new Point(x + 15, 4));
                     x += tab.Width;
                 }
                 graphics.Render();

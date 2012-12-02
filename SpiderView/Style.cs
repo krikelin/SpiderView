@@ -9,18 +9,160 @@ using System.Xml.Serialization;
 namespace Spider
 {
     [Serializable]
+    public class Constraint
+    {
+        public Constraint(String value)
+        {
+            if (value.Contains(','))
+            {
+                String[] t = value.Split(',');
+                Left = int.Parse(t[0]);
+                Top = int.Parse(t[1]);
+                Bottom = int.Parse(t[2]);
+                Right = int.Parse(t[3]);
+            }
+            else
+            {
+                int val = int.Parse(value);
+                Left = val;
+                Top = val;
+                Right = val;
+                Bottom = val;
+            }
+        }
+        public int Top { get; set; }
+        public int Left { get; set; }
+        public int Right { get; set; }
+        public int Bottom { get; set; }
+    }
+
+    [Serializable]
+    public class Margin : Constraint
+    {
+        public Margin(String value) :
+            base(value)
+        {
+
+        }
+    }
+
+    [Serializable]
+    public class Padding : Constraint
+    {
+        public Padding(String value) :
+            base(value)
+        {
+
+        }
+    }
+    [Serializable]
+    public class Selector : ICloneable
+    {
+        public Margin Margin { get; set; }
+        public Padding Padding { get; set; }
+        public Color BackColor;
+        public Color ForeColor;
+        public Color AlternateColor;
+        public Image BackgroundImage;
+        public Color TextShadowColor;
+        private Font font = new Font("MS Sans Serif", 11);
+        public Font Font
+        {
+            get
+            {
+                return this.font;
+            }
+            set
+            {
+                this.font = value;
+            }
+        }
+        public Selector(String code, Selector parent)
+        {
+            Aleros.CSS.Selector selector = new Aleros.CSS.Selector("@internal", code);
+            this.Padding = new Padding("0");
+            this.Margin = new Margin("1");
+            foreach (Aleros.CSS.Rule rule in selector.rules)
+            {
+                if (rule.rule == "background" || rule.rule == "background-color")
+                {
+                    this.BackColor = ColorTranslator.FromHtml(rule.value);
+                }
+                else
+                {
+                    this.BackColor = parent.BackColor;
+                }
+                if (rule.rule == "font-color")
+                {
+                        this.ForeColor = ColorTranslator.FromHtml(rule.value);
+                }
+                else
+                {
+                    this.ForeColor = parent.ForeColor;
+                }
+                if (rule.rule == "padding")
+                {
+                    this.Padding = new Padding(rule.value);
+                }
+                else
+                {
+                    this.Padding = parent.Padding;
+                }
+                if (rule.rule == "margin")
+                {
+                    this.Margin = new Margin(rule.value);
+                }
+                else
+                {
+                    this.Margin = parent.Margin;
+                }
+
+            }
+            
+        }
+        public Selector(Color backColor, Color foreColor, Color textShadowColor, Color alternateColor)
+        {
+            this.Padding = new Padding("1");
+            this.Margin = new Margin("1");
+            this.BackColor = backColor;
+            this.ForeColor = foreColor;
+            this.TextShadowColor = textShadowColor;
+            this.AlternateColor = alternateColor;
+            this.Padding = new Padding("0");
+            this.Margin = new Margin("1");
+        }
+        public Selector(Image backgroundImage, Color foreColor, Color textShadowColor, Color alternateColor)
+        {
+            this.BackgroundImage = backgroundImage;
+            this.ForeColor = foreColor;
+            this.TextShadowColor = textShadowColor;
+            this.AlternateColor = alternateColor;
+            this.Padding = new Padding("0");
+            this.Margin = new Margin("1");
+        }
+
+        public object Clone()
+        {
+            Selector newSelector = new Selector(BackColor, ForeColor, TextShadowColor, AlternateColor);
+            if (this.BackgroundImage != null)
+                newSelector.BackgroundImage = this.BackgroundImage;
+            newSelector.Padding = Padding;
+            newSelector.Margin = Margin;
+            newSelector.BackColor = BackColor;
+            newSelector.ForeColor = ForeColor;
+            return newSelector;
+        }
+    }
+    [Serializable]
     [XmlRoot("skin")]
     public class Style
     {
+        
         public Style()
         {
-            ForeColor = Color.FromArgb(255, 211, 211, 211);
-            AlternateColor = Color.Gray;
-            BackColor = Color.FromArgb(255, 55, 55, 55);
-            EntryColor = Color.FromArgb(255, 88, 88, 88);
-            Font = new Font("MS Sans Serif", 11);
-            Skin = Properties.Resources.skin;
 
+            this.Selectors = new Dictionary<string, Selector>();
+            Skin = Properties.Resources.skin;
             // Partialize skin
         }
         private Bitmap skin;
@@ -35,15 +177,13 @@ namespace Spider
         public void Slice(Bitmap bitmap)
         { 
             // Get tab bar
-            ForeColor = bitmap.GetPixel(1, 0);
-            BackColor = bitmap.GetPixel(0, 0);
-            AlternateColor = bitmap.GetPixel(3, 0);
-            EntryColor = bitmap.GetPixel(4, 0);
-            SelectedBackColor = bitmap.GetPixel(6, 0);
-            ListBackgroundColor = bitmap.GetPixel(7, 0);
-            Parts.Add("TabBar", sliceBitmap(bitmap, new Rectangle(48, 1, 2, 23)));
-            Parts.Add("TabBarActive", sliceBitmap(bitmap, new Rectangle(0, 1, 42, 23)));
-            Parts.Add("Divider", sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)));
+            this.Selectors.Add("TabBar", new Selector(sliceBitmap(bitmap, new Rectangle(48, 1, 2, 23)), bitmap.GetPixel(2, 0), bitmap.GetPixel(4, 0), bitmap.GetPixel(0, 0)));
+            this.Selectors.Add("TabBar::active", new Selector(bitmap.GetPixel(9, 0), Color.White, Color.Black, bitmap.GetPixel(0, 0)));
+
+            this.Selectors.Add("Divider", new Selector(sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)), Color.White, Color.Black, Color.White));
+            this.Selectors.Add("::selection", new Selector(bitmap.GetPixel(6, 0), bitmap.GetPixel(5, 0), Color.Black, Color.White));
+            this.Selectors.Add("ListView", new Selector(bitmap.GetPixel(8, 0), Color.White, Color.Black, bitmap.GetPixel(8, 0)));
+            this.Selectors.Add("Body", new Selector(bitmap.GetPixel(0, 0), bitmap.GetPixel(1, 0), Color.Black, bitmap.GetPixel(8, 0)));
         }
         public Bitmap sliceBitmap(Bitmap src, Rectangle region)
         {
@@ -54,19 +194,6 @@ namespace Spider
             return target;
         }
 
-        [XmlElement("forecolor")]
-        public Color ForeColor { get; set; }
-        public Color EntryColor { get; set; }
-        public Color BackColor { get; set; }
-        public Color AlternateColor { get; set; }
-        public Font Font { get; set; }
-        
-        public Dictionary<String, Image> Parts = new Dictionary<string,Image>();
-
-        public Color SelectedBackColor { get; set; }
-
-        public Color SelectedForeColor { get; set; }
-
-        public Color ListBackgroundColor { get; set; }
+        public Dictionary<string, Selector> Selectors { get; set; }
     }
 }

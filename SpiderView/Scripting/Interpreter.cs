@@ -6,11 +6,25 @@ using System.Threading.Tasks;
 
 namespace Spider
 {
+     /// <summary>
+    /// A memory table is mapping between script engines and initial script engines pushing
+    /// </summary>
+    public class MemoryTable : Dictionary<String, Object>
+    {
+        
+
+    }
     /// <summary>
     /// Script engine for Spider applications
     /// </summary>
     public interface Interpreter
     {
+        /// <summary>
+        /// Converts a memory table to native table
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        object TableToNative(MemoryTable table);
         /// <summary>
         /// Invokes a function
         /// </summary>

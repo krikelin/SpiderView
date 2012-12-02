@@ -14,48 +14,7 @@ using System.Drawing.Html;
 
 namespace Spider
 {
-    public class Constraint
-    {
-        public Constraint(String value)
-        {
-            if (value.Contains(','))
-            {
-                String[] t = value.Split(',');
-                Left = int.Parse(t[0]);
-                Top = int.Parse(t[1]);
-                Bottom = int.Parse(t[2]);
-                Right = int.Parse(t[3]);
-            }
-            else
-            {
-                int val = int.Parse(value);
-                Left = val;
-                Top = val;
-                Right = val;
-                Bottom = val;
-            }
-        }
-        public int Top { get; set; }
-        public int Left { get; set; }
-        public int Right { get; set; }
-        public int Bottom { get; set; }
-    }
-    public class Margin : Constraint
-    {
-        public Margin(String value) :
-            base(value)
-        {
-
-        }
-    }
-    public class Padding : Constraint
-    {
-        public Padding(String value) :
-            base(value)
-        {
-
-        }
-    }
+    
     /// <summary>
     /// Section
     /// </summary>
@@ -76,11 +35,44 @@ namespace Spider
     /// </summary>
     public abstract class Element
     {
-        public String Text;
-        public Color BackColor = Color.Transparent;
-        public Color ForeColor = Color.Black;
-        public Margin Margin = new Margin("0");
-        public Padding Padding = new Padding("0");
+        public Selector Selector { get; set; }
+        public virtual String Text { get; set; }
+        public Color BackColor
+        {
+            get
+            {
+                return this.Selector.BackColor;
+            }
+            set
+            {
+                this.Selector.BackColor = value;
+            }
+        }
+        public Color ForeColor
+        {
+            get
+            {
+                return this.Selector.ForeColor;
+            }
+            set
+            {
+                this.Selector.ForeColor = value;
+            }
+        }
+        public Margin Margin
+        {
+            get
+            {
+                return this.Selector.Margin;
+            }
+        }
+        public Padding Padding
+        {
+            get
+            {
+                return this.Selector.Padding;
+            }
+        }
         public int Flex = 0;
         public enum DockStyle {
             Left, Top, Bottom, Right
@@ -110,7 +102,7 @@ namespace Spider
         private void OnMouseOver(int x, int y)
         {
             if (this.MouseMove != null)
-                this.MouseMove(this, new MouseEventArgs() { X = x, Y = y });
+                this.MouseMove(this, new MouseEventArgs(x, y));
 
 #if(DEBUG)
          //   this.mouseOver = true;
@@ -146,6 +138,7 @@ namespace Spider
 
 
         }
+       
         private Color ParseColorAttribute(String propertyName, String attribute, XmlElement elm)
         {
             if (elm.HasAttribute(attribute))
@@ -154,7 +147,7 @@ namespace Spider
             }
             else
             {
-                Type type = Stylesheet.GetType();
+                Type type = Selector.GetType();
                 MemberInfo member = type.GetMember(propertyName)[0];
                 if (member.MemberType == System.Reflection.MemberTypes.Property)
                 {
@@ -162,7 +155,10 @@ namespace Spider
                     return (Color)property.GetValue(Stylesheet);
                 }
             }
-            return Color.Transparent;
+            if (propertyName == "ForeColor")
+                return Selector.ForeColor;
+            else
+                return Color.Transparent;
         }
         private Color ParseColor(String value)
         {
@@ -183,7 +179,7 @@ namespace Spider
                   return ColorTranslator.FromHtml(value);
                 
             }
-            return Stylesheet.BackColor;
+            return this.Selector.BackColor;
         }
         public int AbsoluteWidth = 0, AbsoluteHeight = 0;
         public String Name { get; set; }
@@ -196,7 +192,7 @@ namespace Spider
         {
             this.Board = Host;
             this.node = node;
-            
+            this.Selector = (Selector)this.Board.Stylesheet.Selectors["Body"].Clone();
             this.BackColor = ParseColorAttribute("BackColor", ("bgcolor"), node);
 
             this.ForeColor = ParseColorAttribute("ForeColor", "color", node);
@@ -207,13 +203,14 @@ namespace Spider
                 }
 
             }
+           
             if (node.HasAttribute("onclick"))
             {
                
             }
             if (node.HasAttribute("margin"))
             {
-                this.Margin = new Margin(node.GetAttribute("margin"));
+                Selector.Margin = new Margin(node.GetAttribute("margin"));
             }
             if (node.HasAttribute("flex"))
             {
@@ -221,7 +218,7 @@ namespace Spider
             }
             if (node.HasAttribute("padding"))
             {
-                this.Padding = new Padding(node.GetAttribute("padding"));
+                Selector.Padding = new Padding(node.GetAttribute("padding"));
             }
             if (node.HasAttribute("uri"))
             {
@@ -259,6 +256,10 @@ namespace Spider
                 this.AbsoluteHeight = 32;
                 this.Height = this.AbsoluteHeight;
             }
+            if (node.HasAttribute("style"))
+            {
+                this.Selector = new Selector(node.GetAttribute("style"), Selector);
+            }
             this.Text = node.InnerText;
             foreach (XmlNode elm in node.ChildNodes)
             {
@@ -280,6 +281,11 @@ namespace Spider
         public Board Board { get; set; }
         public Element Parent { get; set; }
         public class MouseEventArgs {
+            public MouseEventArgs(int x, int y)
+            {
+                this.X = x;
+                this.Y = y;
+            }
             public int X {get;set;}
             public int Y {get;set;}
         }
@@ -300,7 +306,9 @@ namespace Spider
                 {
                   //  g.FillRectangle(new SolidBrush(elm.BackColor), new Rectangle(x + elm.X , y +elm.Y + this.Padding.Top, elm.Width - this.Padding.Left * 2, elm.Height - this.Padding.Top * 2));
                 }
-                elm.Draw(g, ref x, ref y);                      
+                elm.Draw(g, ref x, ref y);
+                elm.AbsoluteLeft = x;
+                elm.AbsoluteTop = y;
                x -= elm.X;
                y -=elm.Y;
            }
@@ -316,7 +324,7 @@ namespace Spider
         {
             if (this.Click != null)
             {
-                this.Click(this, new MouseEventArgs());
+                this.Click(this, new MouseEventArgs(x, y));
             }
 
         }
@@ -325,10 +333,12 @@ namespace Spider
             mouseOver = true;
             this.Draw(Board.CreateGraphics(), ref x, ref y);
         }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public virtual int X { get; set; }
+        public virtual int Y { get; set; }
+        public virtual int Width { get; set; }
+        public virtual int Height { get; set; }
+        public virtual int AbsoluteLeft {get;set;}
+        public virtual int AbsoluteTop { get; set; }
         public List<Element> Children = new List<Element>();
         public abstract void PackChildren();
 
@@ -360,7 +370,9 @@ namespace Spider
         {
             Bitmap c = new Bitmap(this.Width, this.Height);
             Graphics g = Graphics.FromImage(c);
-            HtmlRenderer.Render(g, "<style type=\"text/css\">body{color: " + ColorTranslator.ToHtml(this.ForeColor) + ";}</style> <span color=\"" + ColorTranslator.ToHtml(ForeColor) + "\">" + Text + "</span>", new Point(0, 0), this.Width);
+            int fontSize = (int)(((float)Selector.Font.Size / 11) * 3);
+            String html = "<font face=\"" + Selector.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Selector.ForeColor) + "\">" + Text + "</font>";
+            HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
             return c;
         }
         /// <summary>
@@ -404,7 +416,151 @@ namespace Spider
             
         }
     }
- 
+    public class html : text
+    {
+        public html(Board board, XmlElement node)
+            : base(board, node)
+        {
+        }
+    }
+    public class control : Element
+    {
+        public  override void PackChildren()
+        {
+        }
+        public Control Control { get; set; }
+        public control(Board host, XmlElement node)
+            : base(host, node)
+        {
+            
+           
+        }
+        private Bitmap bitmap;
+        private Bitmap createBitmap()
+        {
+            if(Control == null)
+                return null;
+            bitmap = new Bitmap(Control.Width, Control.Height);
+            Control.DrawToBitmap(bitmap, new Rectangle(0, 0, Control.Width, Control.Height));
+            return bitmap;
+        }
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            base.Draw(g, ref x, ref y);
+            if (bitmap == null)
+                bitmap = createBitmap();
+            g.DrawImage(bitmap, x, y);
+        }
+        public new String Text
+        {
+            get
+            {
+                return this.Control.Text;
+            }
+            set
+            {
+                this.Control.Text = value;
+                bitmap = createBitmap(); // Create new bitmap
+            }
+        }
+        public override int AbsoluteLeft
+        {
+            get
+            {
+                return base.AbsoluteLeft;
+            }
+            set
+            {
+                base.AbsoluteLeft = value;
+                if (Control != null)
+                    Control.Left = value;
+            }
+        }
+        public override int AbsoluteTop
+        {
+            get
+            {
+                return base.AbsoluteTop;
+            }
+            set
+            {
+                base.AbsoluteTop = value;
+                if (Control != null)
+                    Control.Top = value;
+            }
+        }
+        public override int Width
+        {
+            get
+            {
+                return base.Width;
+            }
+            set
+            {
+                if (value > 100)
+                    value = 100;
+                base.Width = value;
+                if(base.Width > 0)
+                if (Control != null)
+                    Control.Width = value;
+            }
+        }
+        public override int Height
+        {
+            get
+            {
+                return base.Height;
+            }
+            set
+            {
+                if (base.Height > 0)
+                base.Height = value;
+                if(Control != null)
+                    Control.Height = value;
+            }
+        }
+    }
+    public class input : control 
+    {
+        public input(Board host, XmlElement node)
+            : base(host, node)
+        {
+            if (node.GetAttribute("type") == "text")
+            {
+                base.Control = new TextBox();
+                base.Control.Tag = this;
+                host.Controls.Add(Control);
+                var id = node.GetAttribute("name");
+                if (host.InputFields.ContainsKey(id))
+                {
+                    host.InputFields.Remove(id);
+                }
+                host.InputFields.Add(id, this);
+            }
+        }
+    }
+    public class button : control
+    {
+        public button(Board host, XmlElement node)
+            : base(host, node)
+        {
+         
+                base.Control = new Button();
+                base.Control.Tag = this;
+                host.Controls.Add(Control);
+                base.Control.Text = node.InnerText;
+                base.Control.MouseClick += Control_MouseClick;
+                host.InputFields.Add(node.GetAttribute("name"), this);
+            
+        }
+
+        void Control_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            Element elm = (Element)((Control)sender).Tag;
+            elm.OnClick(e.X, e.Y);
+
+        }
+    }
     public class img : Element
     {
         private Image image;
@@ -532,12 +688,13 @@ namespace Spider
         public divider(Board parent, XmlElement node)
             : base(parent, node)
         {
-            imgDivider = parent.SpiderView.Stylesheet.Parts["Divider"];
+            this.Selector = parent.Stylesheet.Selectors["Divider"];
+            imgDivider = this.Selector.BackgroundImage;
         }
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             g.DrawImage(imgDivider, new Rectangle(x, y, (int)((float)this.Width * 1.5), this.Height));
-            g.DrawString(this.Text, new Font("MS Sans Serif", 11), new SolidBrush(Color.White), new Point(x, y));
+            g.DrawString(this.Text, Selector.Font, new SolidBrush(Selector.ForeColor), new Point(x, y));
             base.Draw(g, ref x, ref y);
 
         }

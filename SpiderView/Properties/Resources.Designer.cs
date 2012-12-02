@@ -61,6 +61,22 @@ namespace Spider.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to function listToTable(clrlist)
+        ///		local t = {}
+        ///		local it = clrlist:GetEnumerator()
+        ///		while it:MoveNext() do
+        ///		  t[#t+1] = it.Current
+        ///		end
+        ///		return t
+        ///	end.
+        /// </summary>
+        internal static string helperlua {
+            get {
+                return ResourceManager.GetString("helperlua", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap skin {

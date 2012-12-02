@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Spider.Scripting
 {
+   
     /// <summary>
     /// Lua interpreter for the Spider view
     /// </summary>
@@ -14,10 +15,12 @@ namespace Spider.Scripting
     {
         private LuaInterface.Lua lua;
         private SpiderView host;
+        
         public LuaInterpreter(SpiderView host)
         {
             this.host = host;
             this.lua = new LuaInterface.Lua();
+            this.lua.DoString(Properties.Resources.helperlua); // Add helper methods
         }
         public string ContentType
         {
@@ -27,9 +30,11 @@ namespace Spider.Scripting
         public void LoadFile(string fileName)
         {
             this.lua.LoadFile(fileName);
+            this.lua.DoString(Properties.Resources.helperlua); // Add helper methods
         }
         public void LoadScript(string code)
         {
+          
             this.lua.DoString(code, "");
         }
         public object[] RunCode(string code)
@@ -65,7 +70,45 @@ namespace Spider.Scripting
                 return new Object[] { };
             }
         }
+        private LuaTable ToLuaTable(MemoryTable table)
+        {
+            String name = "memory_table_" + new Random().Next().ToString();
+            lua.NewTable(name);
+            LuaTable newTable = lua.GetTable(name);
+            foreach (KeyValuePair<String, Object> obj in newTable)
+            {
+                if (obj.GetType() == typeof(MemoryTable))
+                {
+                    newTable[obj.Key] = ToLuaTable((MemoryTable)obj.Value);
+                }
+                else
+                {
+                    newTable[obj.Key] = obj.Value;
+                }
+            }
+            return newTable;
 
+        
+        }
+        /// <summary>
+        /// Invoke the function
+        /// </summary>
+        /// <param name="function"></param>
+        /// <param name="arguments"></param>
+        public object[] InvokeFunction(string function, MemoryTable table)
+        {
+            try
+            {
+                
+
+                LuaFunction func = this.lua.GetFunction(function);
+                return func.Call(new Object[]{ToLuaTable(table)});
+            }
+            catch (Exception e)
+            {
+                return new Object[] { };
+            }
+        }
 
         public void RegisterFunction(string function, Delegate func, Object target)
         {
@@ -80,6 +123,12 @@ namespace Spider.Scripting
         {
             
             this.lua[variable] = val;
+        }
+
+
+        public object TableToNative(MemoryTable table)
+        {
+            return ToLuaTable(table);
         }
     }
 }
