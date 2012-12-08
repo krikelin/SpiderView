@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.IO;
 using DotLiquid;
-
+using Spider.Skinning;
 namespace Spider
 {
     /// <summary>
@@ -33,7 +33,7 @@ namespace Spider
         public event UpdateView ViewUpdating;
         public SectionView activeBoard;
         public Dictionary<String, SectionView> Sections = new Dictionary<string, SectionView>();
-        public Style Stylesheet = new Style();
+        public PixelStyle Stylesheet = new PixelStyle();
         public int RefreshRate
         {
             get
@@ -50,7 +50,7 @@ namespace Spider
             this.Refresh(obj);
         }
         private System.Windows.Forms.Timer timer;
-        public Selector Selector;
+        public Spider.Skinning.Block Block;
         public SpiderView()
         {
                 
@@ -69,9 +69,9 @@ namespace Spider
             this.Controls.Add(tabBar);
             deck.Dock = DockStyle.Fill;
             this.tabBar.Dock = DockStyle.Top;
-            Selector = Stylesheet.Selectors["Body"];
-            this.BackColor = Selector.BackColor;
-            this.ForeColor = Selector.ForeColor;
+            Block = Stylesheet.Blocks["Body"];
+            this.BackColor = Block.BackColor;
+            this.ForeColor = Block.ForeColor;
             this.tabBar.TabChange += tabBar_TabChange;
             this.timer.Tick += timer_Tick;
             this.timer.Interval = 1000;

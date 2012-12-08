@@ -105,6 +105,7 @@
     <Compile Include="SectionView.Designer.cs">
       <DependentUpon>SectionView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Skinning\SpotifyStyle.cs" />
     <Compile Include="SpiderHost.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -124,7 +125,9 @@
     <Compile Include="SPListView.designer.cs">
       <DependentUpon>SPListView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Style.cs">
+    <Compile Include="SpotifySkinReader.cs" />
+    <Compile Include="Skinning\PixelStyle.cs" />
+    <Compile Include="Skinning\Style.cs">
       <SubType>
       </SubType>
     </Compile>

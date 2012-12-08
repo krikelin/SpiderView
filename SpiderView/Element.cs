@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Net;
 using System.IO;
 using System.Drawing.Html;
+using Spider.Skinning;
 
 
 namespace Spider
@@ -35,42 +36,42 @@ namespace Spider
     /// </summary>
     public abstract class Element
     {
-        public Selector Selector { get; set; }
+        public Block Block { get; set; }
         public virtual String Text { get; set; }
         public Color BackColor
         {
             get
             {
-                return this.Selector.BackColor;
+                return this.Block.BackColor;
             }
             set
             {
-                this.Selector.BackColor = value;
+                this.Block.BackColor = value;
             }
         }
         public Color ForeColor
         {
             get
             {
-                return this.Selector.ForeColor;
+                return this.Block.ForeColor;
             }
             set
             {
-                this.Selector.ForeColor = value;
+                this.Block.ForeColor = value;
             }
         }
         public Margin Margin
         {
             get
             {
-                return this.Selector.Margin;
+                return this.Block.Margin;
             }
         }
-        public Padding Padding
+        public Spider.Skinning.Padding Padding
         {
             get
             {
-                return this.Selector.Padding;
+                return this.Block.Padding;
             }
         }
         public int Flex = 0;
@@ -147,7 +148,7 @@ namespace Spider
             }
             else
             {
-                Type type = Selector.GetType();
+                Type type = Block.GetType();
                 MemberInfo member = type.GetMember(propertyName)[0];
                 if (member.MemberType == System.Reflection.MemberTypes.Property)
                 {
@@ -156,7 +157,7 @@ namespace Spider
                 }
             }
             if (propertyName == "ForeColor")
-                return Selector.ForeColor;
+                return Block.ForeColor;
             else
                 return Color.Transparent;
         }
@@ -179,20 +180,25 @@ namespace Spider
                   return ColorTranslator.FromHtml(value);
                 
             }
-            return this.Selector.BackColor;
+            return this.Block.BackColor;
         }
         public int AbsoluteWidth = 0, AbsoluteHeight = 0;
         public String Name { get; set; }
-        public Style Stylesheet = new Style();
+        public Style Stylesheet = new PixelStyle();
         public Dictionary<String, String> ElementEventHandlers = new Dictionary<string, string>();
         private XmlNode node;
+        public String Alt { get; set; }
         public String Hyperlink { get; set; }
         int flex = 0;
+        public void ApplyStyle(String Block)
+        {
+
+        }
         public Element(Board Host, XmlElement node)
         {
             this.Board = Host;
             this.node = node;
-            this.Selector = (Selector)this.Board.Stylesheet.Selectors["Body"].Clone();
+            this.Block = (Block)this.Board.Stylesheet.Blocks["Body"].Clone();
             this.BackColor = ParseColorAttribute("BackColor", ("bgcolor"), node);
 
             this.ForeColor = ParseColorAttribute("ForeColor", "color", node);
@@ -210,7 +216,7 @@ namespace Spider
             }
             if (node.HasAttribute("margin"))
             {
-                Selector.Margin = new Margin(node.GetAttribute("margin"));
+                Block.Margin = new Margin(node.GetAttribute("margin"));
             }
             if (node.HasAttribute("flex"))
             {
@@ -218,7 +224,7 @@ namespace Spider
             }
             if (node.HasAttribute("padding"))
             {
-                Selector.Padding = new Padding(node.GetAttribute("padding"));
+                Block.Padding = new Skinning.Padding(node.GetAttribute("padding"));
             }
             if (node.HasAttribute("uri"))
             {
@@ -227,6 +233,10 @@ namespace Spider
             if (node.HasAttribute("name"))
             {
                 this.Name = node.GetAttribute("name");
+            }
+            if (node.HasAttribute("alt"))
+            {
+                this.Alt = node.GetAttribute("alt");
             }
             if (node.HasAttribute("width"))
             {
@@ -258,7 +268,7 @@ namespace Spider
             }
             if (node.HasAttribute("style"))
             {
-                this.Selector = new Selector(node.GetAttribute("style"), Selector);
+                this.Block = new Block(node.GetAttribute("style"), Block);
             }
             this.Text = node.InnerText;
             foreach (XmlNode elm in node.ChildNodes)
@@ -370,8 +380,8 @@ namespace Spider
         {
             Bitmap c = new Bitmap(this.Width, this.Height);
             Graphics g = Graphics.FromImage(c);
-            int fontSize = (int)(((float)Selector.Font.Size / 11) * 3);
-            String html = "<font face=\"" + Selector.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Selector.ForeColor) + "\">" + Text + "</font>";
+            int fontSize = (int)(((float)Block.Font.Size / 11) * 3);
+            String html = "<font face=\"" + Block.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Block.ForeColor) + "\">" + Text + "</font>";
             HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
             return c;
         }
@@ -688,13 +698,13 @@ namespace Spider
         public divider(Board parent, XmlElement node)
             : base(parent, node)
         {
-            this.Selector = parent.Stylesheet.Selectors["Divider"];
-            imgDivider = this.Selector.BackgroundImage;
+            this.Block = parent.Stylesheet.Blocks["Divider"];
+            imgDivider = this.Block.BackgroundImage;
         }
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             g.DrawImage(imgDivider, new Rectangle(x, y, (int)((float)this.Width * 1.5), this.Height));
-            g.DrawString(this.Text, Selector.Font, new SolidBrush(Selector.ForeColor), new Point(x, y));
+            g.DrawString(this.Text, Block.Font, new SolidBrush(Block.ForeColor), new Point(x, y));
             base.Draw(g, ref x, ref y);
 
         }

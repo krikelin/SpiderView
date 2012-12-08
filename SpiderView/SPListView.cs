@@ -6,23 +6,23 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using System.Drawing.Drawing2D;
-
+using Spider.Skinning;
 namespace Spider
 {
     [Serializable]
     public partial class SPListView : UserControl
     {
-        public Selector Selector { get; set; }
-        public Selector SelectedStyle { get; set; }
+        public Block Block { get; set; }
+        public Block SelectedStyle { get; set; }
         public Style stylesheet;
-        public SPListView(Spider.Style stylesheet)
+        public SPListView(Spider.Skinning.Style stylesheet)
         {
             InitializeComponent();
             this.Items = new List<SPListItem>();
 
             this.stylesheet = stylesheet;
-            this.SelectedStyle = stylesheet.Selectors["::selection"];
-            this.Selector = stylesheet.Selectors["ListView"];
+            this.SelectedStyle = stylesheet.Blocks["::selection"];
+            this.Block = stylesheet.Blocks["ListView"];
         }
         public int GetIndexByName(String name)
         {
@@ -60,7 +60,7 @@ namespace Spider
         {
             try
             {
-                Color foreColor = Item.CustomColor ? Item.Color : this.Selector.ForeColor;
+                Color foreColor = Item.CustomColor ? Item.Color : this.Block.ForeColor;
                 if (Item.Text.StartsWith("#"))
                 {
                     foreColor = Color.FromArgb(150, 150, 150);
@@ -154,7 +154,7 @@ namespace Spider
             BufferedGraphicsContext c = new BufferedGraphicsContext();
             BufferedGraphics bg = c.Allocate(gr, new Rectangle(0, 0, this.Width, this.Height));
             Graphics g = bg.Graphics;
-            g.FillRectangle(new SolidBrush(Selector.BackColor), 0, 0, this.Width, this.Height);
+            g.FillRectangle(new SolidBrush(Block.BackColor), 0, 0, this.Width, this.Height);
             int pos = -ScrollY;
             int level = 0;           
             if (Items != null)
@@ -204,8 +204,8 @@ namespace Spider
 
             InitializeComponent();
             this.Items = new List<SPListItem>();
-            this.BackColor = Selector.BackColor;
-            this.ForeColor = Selector.ForeColor;
+            this.BackColor = Block.BackColor;
+            this.ForeColor = Block.ForeColor;
 
         }
         public SPListItem GetAppByUri(Uri uri)

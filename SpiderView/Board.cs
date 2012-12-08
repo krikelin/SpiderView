@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 using LuaInterface;
 using Spider.Scripting;
 using Newtonsoft.Json;
-
+using Spider.Skinning;
 namespace Spider
 {
     public partial class Board : UserControl
@@ -84,9 +84,8 @@ namespace Spider
             RequestState state = (RequestState)e.UserState;
 
             System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-            return encoding.GetString(e.Result);
-            String c = new String(e.Result);
-            this.SpiderView.Scripting.InvokeFunction(state.Callback, e.Result);
+            String str = encoding.GetString(e.Result);
+            this.SpiderView.Scripting.InvokeFunction(state.Callback, str);
         }
         #endregion
         private Dictionary<String, Element> inputFields = new Dictionary<string, Element>();
@@ -119,7 +118,7 @@ namespace Spider
         public int ScrollY {get;set;}
         public List<Element> Children = new List<Element>();
         public String template = "";
-        public Selector Selector { get; set; }
+        public Spider.Skinning.Block Block { get; set; }
         /// <summary>
         /// Event args for scripting invokes
         /// </summary>
@@ -219,7 +218,7 @@ namespace Spider
             this.Paint += Board_Paint;
             this.Resize += Board_Resize;
 
-            this.Selector = Stylesheet.Selectors["Body"];
+            this.Block = Stylesheet.Blocks["Body"];
             tmrDraw = new Timer();
             tmrDraw.Tick += tmrDraw_Tick;
             tmrDraw.Interval = 100;
@@ -297,9 +296,9 @@ namespace Spider
             
             this.Paint += Board_Paint;
             this.Stylesheet = SpiderView.Stylesheet;
-            this.Selector = Stylesheet.Selectors["body"];
-            this.ForeColor = Selector.ForeColor;
-            this.ForeColor = Selector.BackColor;
+            this.Block = Stylesheet.Blocks["body"];
+            this.ForeColor = Block.ForeColor;
+            this.ForeColor = Block.BackColor;
             tmrDraw = new Timer();
             tmrDraw.Tick += tmrDraw_Tick;
             tmrDraw.Interval = 100;
@@ -417,11 +416,11 @@ namespace Spider
         }
         public void Draw(Graphics g, ref int x, ref int y, Rectangle target)
         {
-            this.BackColor = Selector.BackColor;
+            this.BackColor = Block.BackColor;
             try
             {
                 BufferedGraphics bgc = BGC.Allocate(g, target);
-                bgc.Graphics.FillRegion(new SolidBrush(this.Selector.BackColor), new System.Drawing.Region(new Rectangle(0, 0, this.Width, this.Height)));
+                bgc.Graphics.FillRegion(new SolidBrush(this.Block.BackColor), new System.Drawing.Region(new Rectangle(0, 0, this.Width, this.Height)));
                 foreach (Element elm in Children)
                 {
 

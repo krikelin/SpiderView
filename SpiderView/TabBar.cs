@@ -7,20 +7,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using Spider.Skinning;
 namespace Spider
 {
     public partial class TabBar : UserControl
     {
         public SpiderView SpiderView;
-        public Selector Selector { get; set; }
-        public Selector ActiveTabSelector { get; set; }
+        public Block Block { get; set; }
+        public Block ActiveTabBlock { get; set; }
         public TabBar(SpiderView spiderView)
         {
             InitializeComponent();
             this.SpiderView = spiderView;
-            this.Selector = spiderView.Stylesheet.Selectors["TabBar"];
-            this.ActiveTabSelector = spiderView.Stylesheet.Selectors["TabBar::active"];
+            this.Block = spiderView.Stylesheet.Blocks["TabBar"];
+            this.ActiveTabBlock = spiderView.Stylesheet.Blocks["TabBar::active"];
             
             this.Resize += TabBar_Resize;
             
@@ -42,20 +42,20 @@ namespace Spider
             try
             {
                 BufferedGraphics graphics = bgc.Allocate(g, new Rectangle(0, 0, this.Width, this.Height));
-                if(Selector.BackgroundImage != null)
-                  graphics.Graphics.DrawImage(Selector.BackgroundImage, 0, 0, (int)((float)this.Width * 2), this.Height);
+                if(Block.BackgroundImage != null)
+                  graphics.Graphics.DrawImage(Block.BackgroundImage, 0, 0, (int)((float)this.Width * 2), this.Height);
                 int x = 0;
                 foreach (Tab tab in Tabs)
                 {
                     Color fgColor = Color.Black;
                     if (tab == ActiveTab)
                     {
-                        fgColor = this.Selector.ForeColor;
-                        graphics.Graphics.FillRectangle(new SolidBrush(ActiveTabSelector.BackColor), new Rectangle(x, 0, tab.Width, this.Height));
+                        fgColor = this.Block.ForeColor;
+                        graphics.Graphics.FillRectangle(new SolidBrush(ActiveTabBlock.BackColor), new Rectangle(x, 0, tab.Width, this.Height));
                     }
 
-                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabSelector.TextShadowColor), new Point(x + 15, 5));
-                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabSelector.ForeColor), new Point(x + 15, 4));
+                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabBlock.TextShadowColor), new Point(x + 15, 5));
+                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabBlock.ForeColor), new Point(x + 15, 4));
                     x += tab.Width;
                 }
                 graphics.Render();
