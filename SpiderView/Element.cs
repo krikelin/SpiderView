@@ -11,6 +11,7 @@ using System.Net;
 using System.IO;
 using System.Drawing.Html;
 using Spider.Skinning;
+using BungaSpotify09.Models;
 
 
 namespace Spider
@@ -30,12 +31,34 @@ namespace Spider
         }
         public List<Element> Children = new List<Element>();
     }
-    
+   
     /// <summary>
     /// Element
     /// </summary>
     public abstract class Element
     {
+        /// <summary>
+        /// Get tracks inside
+        /// </summary>
+        public List<track> Tracks
+        {
+            get
+            {
+                List<track> playlist = new List<track>();
+                foreach (Element e in this.Children)
+                {
+                    if (e.GetType() == typeof(track))
+                    {
+                        playlist.Add((track)e);
+                    }
+                    foreach (track track in e.Tracks)
+                    {
+                        playlist.Add(track);
+                    }
+                }
+                return playlist;
+            }
+        }
         public Block Block { get; set; }
         public virtual String Text { get; set; }
         public Color BackColor
@@ -88,10 +111,13 @@ namespace Spider
             y -= this.Y;
             foreach (Element elm in Children)
             {
-               
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+
+                if ((x > elm.AbsoluteLeft && x < elm.AbsoluteLeft + elm.Width) && (y > elm.AbsoluteTop && y < elm.AbsoluteTop + elm.Height))
                 {
                     elm.CheckHover(x, y);
+                }
+                else
+                {
                 }
             }
             x += this.X;
@@ -100,14 +126,20 @@ namespace Spider
 
         }
         public event MouseEventHandler MouseMove;
-        private void OnMouseOver(int x, int y)
+        public virtual void OnMouseOver(int x, int y)
         {
+            if (!String.IsNullOrEmpty(this.Hyperlink))
+            {
+                this.Board.foundLink = true;
+            }
             if (this.MouseMove != null)
                 this.MouseMove(this, new MouseEventArgs(x, y));
 
 #if(DEBUG)
          //   this.mouseOver = true;
 #endif
+            mouseOver = true;
+      //      this.Draw(Board.CreateGraphics(), ref x, ref y);
         }
         public void CheckClick(int x, int y)
         {
@@ -209,7 +241,16 @@ namespace Spider
                 }
 
             }
-           
+
+            if (node.HasAttribute("fgcolor"))
+            {
+                this.ForeColor = ColorTranslator.FromHtml(node.GetAttribute("fgcolor"));
+                
+            }
+            if (node.HasAttribute("bgcolor"))
+            {
+                this.BackColor = ColorTranslator.FromHtml(node.GetAttribute("bgcolor"));
+            }
             if (node.HasAttribute("onclick"))
             {
                
@@ -325,11 +366,11 @@ namespace Spider
           // g.DrawRectangle(new Pen(Color.Red), new Rectangle(X, Y, Width, Height));
 #if(DEBUG)
             if(mouseOver) {
-                g.DrawRectangle(new Pen(Color.Red), new Rectangle(X, Y, Width, Height));
+        //        g.DrawRectangle(new Pen(Color.Red), new Rectangle(X, Y, Width, Height));
             }
 #endif
         }
-        bool mouseOver = false;
+        public bool mouseOver = false;
         public void OnClick(int x, int y)
         {
             if (this.Click != null)
@@ -337,11 +378,6 @@ namespace Spider
                 this.Click(this, new MouseEventArgs(x, y));
             }
 
-        }
-        public void MouseOver(int x, int y)
-        {
-            mouseOver = true;
-            this.Draw(Board.CreateGraphics(), ref x, ref y);
         }
         public virtual int X { get; set; }
         public virtual int Y { get; set; }
@@ -353,6 +389,7 @@ namespace Spider
         public abstract void PackChildren();
 
     }
+    
     public class text : Element
     {
         private String textContent;
@@ -376,13 +413,24 @@ namespace Spider
             Text = node.InnerText;
         }
         private Bitmap bitmap;
+        HtmlPanel htmlPanel = new HtmlPanel();
+         public override void OnMouseOver(int x, int y) 
+        {
+            base.OnMouseOver(x, y);
+           
+        }
         private Bitmap GenerateBitmap()
         {
+            
             Bitmap c = new Bitmap(this.Width, this.Height);
             Graphics g = Graphics.FromImage(c);
             int fontSize = (int)(((float)Block.Font.Size / 11) * 3);
             String html = "<font face=\"" + Block.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Block.ForeColor) + "\">" + Text + "</font>";
-            HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
+            InitialContainer htmlContainer = new InitialContainer(html);
+            htmlPanel.HtmlContainer.Text = html;
+            //HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
+            g.DrawString(Text, new Font("MS Sans Serif", 11f), new SolidBrush(ForeColor), new RectangleF(0f, 0f, (float)Width, (float)Height));
+
             return c;
         }
         /// <summary>
@@ -530,6 +578,51 @@ namespace Spider
             }
         }
     }
+    public class track : Element
+    {
+        public Track Track { get; set; }
+        public bool Selected { get; set; }
+        public Uri Uri {get;set;}
+        public bool Playing { get; set; }
+        public track(Board host, XmlElement node)
+            : base(host, node)
+        {
+            this.Uri = new Uri(node.GetAttribute("uri"));
+            
+            this.Block = (Block)this.Board.Stylesheet.Blocks["track"].Clone();
+
+        }
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            base.Draw(g, ref x, ref y);
+            Color fgColor = this.Block.ForeColor;
+            Color bgColor = this.Block.BackColor;
+            g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(0, this.Height - 1), new Point(this.Width, this.Height - 1));
+            if (Track != null)
+            {
+                // Draw title
+                g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15, 1));
+
+                if (Track.artists != null)
+                {
+                    if (Track.artists.Length > 0)
+                    {
+                        g.DrawString(Track.artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(215, 1));
+                    }
+                }
+            }
+            else
+            {
+                g.DrawString(this.Uri.ToString(), this.Block.Font, new SolidBrush(fgColor), new Point(215, 1));
+            }
+        }
+
+
+        public override void PackChildren()
+        {
+
+        }
+    }
     public class input : control 
     {
         public input(Board host, XmlElement node)
@@ -581,16 +674,67 @@ namespace Spider
             {
                 this.LoadImage(elm.GetAttribute("src"));
             }
+            
         }
+        private bool hasShadow = true;
         public override void Draw(Graphics g, ref int x, ref int y)
         {
+            Rectangle Bounds = new Rectangle(x, y, this.Width, this.Height);
             base.Draw(g, ref x, ref y);
+            int shadowOffset = 8;
+            if (hasShadow)
+            {
+                // the shadow chunk
+                int sQuad = 4;
+
+                // the offset
+                int sOffset = 4;
+
+                // the shadow layer
+                Bitmap shadow = Properties.Resources.shadow;
+                // draw the left top corner
+                g.DrawImage(shadow, new Rectangle(Bounds.Left - sQuad, Bounds.Top - sQuad, sQuad, sQuad), new Rectangle(0, 0, sQuad, sQuad), GraphicsUnit.Pixel);
+
+                // draw the right top corner
+                g.DrawImage(shadow, new Rectangle(Bounds.Left + Bounds.Width, Bounds.Top - sQuad, sQuad, sQuad), new Rectangle(shadow.Width - sQuad, 0, sQuad, sQuad), GraphicsUnit.Pixel);
+
+                // size of vertical sides
+                Size verticalSize = new Size(sQuad, Bounds.Height + shadowOffset - sQuad * 2);
+
+                // size of horizontal sides
+                Size horizontalSize = new Size(Bounds.Width + shadowOffset - sQuad * 2, sQuad);
+
+                // draw the bottom left corner
+                g.DrawImage(shadow, new Rectangle(Bounds.Left - sQuad, Bounds.Top + Bounds.Height, sQuad, sQuad), new Rectangle(0, shadow.Height - sQuad, sQuad, sQuad), GraphicsUnit.Pixel);
+
+                // draw the bottom right corner
+                g.DrawImage(shadow, new Rectangle(Bounds.Left + Bounds.Width, Bounds.Top + Bounds.Height, sQuad, sQuad), new Rectangle(shadow.Width - sOffset, shadow.Height - sQuad, sQuad, sQuad), GraphicsUnit.Pixel);
+
+
+                // fill the left side
+                g.DrawImage(shadow, new Rectangle(new Point(Bounds.Left - sQuad, Bounds.Top), verticalSize), new Rectangle(0, sQuad, sQuad, sQuad), GraphicsUnit.Pixel);
+
+                // fill the right side
+                g.DrawImage(shadow, new Rectangle(new Point(Bounds.Width + Bounds.Left, Bounds.Top), verticalSize), new Rectangle(shadow.Height - sQuad, sQuad, sQuad, sQuad), GraphicsUnit.Pixel);
+                //  g.DrawImage(shadow,new Rectangle(Bounds.Left-shadowOffset,Bounds.Top-shadowOffset,Bounds.Width+shadowOffset+2,Bounds.Height+shadowOffset+2));
+
+                // fill the top side
+
+                g.DrawImage(shadow, new Rectangle(new Point(Bounds.Left, Bounds.Top - sQuad), horizontalSize), new Rectangle(sQuad, 0, sQuad, sQuad), GraphicsUnit.Pixel);
+
+                // fill the bottom side
+
+                g.DrawImage(shadow, new Rectangle(new Point(Bounds.Left, Bounds.Top + Bounds.Height), horizontalSize), new Rectangle(sQuad, shadow.Height - sQuad, sQuad, sQuad), GraphicsUnit.Pixel);
+
+            }
             if(image != null)
                 g.DrawImage(image, x, y, this.Width, this.Height);
         }
         public static Dictionary<String, Image> ImageCollection = new Dictionary<string, Image>();
         public void LoadImage(String url)
         {
+            if (String.IsNullOrEmpty(url) || !(url.StartsWith("http://") || url.StartsWith("https://")))
+                return;
             WebClient wc = new WebClient();
             if (!ImageCollection.ContainsKey(url))
             {
@@ -690,6 +834,25 @@ namespace Spider
                 
                 child.PackChildren();
             }
+        }
+    }
+    public class menu : text
+    {
+        public Block HoverBlock;
+        public Block NormalBlock;
+        public menu(Board parent, XmlElement node)
+            : base(parent, node)
+        {
+
+        }
+       
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            if(mouseOver)
+                g.FillRectangle(new SolidBrush(Color.DarkGray), new Rectangle(x, y, Width, Height));
+
+                 
+            base.Draw(g, ref x, ref y);
         }
     }
     public class divider : Element

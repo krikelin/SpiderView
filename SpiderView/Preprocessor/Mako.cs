@@ -161,7 +161,8 @@ namespace Spider.Preprocessor
                 String Parseable = Line.Substring(startIndex,  endToken -  startIndex);
 
                 // Convert the inline token to concation
-                Line = Line.Replace("@{" + Parseable + "}",  "\" .. ( "  + Parseable + " ) .. \"");
+                
+                Line = Line.Replace(signature +"{" + Parseable + "}",  "\" .. ( "  + Parseable + " ) .. \"");
                 IndexOf = endToken;
                
             }
@@ -486,6 +487,7 @@ namespace Spider.Preprocessor
                             // Convert tokens to interpretable handles
                             String OutputCode = outputCode.ToString().Replace("\"", "¤").Replace("\n", "%BR%\");\n__printx(\"");
                             OutputCode = this.HandleToTokens(OutputCode.ToString(), '@');
+                            OutputCode = this.HandleToTokens(OutputCode.ToString(), '$');
                             finalOutput.Append("__printx(\"" + OutputCode + "\");");
 
                             // Clear the output code buffer
@@ -542,9 +544,9 @@ namespace Spider.Preprocessor
                 }
                 catch (Exception e)
                 {
-                    using (System.IO.StreamReader SR = new System.IO.StreamReader("error.xml"))
+                  //  using ( System.IO.StreamReader SR = new System.IO.StreamReader("error.xml"))
                     {
-                        return SR.ReadToEnd();
+                    //    return SR.ReadToEnd();
                     }
                     /*// clear output
                     this.Output = "";

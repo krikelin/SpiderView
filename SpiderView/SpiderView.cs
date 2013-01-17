@@ -57,7 +57,7 @@ namespace Spider
             this.Scripting = new Scripting.LuaInterpreter(this);
             this.Preprocessor = new Preprocessor.LuaMako(this);
             this.Scripting.RegisterFunction("refresh", GetType().GetMethod("refresh"), this);
-
+           
             this.timer = new Timer();
             InitializeComponent();
             this.tabBar = new TabBar(this);
@@ -108,7 +108,13 @@ namespace Spider
             {
                 template = sr.ReadToEnd();
             }
-            Refresh(new Object());
+            try
+            {
+                Refresh(null);
+            }
+            catch (Exception e)
+            {
+            }
         }
         public void Refresh(Object obj)
         {
@@ -117,9 +123,13 @@ namespace Spider
             Template template = Template.Parse(this.template);
             String DOM = template.Render(Hash.FromAnonymousObject(obj));
 #endif
+#if(false)
+            if (obj == null)
+                return;
+#endif
             String DOM = Preprocessor.Preprocess(this.template, obj);
             XmlDocument xmlDoc = new XmlDocument();
-            if (DOM == "NONCHANGE")
+            if (DOM == "NONCHANGE" || String.IsNullOrEmpty(DOM))
                 return;
             xmlDoc.LoadXml(DOM);
             XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");

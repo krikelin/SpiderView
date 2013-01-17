@@ -14,6 +14,7 @@ namespace Spider
     {
         public Block Block { get; set; }
         public Block SelectedStyle { get; set; }
+      
         public Style stylesheet;
         public SPListView(Spider.Skinning.Style stylesheet)
         {
@@ -61,17 +62,30 @@ namespace Spider
             try
             {
                 Color foreColor = Item.CustomColor ? Item.Color : this.Block.ForeColor;
-                if (Item.Text.StartsWith("#"))
+                Color backColor = this.Block.BackColor;
+                if (Item.Text.StartsWith("-"))
                 {
-                    foreColor = Color.FromArgb(150, 150, 150);
-                    g.DrawString(Item.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(Color.FromArgb(50, 50, 50)), new Point(4, pos + 0));
-                    g.DrawString(Item.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(4, pos + 1));
+                    g.DrawLine(new Pen(SelectedStyle.TextShadowColor), new Point(0, pos + (ItemHeight / 2)), new Point(this.Width, pos + (ItemHeight / 2)));
+                } else if (Item.Selected)
+                {
+                    foreColor = SelectedStyle.ForeColor;
+                    backColor = SelectedStyle.BackColor;
+
+                    g.FillRectangle(new SolidBrush(backColor), new Rectangle(0, pos, this.Width, ItemHeight));
+                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 2));
+                }
+                else if (Item.Text.StartsWith("#"))
+                {
+                    foreColor = SelectedStyle.TextShadowColor;
+                    g.DrawString(Item.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(4, pos + 0));
+                    g.DrawString(Item.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Point(4, pos - 1));
                 }
                 else
                 {
-                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(Color.FromArgb(10, 10, 10)), new Point(level + 16, pos + 3));
+                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Point(level + 16, pos + 2));
+                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 3));
                 }
-                g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 2));
+              //  g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 2));
                 if (Item.Icon != null)
                 {
                     g.DrawImage(Item.Icon, level + 16, pos + 1, 16, 16);
@@ -83,8 +97,9 @@ namespace Spider
                     // g.DrawImage(expander, level, pos, 16, 16);
                 }
 
-                pos += 16;
+               // pos += 16;
                 // If has subitems draw them
+#if(False)
                 if (Item.Expanded)
                     foreach (SPListItem subItem in Item.Children)
                     {
@@ -120,6 +135,7 @@ namespace Spider
                             // g.DrawImage(expander, level, pos, 16, 16);
                         }
                     }
+#endif
                 pos += ItemHeight;
 
                 // If has subitems draw them
@@ -198,7 +214,7 @@ namespace Spider
             // Draw all list items
 
         }
-        public int ItemHeight = 20;
+        public int ItemHeight = 18;
         public SPListView()
         {
 

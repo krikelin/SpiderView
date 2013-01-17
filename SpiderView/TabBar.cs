@@ -54,7 +54,7 @@ namespace Spider
                         graphics.Graphics.FillRectangle(new SolidBrush(ActiveTabBlock.BackColor), new Rectangle(x, 0, tab.Width, this.Height));
                     }
 
-                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabBlock.TextShadowColor), new Point(x + 15, 5));
+                    graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabBlock.TextShadowColor), new Point(x + 15, 3));
                     graphics.Graphics.DrawString(tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(ActiveTabBlock.ForeColor), new Point(x + 15, 4));
                     x += tab.Width;
                 }

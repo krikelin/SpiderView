@@ -82,7 +82,8 @@ namespace Spider.Skinning
         public Padding Padding { get; set; }
         public Color BackColor;
         public Color ForeColor;
-        public Color AlternateColor;
+        public Color AlternateBackColor;
+        public Color AlternateForeColor;
         public Image BackgroundImage;
         public Color TextShadowColor;
         private Font font = new Font("MS Sans Serif", 11);
@@ -107,6 +108,14 @@ namespace Spider.Skinning
             this.Margin = new Margin("1");
             foreach (Aleros.CSS.Rule rule in selector.rules)
             {
+                if (rule.rule == "-alternative-background-color")
+                {
+                    this.AlternateBackColor = ColorTranslator.FromHtml(rule.value);
+                }
+                else
+                {
+                    this.AlternateBackColor = parent.BackColor;
+                }
                 if (rule.rule == "background" || rule.rule == "background-color")
                 {
                     this.BackColor = ColorTranslator.FromHtml(rule.value);
@@ -150,7 +159,7 @@ namespace Spider.Skinning
             this.BackColor = backColor;
             this.ForeColor = foreColor;
             this.TextShadowColor = textShadowColor;
-            this.AlternateColor = alternateColor;
+            this.AlternateBackColor = alternateColor;
             this.Padding = new Padding("0");
             this.Margin = new Margin("1");
         }
@@ -159,14 +168,14 @@ namespace Spider.Skinning
             this.BackgroundImage = backgroundImage;
             this.ForeColor = foreColor;
             this.TextShadowColor = textShadowColor;
-            this.AlternateColor = alternateColor;
+            this.AlternateBackColor = alternateColor;
             this.Padding = new Padding("0");
             this.Margin = new Margin("1");
         }
 
         public object Clone()
         {
-            Block newSelector = new Block(BackColor, ForeColor, TextShadowColor, AlternateColor);
+            Block newSelector = new Block(BackColor, ForeColor, TextShadowColor, AlternateBackColor);
             if (this.BackgroundImage != null)
                 newSelector.BackgroundImage = this.BackgroundImage;
             newSelector.Padding = Padding;

@@ -71,6 +71,7 @@
     <Compile Include="Class1.cs" />
     <Compile Include="CSS\CSS.cs" />
     <Compile Include="Element.cs" />
+    <Compile Include="ITrack.cs" />
     <Compile Include="LuaInterface\CheckType.cs" />
     <Compile Include="LuaInterface\GenerateEventAssembly.cs" />
     <Compile Include="LuaInterface\Lua.cs" />
@@ -196,6 +197,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\skin.png" />
+    <None Include="Resources\shadow.png" />
     <Content Include="Scopus.dll" />
     <Content Include="System.Drawing.Html\System.Drawing.Html.csproj" />
   </ItemGroup>

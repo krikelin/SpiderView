@@ -20,6 +20,29 @@ namespace Spider
 {
     public partial class Board : UserControl
     {
+        /// <summary>
+        /// Tracklist
+        /// </summary>
+        public List<track> Tracks
+        {
+            get
+            {
+                List<track> playlist = new List<track>();
+                foreach (Element e in this.Children)
+                {
+                    if (e.GetType() == typeof(track))
+                    {
+                        playlist.Add((track)e);
+                    }
+                    foreach (track track in e.Tracks)
+                    {
+                        playlist.Add(track);
+                    }
+                }
+                
+                return playlist;
+            }
+        }
         #region ScriptMethods
 
         /// <summary>
@@ -305,18 +328,24 @@ namespace Spider
             tmrDraw.Start();
             this.MouseMove += Board_MouseMove;
         }
-
+        public bool foundLink = false;
         void Board_MouseMove(object sender, MouseEventArgs e)
         {
+            this.foundLink = false;
             int x = e.X;
             int y = e.Y;
             foreach (Element elm in Children)
             {
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                if ((x > elm.AbsoluteLeft && x < elm.AbsoluteLeft + elm.Width) && (y > elm.AbsoluteTop && y < elm.AbsoluteTop + elm.Height))
                 {
                     elm.CheckHover(x, y);
                 }
+                else
+                {
+                }
             }
+            this.Cursor = foundLink ? Cursors.Hand : Cursors.Default;
+            this.foundLink = false;
         }
 
         void tmrDraw_Tick(object sender, EventArgs e)
@@ -358,7 +387,7 @@ namespace Spider
                 
                 
             }
-            this.Width = 1800;
+            this.Width = 1100;
             this.Height = max_height;
         }
         public void PackChildren()
