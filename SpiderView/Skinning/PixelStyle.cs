@@ -36,10 +36,15 @@ namespace Spider.Skinning
             // Get tab bar
             this.Blocks.Add("TabBar", new Block(sliceBitmap(bitmap, new Rectangle(48, 1, 2, 23)), bitmap.GetPixel(9, 0), bitmap.GetPixel(4, 0), bitmap.GetPixel(0, 0)));
             this.Blocks.Add("TabBar::active", new Block(bitmap.GetPixel(9, 0), Color.White, Color.Black, bitmap.GetPixel(0, 0)));
-            Block track = new Block(sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)), Color.White, Color.Black, Color.White);
+            Block track = new Block(/*sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23))*/ bitmap.GetPixel(11, 0), Color.White, Color.Black, Color.White);
             this.Blocks.Add("track", track);
-            track.AlternateBackColor = bitmap.GetPixel(9, 0);
+            track.Font = new Font("MS Sans Serif", 8, FontStyle.Regular, GraphicsUnit.Pixel);
+            var trackSelected = new Block(bitmap.GetPixel(6, 0), bitmap.GetPixel(5, 0), Color.Transparent, Color.Black);
+            trackSelected.Font = new Font("MS Sans Serif", 8);
+            this.blocks.Add("track::selected", trackSelected);
 
+            track.AlternateBackColor = bitmap.GetPixel(9, 0);
+            track.Font = new Font("MS Sans Serif", 8);
 
             this.Blocks.Add("Divider", new Block(sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)), Color.White, Color.Black, Color.White));
             this.Blocks.Add("::selection", new Block(bitmap.GetPixel(6, 0), bitmap.GetPixel(5, 0), Color.Black, Color.White));

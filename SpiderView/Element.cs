@@ -12,6 +12,7 @@ using System.IO;
 using System.Drawing.Html;
 using Spider.Skinning;
 using BungaSpotify09.Models;
+using System.Drawing.Drawing2D;
 
 
 namespace Spider
@@ -141,6 +142,21 @@ namespace Spider
             mouseOver = true;
       //      this.Draw(Board.CreateGraphics(), ref x, ref y);
         }
+        public virtual void OnMouseDown(int x, int y)
+        {
+            if (!String.IsNullOrEmpty(this.Hyperlink))
+            {
+                this.Board.foundLink = true;
+            }
+            if (this.MouseDown != null)
+                this.MouseDown(this, new MouseEventArgs(x, y));
+
+#if(DEBUG)
+               this.mouseOver = true;
+#endif
+            mouseOver = true;
+            //      this.Draw(Board.CreateGraphics(), ref x, ref y);
+        }
         public void CheckClick(int x, int y)
         {
             
@@ -164,6 +180,44 @@ namespace Spider
                 if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
                     elm.CheckClick(x, y);
+                }
+                else
+                {
+
+                }
+            }
+            x += this.X;
+            y += this.Y;
+
+
+        }
+        public void CheckMouseDown(int x, int y)
+        {
+
+
+            this.OnMouseDown(x, y);
+            Graphics g = this.Board.CreateGraphics();
+            g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+            this.OnClick(x, y);
+
+            if (this.ElementEventHandlers.ContainsKey("onmousedown"))
+            {
+                this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.ElementEventHandlers["mousedown"], Element = this, Event = "mousedown", View = this.Board.SpiderView });
+
+            }
+
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in Children)
+            {
+
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.CheckMouseDown(x, y);
+                }
+                else
+                {
+
                 }
             }
             x += this.X;
@@ -320,6 +374,7 @@ namespace Spider
                     {
                         Element _elm = (Element)Type.GetType("Spider." + elm.Name).GetConstructor(new Type[] { typeof(Board), typeof(XmlElement) }).Invoke( new Object[] {this.Board, elm});
                         this.Children.Add(_elm);
+                        
                         _elm.Parent=this;
                     }
                     catch (Exception e)
@@ -327,7 +382,11 @@ namespace Spider
                     }
                 }
             }
-            PackChildren();
+            if (this.Children.Count > 0)
+            {
+
+                PackChildren();
+            }
         }
         public Board Board { get; set; }
         public Element Parent { get; set; }
@@ -342,6 +401,7 @@ namespace Spider
         }
         public delegate void MouseEventHandler(object sender, MouseEventArgs e);
         public event MouseEventHandler Click;
+        public event MouseEventHandler MouseDown;
         public virtual void Draw(Graphics g, ref int x, ref int y)
         {
             if (this.Stylesheet == null)
@@ -387,11 +447,23 @@ namespace Spider
         public virtual int AbsoluteTop { get; set; }
         public List<Element> Children = new List<Element>();
         public abstract void PackChildren();
+        public abstract void BeforePackChildren();
 
     }
-    
+    public class link : text
+    {
+        public link(Board host, XmlElement node)
+            : base(host, node)
+        {
+        }
+
+    }
     public class text : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         private String textContent;
         public String Text
         {
@@ -460,6 +532,7 @@ namespace Spider
             {
                 this.Resize(newX, newY);
             }
+            if(this.Children.Count > 0)
             this.PackChildren();
         }
         public void MouseOver(int x, int y)
@@ -483,6 +556,10 @@ namespace Spider
     }
     public class control : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         public  override void PackChildren()
         {
         }
@@ -578,49 +655,117 @@ namespace Spider
             }
         }
     }
+    public class playlist : Element
+    {
+        private int trackHeight = 20;
+        public override void PackChildren()
+        {
+            if (this.Parent == null)
+                return;
+            int i = 0;
+            foreach (Element track in this.Children)
+            {
+              //  if (track.GetType() != typeof(track) |)
+                //    throw new Exception("Invalid type");
+                track.Height = trackHeight;
+                track.Width = this.Width;
+                track.X = 0;
+                track.Y = i * trackHeight;
+                i++;
+            }
+            if(i * trackHeight > this.Height)
+                this.Height = i * trackHeight;
+            
+        }
+        public playlist(Board host, XmlElement node) : base (host, node)
+        {
+
+        }
+
+        public override void BeforePackChildren()
+        {
+           
+        }
+    }
     public class track : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         public Track Track { get; set; }
         public bool Selected { get; set; }
         public Uri Uri {get;set;}
+        public Block SelectedBlock;
         public bool Playing { get; set; }
         public track(Board host, XmlElement node)
             : base(host, node)
         {
             this.Uri = new Uri(node.GetAttribute("uri"));
+            this.Track = new SpotifyTrack(this.Uri);
             
             this.Block = (Block)this.Board.Stylesheet.Blocks["track"].Clone();
+            this.Block.Font = new Font("MS Sans Serif", 11, FontStyle.Regular, GraphicsUnit.Pixel);
+            this.SelectedBlock = (Block)this.Board.Stylesheet.Blocks["track::selected"].Clone();
 
+        }
+        public override void OnMouseDown(int x, int y)
+        {
+            base.OnMouseDown(x, y);
+            // Deselect all previous tracks
+            for (int i = 0; i < Board.Tracks.Count; i++)
+            {
+                Board.Tracks[i].Selected = false;
+            }
+            this.Selected = true;
+            Board.Invalidate(new Region(new Rectangle(this.X, this.Y, this.Width, this.Height)));
+        }
+        public override void OnMouseOver(int x, int y)
+        {
+            base.OnMouseOver(x, y);
         }
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             base.Draw(g, ref x, ref y);
             Color fgColor = this.Block.ForeColor;
             Color bgColor = this.Block.BackColor;
-            g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(0, this.Height - 1), new Point(this.Width, this.Height - 1));
+            if (Selected)
+            {
+                bgColor = this.SelectedBlock.BackColor;
+                fgColor = this.SelectedBlock.ForeColor;
+            }
+            String name = "", artist = "", album = "";
+            g.FillRectangle(new SolidBrush(bgColor), new Rectangle(x, y, this.Width, this.Height));
+            g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(x, y + this.Height - 1), new Point(this.Width + x, this.Height - 1 + y));
             if (Track != null)
             {
-                // Draw title
-                g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15, 1));
-
+                name = Track.Name;
                 if (Track.artists != null)
                 {
                     if (Track.artists.Length > 0)
                     {
-                        g.DrawString(Track.artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(215, 1));
+                        artist = Track.artists[0].Name;
                     }
                 }
             }
-            else
+            if (name.Length > 13)
             {
-                g.DrawString(this.Uri.ToString(), this.Block.Font, new SolidBrush(fgColor), new Point(215, 1));
+                name = name.Substring(0, 13);
             }
-        }
+            // Draw title
+            if (!Selected)
+            {
+                g.DrawString(name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(15 + x, 0 + y));
+                g.DrawString(artist, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(215 + x, 0 + y));
+            }
 
+            g.DrawString(name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x, 1 + y));
+            g.DrawString(artist, this.Block.Font, new SolidBrush(fgColor), new Point(215 + x, 1 + y));
+        }
 
         public override void PackChildren()
         {
-
+            
         }
     }
     public class input : control 
@@ -666,6 +811,10 @@ namespace Spider
     }
     public class img : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         private Image image;
         public img(Board host, XmlElement elm)
             : base(host, elm)
@@ -769,7 +918,10 @@ namespace Spider
     /// </summary>
     public class hbox : Element
     {
-        
+        public override void BeforePackChildren()
+        {
+
+        }
         public hbox(Board host, XmlElement node)
             : base(host, node)
         {
@@ -831,8 +983,20 @@ namespace Spider
                
               
                 
-                
-                child.PackChildren();
+                if(child.Children.Count > 0)
+                    child.PackChildren();
+
+              
+            }
+            int maxHeight = 0;
+            foreach (Element c in Children)
+            {
+                if (c.Height > maxHeight)
+                    maxHeight = c.Height;
+            }
+            if (maxHeight > this.Height)
+            {
+                this.Height = maxHeight;
             }
         }
     }
@@ -857,6 +1021,10 @@ namespace Spider
     }
     public class divider : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         private Image imgDivider;
         public divider(Board parent, XmlElement node)
             : base(parent, node)
@@ -882,6 +1050,10 @@ namespace Spider
     /// </summary>
     public class flow : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         public flow(Board parent, XmlElement node)
             : base(parent, node)
         {
@@ -921,6 +1093,10 @@ namespace Spider
     /// </summary>
     public class vbox : Element
     {
+        public override void BeforePackChildren()
+        {
+
+        }
         public vbox(Board parent, XmlElement node)
             : base(parent, node)
         {
@@ -957,16 +1133,18 @@ namespace Spider
                     static_height += elm.Height;
                 }
             }
-            if(count_flex > 0)
-            flexible_height = (this.Height - static_height) / count_flex;
+            if (count_flex > 0)
+                flexible_height = (this.Height - static_height) / count_flex;
 
             for (int i = 0; i < this.Children.Count; i++)
             {
                 Element child = this.Children[i];
-                child.Y = child.Margin.Top + this.Padding.Top;
-                child.Height = child.AbsoluteHeight - child.Margin.Bottom * 2 - this.Padding.Bottom * 2;
+                
+
+                child.Y = child.Margin.Top + this.Padding.Top + pos;
+                //child.Height = child.AbsoluteHeight - child.Margin.Bottom * 2 - this.Padding.Bottom * 2;
                 child.Width = this.Width - child.Margin.Right * 2 - this.Padding.Right * 2;
-                child.Y = pos;
+
                 if (child.Flex > 0)
                 {
                     child.Height = flexible_height;
@@ -978,11 +1156,100 @@ namespace Spider
                     pos += child.Height + child.Y;
                 }
 
-              
-
-
 
                 child.PackChildren();
+
+
+                int height = 0;
+
+            }
+            if (pos > this.Height )
+            {
+                this.Height = pos;
+                this.PackChildren();
+
+            }
+        }
+    }
+    /// <summary>
+    /// VBox element
+    /// </summary>
+    public class box : Element
+    {
+        public override void BeforePackChildren()
+        {
+
+        }
+        public box(Board parent, XmlElement node)
+            : base(parent, node)
+        {
+        }
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            int spacingLeft = this.Parent != null ? this.Parent.Margin.Left : this.Board.Padding.Left;
+            int spacingTop = this.Parent != null ? this.Parent.Margin.Top : this.Board.Padding.Top;
+            int spacingBottom = this.Parent != null ? this.Parent.Margin.Bottom * 2 : this.Board.Padding.Bottom * 2;
+            int spacingRight = this.Parent != null ? this.Parent.Margin.Right * 2 : this.Board.Padding.Right * 2;
+
+            g.FillRectangle(new SolidBrush(BackColor), x + spacingLeft, y + spacingTop, Width - spacingRight, Height - spacingBottom);
+            //   g.FillRectangle(new SolidBrush(BackColor), x, y, this.Width,this.Height);
+            base.Draw(g, ref x, ref y);
+        }
+
+
+        public override void PackChildren()
+        {
+            int pos = 0;
+            int quote = this.Width / this.Children.Count;
+            int count_flex = 0;
+            int flexible_height = 0;
+            int static_height = 0;
+            foreach (Element elm in this.Children)
+            {
+                if (elm.Flex > 0)
+                {
+                    count_flex += 1;
+
+                }
+                else
+                {
+                    static_height += elm.Height;
+                }
+            }
+            if (count_flex > 0)
+                flexible_height = (this.Height - static_height) / count_flex;
+
+            for (int i = 0; i < this.Children.Count; i++)
+            {
+                Element child = this.Children[i];
+
+
+                child.Y = child.Margin.Top + this.Padding.Top + pos;
+                
+                //child.Height = child.AbsoluteHeight - child.Margin.Bottom * 2 - this.Padding.Bottom * 2;
+                child.Width = this.Width - child.Margin.Right * 2 - this.Padding.Right * 2;
+
+                if (child.Flex > 0)
+                {
+                    child.Height = flexible_height;
+                    pos += flexible_height; ;
+                }
+                else
+                {
+
+                    pos += child.Height;
+                }
+
+                child.PackChildren();
+
+
+                int height = 0;
+
+            }
+            if (pos > this.Height)
+            {
+                this.Height = pos;
+
             }
         }
     }

@@ -43,6 +43,21 @@ namespace Spider
                 return playlist;
             }
         }
+        public List<track> SelectedTracks
+        {
+            get
+            {
+                List<track> playlist = new List<track>();
+                foreach (track e in this.Tracks)
+                {
+                    if (e.Selected)
+                        playlist.Add(e);
+                }
+
+                return playlist;
+            }
+        }
+        
         #region ScriptMethods
 
         /// <summary>
@@ -236,6 +251,7 @@ namespace Spider
             this.Stylesheet = (this.SpiderView).Stylesheet;
             this.Click += Board_Click;
             this.MouseClick += Board_MouseClick;
+            this.MouseDown += Board_MouseDown;
             InitializeComponent();
 
             this.Paint += Board_Paint;
@@ -254,6 +270,23 @@ namespace Spider
             spiderView.Scripting.RegisterFunction("sendToWeb", new lua_delegate_send_http_request(lua_send_http_request), this);
             spiderView.Scripting.RegisterFunction("json", new get_obj(get_json), this);
 
+        }
+
+        public void Board_MouseDown(object sender, MouseEventArgs e)
+        {
+            int x = e.X;
+            int y = e.Y;
+            try
+            {
+                foreach (Element elm in this.Children)
+                {
+                    if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                    {
+                        elm.CheckMouseDown(e.X, e.Y);
+                    }
+                }
+            }
+            catch (Exception ex) { }
         }
         
         /// <summary>
@@ -390,15 +423,17 @@ namespace Spider
             this.Width = 1100;
             this.Height = max_height;
         }
-        public void PackChildren()
+        public void PackChildren(bool c =true)
         {
             int row = 0;
             int left = Padding.Left;
             int max_height = 0;
             foreach (Element child in this.Children)
             {
+                
+               
                 child.Width = child.AbsoluteWidth;
-                child.Height = child.AbsoluteHeight;
+                //child.Height = child.AbsoluteHeight;
                 if (child.Dock == Spider.Element.DockStyle.Right)
                 {
                     child.Width = this.Width - Padding.Right * 2 - child.Margin.Right * 2 - child.X;
@@ -412,17 +447,48 @@ namespace Spider
                 child.X = left;
                 child.Y = row;*/
 
-                child.X = 0;// this.Padding.Left;
-                child.Y = row;// this.Padding.Top + row;
+                child.X = this.BoxPadding != null ? this.BoxPadding.Left : 0;
+                child.Y = this.BoxPadding != null ? this.BoxPadding.Top + row : row;
                 left += child.Width + child.Padding.Right;
-                child.PackChildren();
+                
                 row += child.Height;
+
+                if (child.Children.Count > 0)
+                    child.PackChildren();
+               
+               
             }
+            
+           
+            
         }
         
+        public void assignHeight(Element element)
+        {
+            if (element.GetType() != typeof(vbox))
+                return;
+            int height = 0;
+            foreach (Element elm in element.Children)
+            {
+               
+                assignHeight(elm);
+                elm.PackChildren();
+                height += elm.Height;
+            }
+            if (height > element.Height)
+            {
+                element.Height = height;
+            }
+            element.PackChildren();
+        }
+        public Spider.Skinning.Padding BoxPadding { get; set; }
         BufferedGraphicsContext BGC = new BufferedGraphicsContext();
         public void LoadNodes(XmlElement root)
         {
+            if (root.HasAttribute("padding"))
+            {
+                this.BoxPadding = new Spider.Skinning.Padding(root.GetAttribute("padding"));
+            }
             foreach (XmlNode elm in root.ChildNodes)
             {
                 if (elm.GetType() == typeof(XmlElement))
@@ -441,7 +507,7 @@ namespace Spider
         }
         private void Board_Load(object sender, EventArgs e)
         {
-
+            this.CreateGraphics().PageUnit = GraphicsUnit.Pixel;
         }
         public void Draw(Graphics g, ref int x, ref int y, Rectangle target)
         {
