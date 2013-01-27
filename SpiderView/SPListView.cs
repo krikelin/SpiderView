@@ -50,7 +50,9 @@ namespace Spider
         protected override void OnPaintBackground(PaintEventArgs e)
         {
             base.OnPaintBackground(e);
+            Draw(e.Graphics);
         }
+     
         /// <summary>
         /// Draw item and sub-Items
         /// </summary>
@@ -164,7 +166,7 @@ namespace Spider
         }
         float scrollScale = 0;
         private float myScroll = 0;
-        private void Draw(Graphics gr)
+        public void Draw(Graphics gr)
         {
 
             BufferedGraphicsContext c = new BufferedGraphicsContext();

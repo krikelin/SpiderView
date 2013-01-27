@@ -136,6 +136,17 @@ namespace Spider
             if (this.MouseMove != null)
                 this.MouseMove(this, new MouseEventArgs(x, y));
 
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in this.Children)
+            {
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.OnMouseOver(x, y);
+                }
+            }
+            x += this.X;
+            y += this.Y;
 #if(DEBUG)
          //   this.mouseOver = true;
 #endif
@@ -150,7 +161,17 @@ namespace Spider
             }
             if (this.MouseDown != null)
                 this.MouseDown(this, new MouseEventArgs(x, y));
-
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in this.Children)
+            {
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.OnMouseDown(x, y);
+                }
+            }
+            x += this.X;
+            y += this.Y;
 #if(DEBUG)
                this.mouseOver = true;
 #endif
@@ -163,7 +184,7 @@ namespace Spider
             
             this.OnClick(x, y);
             Graphics g = this.Board.CreateGraphics();
-            g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+          //  g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
             this.OnClick(x, y);
 
             if (this.ElementEventHandlers.ContainsKey("click"))
@@ -501,10 +522,13 @@ namespace Spider
             InitialContainer htmlContainer = new InitialContainer(html);
             htmlPanel.HtmlContainer.Text = html;
             //HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
-            g.DrawString(Text, new Font("MS Sans Serif", 11f), new SolidBrush(ForeColor), new RectangleF(0f, 0f, (float)Width, (float)Height));
+            if(this.Shadow)
+                g.DrawString(Text, new Font("MS Sans Serif", 11f), new SolidBrush(Block.TextShadowColor), new RectangleF(0f, -1f, (float)Width, (float)Height));
+            g.DrawString(Text, new Font("MS Sans Serif", 11f), new SolidBrush(ForeColor), new RectangleF(0f, -0f, (float)Width, (float)Height));
 
             return c;
         }
+        public bool Shadow { get; set; }
         /// <summary>
         /// Draw
         /// </summary>
@@ -970,6 +994,10 @@ namespace Spider
                 child.Y = child.Margin.Top  + this.Padding.Top + child.Margin.Top ;
                 child.Width = child.AbsoluteWidth - this.Padding.Right*2 - child.Padding.Right*2; 
                 child.Height = this.Height - child.Margin.Bottom*2  - this.Padding.Bottom*2;
+                if (child.AbsoluteHeight > 0)
+                {
+                    child.Height = child.AbsoluteHeight - child.Margin.Bottom * 2 - this.Padding.Bottom;
+                }
                 if (child.Flex > 0)
                 {
                     child.Width = flexible_width;
