@@ -311,11 +311,10 @@ namespace Spider.Preprocessor
         /// </summary>
         /// <param name="input">The input string to parse</param>
         /// <param name="argument">The argument sent to the parser</param>
-        public String Preprocess(string input, object obj )
+        public String Preprocess(string input, object obj, bool onlyPreprocess = false)
         {string argument = "";
             bool inflate = false;
             string uri = "";
-            bool onlyPreprocess = false;
             #region OverlayManager Experimental
             /****
              * STOCKHOLM 2011-07-01 14:45
@@ -517,9 +516,25 @@ namespace Spider.Preprocessor
             // Run the code
             RuntimeMachine.RegisterFunction("__printx", (MethodBase)new printx_func(__printx).Method, this);
             RuntimeMachine.RegisterFunction("synchronize_data", (MethodBase)new synchronize_func(synchronize_data).Method, this);
+            //RuntimeMachine.RegisterFunction("include", (MethodBase)new synchronize_func(include).Method, this);
             CallStack = finalOutput.ToString();
            
             CallStack = CallStack.Replace("\r", "");
+            Regex reg = new Regex(@"\#include\(\'(.*?)\'\)");
+            MatchCollection collection = reg.Matches(CallStack.ToString());
+            
+            foreach (Match match in collection)
+            {
+                String baseString =match.Captures[0].Value;
+                String c = baseString.Substring(10, baseString.Length - 8 - 4);
+                using (StreamReader sr = new StreamReader(c))
+                {
+                    String newCode = sr.ReadToEnd();
+                    newCode = Preprocess(newCode, null, true);
+
+                    CallStack = CallStack.Replace(baseString, newCode);
+                }
+            }
             if (!onlyPreprocess)
             {
                 /***
@@ -570,8 +585,10 @@ namespace Spider.Preprocessor
             }
 
         }
+        
     }
     public delegate object synchronize_func(String uri);
     public delegate object printx_func(string msg = "");
+    public delegate object include(string file = "");
 
 }

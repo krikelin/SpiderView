@@ -14,7 +14,7 @@ namespace Spider.Preprocessor
         {
             this.Host = host;
         }
-        public string Preprocess(string template, object code)
+        public string Preprocess(string template, object code, bool onlyPreprocess = false)
         {
             Template _template = Template.Parse(template);
             return _template.Render(Hash.FromAnonymousObject(code));

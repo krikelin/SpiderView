@@ -18,6 +18,6 @@ namespace Spider.Preprocessor
         /// <param name="template"></param>
         /// <param name="code"></param>
         /// <returns></returns>
-        string Preprocess(String template, Object code);
+        string Preprocess(String template, Object code, bool onlyPreprocess = false);
     }
 }
