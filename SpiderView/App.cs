@@ -26,6 +26,12 @@ namespace Spider
             this.Controls.Add(spiderView);
             this.spiderView.Dock = DockStyle.Fill;
             spiderView.Dock = DockStyle.Fill;
+            spiderView.Navigate += spiderView_Navigate;
+        }
+
+        void spiderView_Navigate(object sender, SpiderView.NavigateEventArgs e)
+        {
+            Host.Navigate(e.Uri.ToString());
         }
         public App()
         {

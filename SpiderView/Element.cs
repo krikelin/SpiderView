@@ -181,7 +181,9 @@ namespace Spider
         public void CheckClick(int x, int y)
         {
             
-            
+            if(this.Hyperlink != null) {
+               this.Board.SpiderView.BeginNavigate(new Uri(this.Hyperlink));
+            }
             this.OnClick(x, y);
             Graphics g = this.Board.CreateGraphics();
           //  g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
@@ -210,7 +212,7 @@ namespace Spider
             x += this.X;
             y += this.Y;
 
-
+                
         }
         public void CheckMouseDown(int x, int y)
         {
@@ -294,6 +296,8 @@ namespace Spider
         public Style Stylesheet = new PixelStyle();
         public Dictionary<String, String> ElementEventHandlers = new Dictionary<string, string>();
         private XmlNode node;
+        public int MinHeight { get; set; }
+        public int MinWidth { get; set; }
         public String Alt { get; set; }
         public String Hyperlink { get; set; }
         int flex = 0;
@@ -329,6 +333,14 @@ namespace Spider
             if (node.HasAttribute("onclick"))
             {
                
+            }
+            if (node.HasAttribute("minHeight"))
+            {
+                this.MinHeight = int.Parse(node.GetAttribute("minHeight"));
+            }
+            if (node.HasAttribute("minWidth"))
+            {
+                this.MinWidth = int.Parse(node.GetAttribute("minWidth"));
             }
             if (node.HasAttribute("margin"))
             {
@@ -477,7 +489,7 @@ namespace Spider
             : base(host, node)
         {
         }
-
+        
     }
     public class text : Element
     {
@@ -698,7 +710,7 @@ namespace Spider
                 i++;
             }
             if(i * trackHeight > this.Height)
-                this.Height = i * trackHeight;
+                this.Height = i * trackHeight + 25;
             
         }
         public playlist(Board host, XmlElement node) : base (host, node)
@@ -1024,7 +1036,11 @@ namespace Spider
             }
             if (maxHeight > this.Height)
             {
-                this.Height = maxHeight;
+                this.Height = maxHeight + 0;
+            }
+            if (this.Height < MinHeight && MinHeight != 0)
+            {
+                this.Height = MinHeight;
             }
         }
     }
@@ -1193,9 +1209,12 @@ namespace Spider
             }
             if (pos > this.Height )
             {
-                this.Height = pos;
-                this.PackChildren();
+                this.Height = pos + 50;
 
+            }
+            if (this.Height < MinHeight && MinHeight != 0)
+            {
+                this.Height = MinHeight;
             }
         }
     }
@@ -1278,6 +1297,10 @@ namespace Spider
             {
                 this.Height = pos;
 
+            }
+            if (this.Height < MinHeight && MinHeight != 0)
+            {
+                this.Height = MinHeight;
             }
         }
     }

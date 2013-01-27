@@ -346,6 +346,7 @@ namespace Spider
         {
             
         }
+        
         public Board()
         {
             InitializeComponent();

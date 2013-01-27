@@ -231,7 +231,17 @@ namespace Spider
         {
             Scripting.InvokeFunction(e.Command, e);
         }
-
+        public class NavigateEventArgs
+        {
+            public Uri Uri;
+        }
+        public delegate void NavigateEventHandler(object sender, NavigateEventArgs e);
+        public event NavigateEventHandler Navigate;
+        public void BeginNavigate(Uri uri)
+        {
+            if (Navigate != null)
+                Navigate(this, new NavigateEventArgs() { Uri = uri });
+        }
         private TabBar tabBar;
         private Panel deck;
         private void SpiderView_Load(object sender, EventArgs e)
