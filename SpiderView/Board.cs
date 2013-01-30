@@ -20,6 +20,11 @@ namespace Spider
 {
     public partial class Board : UserControl
     {
+        public enum Mode
+        {
+            Normal, Error
+        }
+        public Mode State = Mode.Normal;
         /// <summary>
         /// Tracklist
         /// </summary>
@@ -353,7 +358,7 @@ namespace Spider
             
             this.Paint += Board_Paint;
             this.Stylesheet = SpiderView.Stylesheet;
-            this.Block = Stylesheet.Blocks["body"];
+            this.Block = (Spider.Skinning.Block)Stylesheet.Blocks["body"].Clone();
             this.ForeColor = Block.ForeColor;
             this.ForeColor = Block.BackColor;
             tmrDraw = new Timer();
@@ -486,6 +491,15 @@ namespace Spider
         BufferedGraphicsContext BGC = new BufferedGraphicsContext();
         public void LoadNodes(XmlElement root)
         {
+            if (root.HasAttribute("bgcolor"))
+            {
+                this.Block.BackColor = ColorTranslator.FromHtml(root.GetAttribute("bgcolor"));
+                this.BackColor = this.Block.BackColor;
+            }
+            if (root.HasAttribute("fgcolor"))
+            {
+                this.Block.ForeColor = ColorTranslator.FromHtml(root.GetAttribute("fgcolor"));
+            }
             if (root.HasAttribute("padding"))
             {
                 this.BoxPadding = new Spider.Skinning.Padding(root.GetAttribute("padding"));

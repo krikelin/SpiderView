@@ -739,6 +739,24 @@ namespace Spider
         {
             this.Uri = new Uri(node.GetAttribute("uri"));
             this.Track = new SpotifyTrack(this.Uri);
+            this.Track.Name = node.GetAttribute("name");
+            try
+            {
+
+                this.Track.artists[0] = new Artist() { Name = node.GetAttribute("artist_name"), Uri = new Uri(node.GetAttribute("artist_uri")) };
+            }
+            catch (Exception e)
+            {
+            }
+            try
+            {
+                this.Track.Album = new Album() { Uri = new Uri(node.GetAttribute("album_uri")), Name = node.GetAttribute("album_name") };
+            }
+            catch (Exception e)
+            {
+            }
+
+
             
             this.Block = (Block)this.Board.Stylesheet.Blocks["track"].Clone();
             this.Block.Font = new Font("MS Sans Serif", 11, FontStyle.Regular, GraphicsUnit.Pixel);
@@ -770,33 +788,21 @@ namespace Spider
                 bgColor = this.SelectedBlock.BackColor;
                 fgColor = this.SelectedBlock.ForeColor;
             }
-            String name = "", artist = "", album = "";
+           
             g.FillRectangle(new SolidBrush(bgColor), new Rectangle(x, y, this.Width, this.Height));
             g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(x, y + this.Height - 1), new Point(this.Width + x, this.Height - 1 + y));
             if (Track != null)
             {
-                name = Track.Name;
-                if (Track.artists != null)
+                // Draw title
+                if (!Selected)
                 {
-                    if (Track.artists.Length > 0)
-                    {
-                        artist = Track.artists[0].Name;
-                    }
+                    g.DrawString(Track.Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(15 + x, 0 + y));
+                    g.DrawString(Track.artists[0].Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(215 + x, 0 + y));
                 }
-            }
-            if (name.Length > 13)
-            {
-                name = name.Substring(0, 13);
-            }
-            // Draw title
-            if (!Selected)
-            {
-                g.DrawString(name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(15 + x, 0 + y));
-                g.DrawString(artist, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(215 + x, 0 + y));
-            }
 
-            g.DrawString(name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x, 1 + y));
-            g.DrawString(artist, this.Block.Font, new SolidBrush(fgColor), new Point(215 + x, 1 + y));
+                g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x, 1 + y));
+                g.DrawString(Track.artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(215 + x, 1 + y));
+            }
         }
 
         public override void PackChildren()

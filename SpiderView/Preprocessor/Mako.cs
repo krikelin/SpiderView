@@ -312,9 +312,12 @@ namespace Spider.Preprocessor
         /// <param name="input">The input string to parse</param>
         /// <param name="argument">The argument sent to the parser</param>
         public String Preprocess(string input, object obj, bool onlyPreprocess = false)
-        {string argument = "";
+        {
+            string argument = "";
             bool inflate = false;
             string uri = "";
+            if (input == null)
+                return "";
             #region OverlayManager Experimental
             /****
              * STOCKHOLM 2011-07-01 14:45
@@ -350,6 +353,7 @@ namespace Spider.Preprocessor
 
             // Remove unwanted trailings
             Regex a = new Regex(@"<\#[^\#]*\#>", RegexOptions.IgnoreCase);
+            if(input != null)
             input = a.Replace(input, "");
             #endregion
 
@@ -530,7 +534,7 @@ namespace Spider.Preprocessor
                 using (StreamReader sr = new StreamReader(c))
                 {
                     String newCode = sr.ReadToEnd();
-                    newCode = Preprocess(newCode, null, true);
+                    newCode = Preprocess(newCode, obj, true);
 
                     CallStack = CallStack.Replace(baseString, newCode);
                 }

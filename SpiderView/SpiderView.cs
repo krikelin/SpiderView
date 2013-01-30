@@ -108,13 +108,7 @@ namespace Spider
             {
                 template = sr.ReadToEnd();
             }
-            try
-            {
-                Refresh(null);
-            }
-            catch (Exception e)
-            {
-            }
+            
         }
         public void Refresh(Object obj)
         {
@@ -127,11 +121,24 @@ namespace Spider
             if (obj == null)
                 return;
 #endif
+            
             String DOM = Preprocessor.Preprocess(this.template, obj);
             XmlDocument xmlDoc = new XmlDocument();
             if (DOM == "NONCHANGE" || String.IsNullOrEmpty(DOM))
                 return;
-            xmlDoc.LoadXml(DOM);
+            try
+            {
+                xmlDoc.LoadXml(DOM);
+            } catch (Exception e) 
+            {
+                using (StreamReader sr = new StreamReader("views/error.xml"))
+                {
+                    String markup = sr.ReadToEnd();
+                    markup = markup.Replace("${error}", e.Message);
+                    xmlDoc.LoadXml(markup);
+                }
+            }
+
             XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");
             foreach (XmlElement elmScript in scripts)
             {
@@ -155,7 +162,7 @@ namespace Spider
             {
                 this.LoadNodes(xmlDoc.DocumentElement);
             }
-            
+            this.tabBar.Refresh();
            
         }
         public void LoadNodesAgain(XmlElement element)

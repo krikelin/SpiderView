@@ -16,9 +16,11 @@ namespace Spider
     public partial class App : UserControl
     {
         public SpiderHost Host { get; set; }
-        public App(SpiderHost host)
+        public String Template { get; set; }
+        public String[] Arguments;
+        public App(SpiderHost host, String[] arguments)
         {
-            
+            this.Arguments = arguments;
             InitializeComponent();
             this.Host = host;
             this.spiderView = new SpiderView();
@@ -33,17 +35,46 @@ namespace Spider
         {
             Host.Navigate(e.Uri.ToString());
         }
+        public void Start()
+        {
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.DoWork += bw_DoWork;
+            bw.RunWorkerCompleted += bw_RunWorkerCompleted;
+            bw.RunWorkerAsync(this.Arguments);
+        }
         public App()
         {
+            
             InitializeComponent();
             
 
+        }
+
+        void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            spiderView.LoadFile(Template);
+            spiderView.refresh(e.Result);
+        }
+
+        void bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            e.Result = Loading(e.Argument);
+        }
+
+        /// <summary>
+        /// Override this function to load
+        /// </summary>
+        /// <param name="arguments"></param>
+        public virtual object Loading(object arguments)
+        {
+            return null;
         }
         /// <summary>
         /// Loads the app
         /// </summary>
         /// <param name="arguments"></param>
-        public void Navigate(String[] arguments)
+        public virtual void Navigate(String[] arguments)
         {
             
         }

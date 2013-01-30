@@ -39,12 +39,14 @@ namespace Spider
                     return;
                 }
                 Type type = RegistredAppTypes[ns];
-                App appClass = (App)type.GetConstructor(new Type[] { typeof(SpiderHost) }).Invoke(new Object[] { this });
+                App appClass = (App)type.GetConstructor(new Type[] { typeof(SpiderHost), typeof(String[]) }).Invoke(new Object[] { this, uri.Split(':') });
 
                 Apps.Add(appId, appClass);
                 appClass.Navigate(segments);
                 this.Controls.Add(appClass);
+               
                 appClass.Dock = DockStyle.Fill;
+                appClass.BringToFront();
                 if (this.Navigated != null)
                     this.Navigated(this, new SpiderNavigationEventArgs() { Arguments = arguments });
                 Future.Clear();
