@@ -23,7 +23,7 @@ namespace Spider
             {
                 String[] segments = uri.Split(':');
                 var ns = segments[1];
-                String appId = segments[0] + ":" + ns ;
+                String appId = uri ;
                 String[] arguments = new String[segments.Length - 2];
                 System.Array.Copy(segments, 2, arguments, 0, segments.Length - 2);
                 // If app is already loaded bring it to front

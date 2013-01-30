@@ -265,7 +265,7 @@ namespace Spider
             base.OnResize(e);
             if (activeBoard != null)
             {
-                //  activeBoard.Board.AutoResize();
+                 activeBoard.Board.AutoResize();
             }
         }
         void SpiderView_Resize(object sender, EventArgs e)

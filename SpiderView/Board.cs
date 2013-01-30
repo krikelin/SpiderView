@@ -256,6 +256,7 @@ namespace Spider
             this.Stylesheet = (this.SpiderView).Stylesheet;
             this.Click += Board_Click;
             this.MouseClick += Board_MouseClick;
+            this.MinimumSize = new Size(640, 480);
             this.MouseDown += Board_MouseDown;
             InitializeComponent();
 
@@ -279,6 +280,13 @@ namespace Spider
 
         public void Board_MouseDown(object sender, MouseEventArgs e)
         {
+            if ((Control.ModifierKeys & Keys.ControlKey) == 0)
+            {
+                foreach (track t in Tracks)
+                {
+                    t.Selected = false;
+                }
+            }
             int x = e.X;
             int y = e.Y;
             try
@@ -375,7 +383,7 @@ namespace Spider
             int y = e.Y;
             foreach (Element elm in Children)
             {
-                if ((x > elm.AbsoluteLeft && x < elm.AbsoluteLeft + elm.Width) && (y > elm.AbsoluteTop && y < elm.AbsoluteTop + elm.Height))
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
                     elm.CheckHover(x, y);
                 }
@@ -397,7 +405,7 @@ namespace Spider
 
         void Board_Resize(object sender, EventArgs e)
         {
-
+            this.PackChildren();
             
 
         }

@@ -113,7 +113,7 @@ namespace Spider
             foreach (Element elm in Children)
             {
 
-                if ((x > elm.AbsoluteLeft && x < elm.AbsoluteLeft + elm.Width) && (y > elm.AbsoluteTop && y < elm.AbsoluteTop + elm.Height))
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
                     elm.CheckHover(x, y);
                 }
@@ -129,7 +129,7 @@ namespace Spider
         public event MouseEventHandler MouseMove;
         public virtual void OnMouseOver(int x, int y)
         {
-            if (!String.IsNullOrEmpty(this.Hyperlink))
+            if (!String.IsNullOrEmpty(this.Hyperlink) && this.GetType() != typeof(track))
             {
                 this.Board.foundLink = true;
             }
@@ -140,7 +140,7 @@ namespace Spider
             y -= this.Y;
             foreach (Element elm in this.Children)
             {
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                if ((x > elm.AbsoluteLeft && x < elm.AbsoluteTop + elm.Width) && (y > elm.AbsoluteTop && y < elm.AbsoluteTop + elm.Height))
                 {
                     elm.OnMouseOver(x, y);
                 }
@@ -165,7 +165,7 @@ namespace Spider
             y -= this.Y;
             foreach (Element elm in this.Children)
             {
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                if ((x > elm.X && x < elm.Y + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
                     elm.OnMouseDown(x, y);
                 }
@@ -371,6 +371,7 @@ namespace Spider
                 if (node.GetAttribute("width") == "100%")
                 {
                     Dock |= DockStyle.Right;
+                    Width = -1;
                     //Width = Parent.Width - Margin * 2 + Parent.Padding * 2;
                 }
                 else
@@ -491,8 +492,29 @@ namespace Spider
         }
         
     }
+    public class hr : Element
+    {
+        public hr(Board board, XmlElement node)
+            : base(board, node)
+        {
+
+        }
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            base.Draw(g, ref x, ref y);
+            g.DrawLine(new Pen(Block.AlternateBackColor, 1), new Point(0, y), new Point(this.Board.Width, y));
+        }
+        public override void BeforePackChildren()
+        {
+            
+        }
+        public override void PackChildren()
+        {
+        }
+    }
     public class text : Element
     {
+        public int FontSize { get; set; }
         public override void BeforePackChildren()
         {
 
@@ -516,6 +538,18 @@ namespace Spider
             : base(host, node)
         {
             Text = node.InnerText;
+            if (node.HasAttribute("fontSize"))
+            {
+                this.Block.Font = new Font(this.Block.Font.FontFamily.Name, int.Parse(node.GetAttribute("fontSize")));
+            }
+            if (node.HasAttribute("bold"))
+            {
+                this.Block.Font = new Font(this.Block.Font, this.Block.Font.Style | FontStyle.Bold);
+            }
+            if (node.HasAttribute("italic"))
+            {
+                this.Block.Font = new Font(this.Block.Font, this.Block.Font.Style | FontStyle.Italic);
+            }
         }
         private Bitmap bitmap;
         HtmlPanel htmlPanel = new HtmlPanel();
@@ -526,19 +560,27 @@ namespace Spider
         }
         private Bitmap GenerateBitmap()
         {
-            
-            Bitmap c = new Bitmap(this.Width, this.Height);
-            Graphics g = Graphics.FromImage(c);
-            int fontSize = (int)(((float)Block.Font.Size / 11) * 3);
-            String html = "<font face=\"" + Block.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Block.ForeColor) + "\">" + Text + "</font>";
-            InitialContainer htmlContainer = new InitialContainer(html);
-            htmlPanel.HtmlContainer.Text = html;
-            //HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
-            if(this.Shadow)
-                g.DrawString(Text, new Font("MS Sans Serif", 11f), new SolidBrush(Block.TextShadowColor), new RectangleF(0f, -1f, (float)Width, (float)Height));
-            g.DrawString(Text, new Font("MS Sans Serif", 11f), new SolidBrush(ForeColor), new RectangleF(0f, -0f, (float)Width, (float)Height));
+            try
+            {
+                Bitmap c = new Bitmap(this.Width, this.Height);
 
-            return c;
+                Graphics g = Graphics.FromImage(c);
+                g.FillRectangle(new SolidBrush(BackColor), new Rectangle(0, 0, Width, Height));
+                int fontSize = (int)(((float)Block.Font.Size / 11) * 3);
+                String html = "<font face=\"" + Block.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Block.ForeColor) + "\">" + Text + "</font>";
+                InitialContainer htmlContainer = new InitialContainer(html);
+                htmlPanel.HtmlContainer.Text = html;
+                //HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
+                if (this.Shadow)
+                    g.DrawString(Text, new Font("MS Sans Serif", 11), new SolidBrush(Block.TextShadowColor), new RectangleF(0f, -1f, (float)Width, (float)Height));
+                g.DrawString(Text, new Font("MS Sans Serif", 11), new SolidBrush(ForeColor), new RectangleF(0f, -0f, (float)Width, (float)Height));
+
+                return c;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
         public bool Shadow { get; set; }
         /// <summary>
@@ -548,8 +590,9 @@ namespace Spider
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             base.Draw(g, ref  x, ref y);
-            if(bitmap != null)
-               g.DrawImage(bitmap, new Point(x, y));
+            //if(bitmap != null)
+            //   g.DrawImage(bitmap, new Point(x, y));
+            g.DrawString(Text, this.Block.Font, new SolidBrush(ForeColor), new RectangleF(x, y, (float)Width, (float)Height));
             /*label.Width = this.Width;
             label.Height = this.Height;
             label.BackColor =this.BackColor;
@@ -691,22 +734,67 @@ namespace Spider
             }
         }
     }
+    public class columnheader : Element
+    {
+        public columnheader(Board host, XmlElement node)
+            : base(host, node)
+        {
+        }
+        public playlist Playlist;
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            base.Draw(g, ref x, ref y);
+            int nX = x;
+            int nY = y;
+            g.FillRectangle(new SolidBrush(Color.FromArgb(255, 166, 166, 166)), new Rectangle(x, y, this.Width, this.Height));
+            g.DrawString("Columnheaders is coming", Block.Font, new SolidBrush(Color.Black), new Point(x + 2, y +2));
+         /*   if (Board.VerticalScroll.Value > y)
+            {
+                nX = 0;
+                nY = 0;
+            }*/
+        }
+        public override void PackChildren()
+        {
+            
+        }
+        public override void BeforePackChildren()
+        {
+            
+        }
+
+    }
     public class playlist : Element
     {
+        public columnheader ColumnHeader;
+        public bool HasHeaders {get;set;}
         private int trackHeight = 20;
         public override void PackChildren()
         {
             if (this.Parent == null)
                 return;
             int i = 0;
+            
             foreach (Element track in this.Children)
             {
-              //  if (track.GetType() != typeof(track) |)
-                //    throw new Exception("Invalid type");
-                track.Height = trackHeight;
-                track.Width = this.Width;
-                track.X = 0;
-                track.Y = i * trackHeight;
+                if (track.GetType() == typeof(columnheader))
+                {
+                    track.Height = trackHeight;
+                    track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+                    this.ColumnHeader = (columnheader)track;
+                    track.X = 0;
+                    track.Y = i * trackHeight;
+                }
+                if (track.GetType() == typeof(track))
+                {
+                    //  if (track.GetType() != typeof(track) |)
+                    //    throw new Exception("Invalid type");
+                    track.Height = trackHeight;
+                    track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+
+                    track.X = 0;
+                    track.Y = i * trackHeight;
+                }
                 i++;
             }
             if(i * trackHeight > this.Height)
@@ -715,6 +803,8 @@ namespace Spider
         }
         public playlist(Board host, XmlElement node) : base (host, node)
         {
+           
+            
 
         }
 
@@ -1010,7 +1100,10 @@ namespace Spider
                 Element child = this.Children[i];
                 child.X = child.Margin.Left + this.Padding.Left +  child.Margin.Left + pos;
                 child.Y = child.Margin.Top  + this.Padding.Top + child.Margin.Top ;
-                child.Width = child.AbsoluteWidth - this.Padding.Right*2 - child.Padding.Right*2; 
+                child.Width = child.AbsoluteWidth - this.Padding.Right*2 - child.Padding.Right*2;
+                if (child.Width ==  -1)
+                    child.Width = this.Width;
+                
                 child.Height = this.Height - child.Margin.Bottom*2  - this.Padding.Bottom*2;
                 if (child.AbsoluteHeight > 0)
                 {
