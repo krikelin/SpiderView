@@ -71,6 +71,7 @@
     <Compile Include="Class1.cs" />
     <Compile Include="CSS\CSS.cs" />
     <Compile Include="Element.cs" />
+    <Compile Include="IPlayEngine.cs" />
     <Compile Include="ITrack.cs" />
     <Compile Include="LuaInterface\CheckType.cs" />
     <Compile Include="LuaInterface\GenerateEventAssembly.cs" />

@@ -736,11 +736,11 @@ namespace Spider
     }
     public class columnheader : Element
     {
+        public playlist Playlist { get; set; }
         public columnheader(Board host, XmlElement node)
             : base(host, node)
         {
         }
-        public playlist Playlist;
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             base.Draw(g, ref x, ref y);
@@ -782,6 +782,7 @@ namespace Spider
                     track.Height = trackHeight;
                     track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
                     this.ColumnHeader = (columnheader)track;
+                    this.ColumnHeader.Playlist = this;
                     track.X = 0;
                     track.Y = i * trackHeight;
                 }
@@ -789,6 +790,14 @@ namespace Spider
                 {
                     //  if (track.GetType() != typeof(track) |)
                     //    throw new Exception("Invalid type");
+                    track.Height = trackHeight;
+                    track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+
+                    track.X = 0;
+                    track.Y = i * trackHeight;
+                }
+                if (track.GetType() == typeof(text))
+                {
                     track.Height = trackHeight;
                     track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
 
