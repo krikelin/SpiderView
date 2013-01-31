@@ -24,7 +24,7 @@ namespace Spider
             this.Arguments = arguments;
             InitializeComponent();
             this.Host = host;
-            this.spiderView = new SpiderView();
+            this.spiderView = new SpiderView(host);
             //this.board =  new Board(this);
             this.Controls.Add(spiderView);
             this.spiderView.Dock = DockStyle.Fill;

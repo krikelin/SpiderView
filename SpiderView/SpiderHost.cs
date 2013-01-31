@@ -7,17 +7,47 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Spider.Media;
 
 namespace Spider
 {
     public partial class SpiderHost : UserControl
     {
+        Dictionary<String, IMusicService> Services { get; set; }
+        public IMusicService MusicService { get; set; }
         public Dictionary<String, App> Apps = new System.Collections.Generic.Dictionary<string, App>();
         public Dictionary<String, Type> RegistredAppTypes = new Dictionary<string, Type>();
         public Stack<String> History = new Stack<string>();
         public Stack<String> Future = new Stack<string>();
         public Form Form;
         public String CurrentURI = "";
+        public Board PlayContext; // The context of playback
+        public void Play(track track)
+        {
+            track.Track.Play();
+        }
+        public void PlayNext()
+        {
+            Track lastTrack = null;
+          
+            for (int i = 0; i <  PlayContext.Tracks.Count; i++)
+            {
+                track track = PlayContext.Tracks[i];
+                if (lastTrack != null)
+                {
+                    MusicService.Stop();
+                    track.Track.Play();
+                    return;
+                }
+                if (track.Track.Playing)
+                {
+                    lastTrack = track.Track;
+                   
+                }
+                   
+            }
+        }
+
         public void Navigate(String uri)
         {
             try
@@ -96,6 +126,16 @@ namespace Spider
         public SpiderHost()
         {
             InitializeComponent();
+        }
+        public SpiderHost(IMusicService defaultService)
+        {
+            InitializeComponent();
+            this.MusicService = defaultService;
+            this.MusicService.PlaybackFinished += MusicService_PlaybackFinished;
+        }
+        void MusicService_PlaybackFinished(object sender, EventArgs e)
+        {
+            PlayNext();
         }
 
         private void SpiderHost_Load(object sender, EventArgs e)

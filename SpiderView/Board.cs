@@ -275,6 +275,7 @@ namespace Spider
             spiderView.Scripting.RegisterFunction("getWebResource", new lua_delegate_download_http(lua_download_http), this);
             spiderView.Scripting.RegisterFunction("sendToWeb", new lua_delegate_send_http_request(lua_send_http_request), this);
             spiderView.Scripting.RegisterFunction("json", new get_obj(get_json), this);
+            this.MouseDoubleClick += Board_MouseDoubleClick;
 
         }
 
@@ -374,6 +375,23 @@ namespace Spider
             tmrDraw.Interval = 100;
             tmrDraw.Start();
             this.MouseMove += Board_MouseMove;
+            this.MouseDoubleClick += Board_MouseDoubleClick;
+        }
+
+        void Board_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            int x = e.X;
+            int y = e.Y;
+            foreach (Element elm in Children)
+            {
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.CheckDoubleClick(x, y);
+                }
+                else
+                {
+                }
+            }
         }
         public bool foundLink = false;
         void Board_MouseMove(object sender, MouseEventArgs e)

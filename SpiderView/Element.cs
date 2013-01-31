@@ -13,6 +13,7 @@ using System.Drawing.Html;
 using Spider.Skinning;
 using BungaSpotify09.Models;
 using System.Drawing.Drawing2D;
+using Spider.Media;
 
 
 namespace Spider
@@ -483,6 +484,28 @@ namespace Spider
         public abstract void PackChildren();
         public abstract void BeforePackChildren();
 
+
+        public virtual void CheckDoubleClick(int x, int y)
+        {
+          
+
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in Children)
+            {
+
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.CheckDoubleClick(x, y);
+                }
+                else
+                {
+
+                }
+            }
+            x += this.X;
+            y += this.Y;
+        }
     }
     public class link : text
     {
@@ -828,32 +851,31 @@ namespace Spider
         {
 
         }
+        public override void CheckDoubleClick(int x, int y)
+        {
+            base.CheckDoubleClick(x, y);
+            if (this.Track != null)
+            {
+                this.Track.Play();
+                this.Board.SpiderView.Host.PlayContext = this.Board;
+                this.Board.Invalidate(new Rectangle(X, Y, Width, Height));
+            }
+        }
         public Track Track { get; set; }
         public bool Selected { get; set; }
-        public Uri Uri {get;set;}
         public Block SelectedBlock;
-        public bool Playing { get; set; }
         public track(Board host, XmlElement node)
             : base(host, node)
         {
-            this.Uri = new Uri(node.GetAttribute("uri"));
-            this.Track = new SpotifyTrack(this.Uri);
-            this.Track.Name = node.GetAttribute("name");
-            try
-            {
+            IMusicService ms = host.SpiderView.Host.MusicService;
 
-                this.Track.artists[0] = new Artist() { Name = node.GetAttribute("artist_name"), Uri = new Uri(node.GetAttribute("artist_uri")) };
-            }
-            catch (Exception e)
-            {
-            }
-            try
-            {
-                this.Track.Album = new Album() { Uri = new Uri(node.GetAttribute("album_uri")), Name = node.GetAttribute("album_name") };
-            }
-            catch (Exception e)
-            {
-            }
+            this.Track = new Track(ms);
+            this.Track.TrackLoaded += Track_TrackLoaded;
+            this.Track.Element = this;
+            this.Track.LoadAsync(this);
+
+            this.Track.Name = node.GetAttribute("name");
+           
 
 
             
@@ -861,6 +883,11 @@ namespace Spider
             this.Block.Font = new Font("MS Sans Serif", 11, FontStyle.Regular, GraphicsUnit.Pixel);
             this.SelectedBlock = (Block)this.Board.Stylesheet.Blocks["track::selected"].Clone();
 
+        }
+
+        void Track_TrackLoaded(object sender, Track.TrackLoadEventArgs e)
+        {
+            this.Board.Invalidate(new Rectangle(this.X, this.Y, this.Width, this.Height));
         }
         public override void OnMouseDown(int x, int y)
         {
@@ -882,25 +909,30 @@ namespace Spider
             base.Draw(g, ref x, ref y);
             Color fgColor = this.Block.ForeColor;
             Color bgColor = this.Block.BackColor;
+            if (Track.Playing)
+            {
+                bgColor = Color.Black;
+                fgColor = Color.LightGreen;
+            }
             if (Selected)
             {
                 bgColor = this.SelectedBlock.BackColor;
                 fgColor = this.SelectedBlock.ForeColor;
             }
-           
+            
             g.FillRectangle(new SolidBrush(bgColor), new Rectangle(x, y, this.Width, this.Height));
             g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(x, y + this.Height - 1), new Point(this.Width + x, this.Height - 1 + y));
-            if (Track != null)
+            if (Track.Loaded)
             {
                 // Draw title
                 if (!Selected)
                 {
                     g.DrawString(Track.Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(15 + x, 0 + y));
-                    g.DrawString(Track.artists[0].Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(215 + x, 0 + y));
+                    g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(215 + x, 0 + y));
                 }
 
                 g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x, 1 + y));
-                g.DrawString(Track.artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(215 + x, 1 + y));
+                g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(215 + x, 1 + y));
             }
         }
 

@@ -18,6 +18,7 @@ namespace Spider
     /// </summary>
     public partial class SpiderView : UserControl
     {
+        public SpiderHost Host { get; set; }
         public Interpreter Scripting;
         public Preprocessor.Preprocessor Preprocessor;
         /// <summary>
@@ -51,9 +52,9 @@ namespace Spider
         }
         private System.Windows.Forms.Timer timer;
         public Spider.Skinning.Block Block;
-        public SpiderView()
+        public SpiderView(SpiderHost host)
         {
-                
+            this.Host = host;
             this.Scripting = new Scripting.LuaInterpreter(this);
             this.Preprocessor = new Preprocessor.LuaMako(this);
             this.Scripting.RegisterFunction("refresh", GetType().GetMethod("refresh"), this);

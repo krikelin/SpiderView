@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -16,12 +18,13 @@ namespace Spider.Media
         {
             get
             {
-                return this.Service.Namespace + ":" + "track:" + Identifier;
+                return this.Service.Namespace + ":" + this.GetType().Name.ToLower().Replace("release", "album") + ":" + Identifier;
             }
         }
         public String Identifier { get; set; }
         public String Name { get; set; }
         public IMusicService  Service { get; set; }
+        public String Image { get; set; }
         
         /// <summary>
         /// Creates a new resource
@@ -30,6 +33,7 @@ namespace Spider.Media
         public Resource(IMusicService service)
         {
             this.Service = service;
+            this.Image = "http://o.scdn.co/300/69bfa0d62f92a60ffbc98a7c3df87928da6d5c39";
         }
     }
 
@@ -60,11 +64,79 @@ namespace Spider.Media
     }
     public class Track : Resource
     {
+        public track Element { get; set; }
         public Artist[] Artists { get; set; }
         public Release Album { get; set; }
-       public Track(IMusicService service)
+        public int Duration { get; set; }
+        public bool Loaded { get; set; }
+        public bool Playing
+        {
+            get
+            {
+                return this.Service.NowPlayingTrack == this;
+            }
+        }
+        public class TrackLoadEventArgs
+        {
+            public Object Data;
+            public Track Track;
+        }
+        public delegate void TrackLoadEventHandler(object sender, TrackLoadEventArgs e);
+        public event TrackLoadEventHandler TrackLoaded;
+
+        /// <summary>
+        /// Load async
+        /// </summary>
+        public void LoadAsync(object data)
+        {
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.DoWork += bw_DoWork;
+            bw.RunWorkerCompleted += bw_RunWorkerCompleted;
+            bw.RunWorkerAsync(data);
+        }
+
+        void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.Loaded = true;
+            if (TrackLoaded != null)
+            {
+                TrackLoaded(this, new TrackLoadEventArgs() { Data = e.Result, Track = this });
+            }
+            
+        }
+
+        void bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Track t = this.Service.LoadTrack(this.Identifier);
+            this.Duration = t.Duration;
+            this.Artists = t.Artists;
+            this.Album = t.Album;
+            this.Name = t.Name;
+            e.Result = t;
+           
+        }
+        /// <summary>
+        /// Play the track
+        /// </summary>
+        public void Play()
+        {
+          
+            this.Service.Play(this);
+            if (Element != null)
+            {
+                Element.Board.Invalidate(new Rectangle(Element.X, Element.Y, Element.Width, Element.Height));
+            }
+        }
+        public Track(IMusicService service)
             : base(service)
         {
+            this.Duration = 3;
+        }
+        public Track(IMusicService service, String identifier)
+            : base(service)
+        {
+            this.Identifier = identifier;
+            this.Duration = 3;
         }
     }
     public class Release : Context
@@ -293,7 +365,7 @@ namespace Spider.Media
         /// Plays the track
         /// </summary>
         /// <param name="identifier"></param>
-        void Play(String identifier);
+        void Play(Track track);
 
         /// <summary>
         /// Stops the song
@@ -317,7 +389,7 @@ namespace Spider.Media
         /// <remarks>This method only loads the meta-data of the artist.</remarks>
         /// <param name="identifier"></param>
         Artist LoadArtist(String identifier);
-        
+        Track LoadTrack(String identifier);
         ReleaseCollection LoadReleasesForGivenArtist(Artist artist, ReleaseType type, int page);
         TrackCollection LoadTracksForPlaylist(Playlist playlist);
         /// <summary>
@@ -346,37 +418,99 @@ namespace Spider.Media
         /// <param name="page"></param>
         /// <returns></returns>
         SearchResult Find(String query, int maxResults, int page);
-
+        Track NowPlayingTrack { get; }
         
     }
     public class DummyService : IMusicService
     {
+        public DummyService()
+        {
+
+            timer = new System.Windows.Forms.Timer();
+            timer.Interval = 1000;
+            timer.Tick += timer_Tick;
+        }
+        private Track nowPlayingTrack;
+        public Track NowPlayingTrack
+        {
+            get
+            {
+                return nowPlayingTrack;
+            }
+        }
+        void timer_Tick(object sender, EventArgs e)
+        {
+            if (NowPlayingTrack == null)
+                return;
+
+            position++;
+            if (position >= nowPlayingTrack.Duration)
+            {
+                if (PlaybackFinished != null)
+                {
+                    timer.Stop();
+                    position = 0; // Reset the position
+                    PlaybackFinished(this, new EventArgs());
+               //     nowPlayingTrack = null;
+                }
+                
+            }
+        }
         public event PlayStateChangedEventHandler PlaybackFinished;
         public string Namespace
         {
             get { return "dummy"; }
         }
-
+        /// <summary>
+        /// Simulate the track playback by a timer
+        /// </summary>
+        System.Windows.Forms.Timer timer;
         public string Name
         {
             get { return "Dumify"; }
         }
-
-        public void Play(string identifier)
+        int position = 0;
+        private Track CurrentTrack;
+        public void Play(Track track)
         {
+            this.nowPlayingTrack = track;
+            
+            timer.Start();
             
         }
 
         public void Stop()
         {
+            if (nowPlayingTrack == null)
+                return;
+            timer.Stop(); // Stop "playback"
+            position = 0; // Reset position
+            nowPlayingTrack = null;
         }
 
         public void Pause()
         {
+            if (nowPlayingTrack == null)
+                return;
+            timer.Stop();
         }
 
         public void Seek(int pos)
         {
+            if (CurrentTrack == null)
+                return;
+            position = pos;
+            if (position >= CurrentTrack.Duration)
+            {
+                if (PlaybackFinished != null)
+                {
+                    timer.Stop();
+                    position = 0; // Reset the position
+                    PlaybackFinished(this, new EventArgs());
+                    nowPlayingTrack = null;
+                }
+
+            }
         }
 
         public Artist LoadArtist(string identifier)
@@ -417,7 +551,7 @@ namespace Spider.Media
             List<Release> items = new List<Release>();
             for (var i = 0; i < 2; i++)
             {
-                var item = new Release(this) { Name = "In and Out of Love - Version " + i.ToString(), Artist = new Artist(this) { Name = "Armin Van Buuren", Identifier = "41241242", Service=this } };
+                var item = new Release(this) { Name = "In and Out of Love - Version " + i.ToString(), Artist = new Artist(this) { Name = "Armin Van Buuren", Identifier = "41241242", Service=this }, Identifier="AIMO" };
                 items.Add(item);
             }
             ReleaseCollection rc = new ReleaseCollection(this, items);
@@ -470,6 +604,33 @@ namespace Spider.Media
             }
             return tc;
 
+        }
+
+
+        public Track LoadTrack(string identifier)
+        {
+            Thread.Sleep((int)Math.Round((double)new Random().Next(1,3000)));
+            return new Track(this, identifier)
+            {
+                Name = identifier,
+                Artists = new Artist[] {
+                   new Artist(this) {
+                       Name = "Test",
+                       Identifier = "rom"
+                   }
+                },
+                Album = new Release(this)
+                {
+
+                    Artist = new Artist(this)
+                    {
+                        Identifier = "rom",
+                        Name = "Test"
+                    },
+                    Name = "Test",
+                    Identifier = "Test"
+                }
+            };
         }
     }
 
