@@ -15,6 +15,7 @@ namespace Spider
     /// </summary>
     public partial class App : UserControl
     {
+        public Object Tag { get; set; }
         public SpiderHost Host { get; set; }
         public String Template { get; set; }
         public String[] Arguments;

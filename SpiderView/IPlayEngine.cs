@@ -12,10 +12,25 @@ namespace Spider.Media
     /// </summary>
     public abstract class Resource
     {
+        public String Uri
+        {
+            get
+            {
+                return this.Service.Namespace + ":" + "track:" + Identifier;
+            }
+        }
         public String Identifier { get; set; }
         public String Name { get; set; }
         public IMusicService  Service { get; set; }
-
+        
+        /// <summary>
+        /// Creates a new resource
+        /// </summary>
+        /// <param name="service"></param>
+        public Resource(IMusicService service)
+        {
+            this.Service = service;
+        }
     }
 
     /// <summary>
@@ -25,20 +40,62 @@ namespace Spider.Media
     {
         public String Biography { get; set; }
         public int Year { get; set; }
-        public List<Release> Albums;
-        public List<Release> Singles;
+        public ReleaseCollection Albums;
+        public ReleaseCollection Singles;
+        
+        /// <summary>
+        /// Loads releases. This method blocks the curren thread
+        /// </summary>
+        public void LoadReleases()
+        {
+            this.Albums = this.Service.LoadReleasesForGivenArtist(this, ReleaseType.Album, 1);
+            this.Singles = this.Service.LoadReleasesForGivenArtist(this, ReleaseType.Single, 1);
+
+        }
+        public Artist(IMusicService service)
+            : base(service)
+        {
+        }
        
     }
     public class Track : Resource
     {
         public Artist[] Artists { get; set; }
         public Release Album { get; set; }
-       
+       public Track(IMusicService service)
+            : base(service)
+        {
+        }
     }
     public class Release : Context
     {
         public Artist Artist { get; set; }
         
+        private TrackCollection tracks;
+        public new TrackCollection Tracks
+        {
+            get
+            {
+                return tracks;
+            }
+        }
+        private bool isTracksLoaded;
+        public bool IsTracksLoaded
+        {
+            get
+            {
+                return isTracksLoaded;
+            }
+        }
+       
+        public void LoadTracks()
+        {
+            tracks = this.Service.LoadTracksForGivenRelease(this);
+        }
+        public Release(IMusicService service)
+            : base(service)
+        {
+        }
     }
 
     /// <summary>
@@ -51,11 +108,12 @@ namespace Spider.Media
         {
             get
             {
-                return this.Items;
+                return this.items;
             }
         }
         private List<T> items;
-        public ResourceCollection(List<T> items)
+        public ResourceCollection(IMusicService service, List<T> items)
+            : base(service)
         {
             this.items = items;
         }
@@ -134,15 +192,15 @@ namespace Spider.Media
     }
     public class PlaylistCollection : ResourceCollection<Playlist>
     {
-        public PlaylistCollection(List<Playlist> playlists)
-            : base(playlists)
+        public PlaylistCollection(IMusicService service, List<Playlist> playlists)
+            : base(service, playlists)
         {
         }
     }
     public class ArtistCollection : ResourceCollection<Artist>
     {
-        public ArtistCollection(List<Artist> artists)
-            : base( artists)
+        public ArtistCollection(IMusicService service, List<Artist> artists)
+            : base(service, artists)
         {
         }
     }
@@ -156,16 +214,19 @@ namespace Spider.Media
                 return this.context;
             }
         }
-        public TrackCollection(Context context, List<Track> tracks)
-            : base(tracks)
+        public TrackCollection(IMusicService service, Context context, List<Track> tracks)
+            : base(service, tracks)
         {
             this.context = context;
+        }
+        public void LoadTracksForCurrentContext()
+        {
         }
     }
     public class ReleaseCollection : ResourceCollection<Release>
     {
-        public ReleaseCollection(List<Release> releases)
-            : base(releases)
+        public ReleaseCollection(IMusicService service, List<Release> releases)
+            : base(service, releases)
         {
         }
     }
@@ -173,8 +234,10 @@ namespace Spider.Media
     public class Context : Resource
     {
         public List<Track> Tracks { get; set; }
-        public Context()
+        public Context(IMusicService service)
+            : base(service)
         {
+            
             Tracks = new List<Track>();
         }
     }
@@ -183,6 +246,10 @@ namespace Spider.Media
     /// </summary>
     public class SearchResult : Context
     {
+        public SearchResult(IMusicService service)
+            : base(service)
+        {
+        }
         public ArtistCollection Artists { get; set; }
         public ReleaseCollection Albums { get; set; }
         public ReleaseCollection Singles { get; set; }
@@ -196,8 +263,10 @@ namespace Spider.Media
     /// </summary>
     public class Playlist : Context
     {
-        public Playlist()
+        public Playlist(IMusicService service)
+            :base(service)
         {
+
         }
     }
     public enum ReleaseType {
@@ -258,7 +327,7 @@ namespace Spider.Media
         /// <returns></returns>
         Release LoadRelease(String identifier);
 
-        List<Track> LoadTracks(Context context);
+        TrackCollection LoadTracksForGivenRelease(Release release);
 
 
         /// <summary>
@@ -313,7 +382,7 @@ namespace Spider.Media
         public Artist LoadArtist(string identifier)
         {
             Thread.Sleep(1000);
-            Artist t = new Artist();
+            Artist t = new Artist(this);
             t.Identifier = identifier;
             t.Service = this;
             t.Year = new DateTime().Year;
@@ -326,7 +395,7 @@ namespace Spider.Media
         public Playlist LoadPlaylist(string username, string identifier)
         {
             Thread.Sleep(100); // simulate connection elapse
-            Playlist playlist = new Playlist();
+            Playlist playlist = new Playlist(this);
             playlist.Name = username + " : " + identifier;
             playlist.Identifier = identifier;
             return playlist;
@@ -335,10 +404,10 @@ namespace Spider.Media
         public SearchResult Find(string query, int maxResults, int page)
         {
             Thread.Sleep(100); // simulate connection elapse
-            SearchResult sr = new SearchResult();
-            sr.Albums = new ReleaseCollection(new List<Release>());
-            sr.Albums.Add(new Release() { Service = this, Name = query + "'1", Identifier = "r" });
-            sr.Tracks = new TrackCollection(sr, new List<Track>());
+            SearchResult sr = new SearchResult(this);
+            sr.Albums = new ReleaseCollection(this, new List<Release>());
+            sr.Albums.Add(new Release(this) { Service = this, Name = query + "'1", Identifier = "r" });
+            sr.Tracks = new TrackCollection(this, sr, new List<Track>());
             return sr;
         }
 
@@ -348,10 +417,10 @@ namespace Spider.Media
             List<Release> items = new List<Release>();
             for (var i = 0; i < 2; i++)
             {
-                var item = new Release() { Name = "In and Out of Love - Version " + i.ToString(), Artist = new Artist() { Name = "Armin Van Buuren", Identifier = "41241242", Service=this } };
+                var item = new Release(this) { Name = "In and Out of Love - Version " + i.ToString(), Artist = new Artist(this) { Name = "Armin Van Buuren", Identifier = "41241242", Service=this } };
                 items.Add(item);
             }
-            ReleaseCollection rc = new ReleaseCollection(items);
+            ReleaseCollection rc = new ReleaseCollection(this, items);
             rc.Items.AddRange(items);
             return rc;
         }
@@ -359,13 +428,13 @@ namespace Spider.Media
         public TrackCollection LoadTracksForPlaylist(Playlist playlist)
         {
             Thread.Sleep(1000);
-            TrackCollection tc = new TrackCollection(playlist, new List<Track>());
+            TrackCollection tc = new TrackCollection(this, playlist, new List<Track>());
             for(var i = 0; i < 3; i++) {
-                Track track = new Track()
+                Track track = new Track(this)
                 {
                     Identifier = "5124525ffs12",
                     Name = "Test",
-                    Artists = new Artist[] { new Artist() { Name = "TestArtist", Identifier = "2FOU" } }
+                    Artists = new Artist[] { new Artist(this) { Name = "TestArtist", Identifier = "2FOU" } }
                 };
                 tc.Add(track);
             }
@@ -374,18 +443,33 @@ namespace Spider.Media
 
         public Release LoadRelease(string identifier)
         {
-            Release release = new Release();
+            Release release = new Release(this);
             release.Identifier = identifier;
             release.Name = identifier;
             release.Service = this;
-            release.Artist = new Artist() { Name = "Armin Van Buuren", Identifier = "2fafaefr" };
+            release.Artist = new Artist(this) { Name = "Armin Van Buuren", Identifier = "2fafaefr" };
             return release;
 
         }
 
-        public List<Track> LoadTracks(Context context)
+      
+
+
+        public TrackCollection LoadTracksForGivenRelease(Release release)
         {
-            throw new NotImplementedException();
+            Thread.Sleep(100);
+            TrackCollection tc = new TrackCollection(this, release, new List<Track>());
+            for (var i = 0; i < 10; i++)
+            {
+                Track track = new Track(this);
+                track.Name = "Track " + i.ToString();
+                track.Identifier = "track";
+                track.Album = release;
+                track.Artists = new Artist[] { new Artist(this) { Name = "Test", Identifier = "test" } };
+                tc.Add(track);
+            }
+            return tc;
+
         }
     }
 

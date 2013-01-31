@@ -16,6 +16,7 @@ namespace Spider
         public Dictionary<String, Type> RegistredAppTypes = new Dictionary<string, Type>();
         public Stack<String> History = new Stack<string>();
         public Stack<String> Future = new Stack<string>();
+        public Form Form;
         public String CurrentURI = "";
         public void Navigate(String uri)
         {
@@ -40,7 +41,7 @@ namespace Spider
                 }
                 Type type = RegistredAppTypes[ns];
                 App appClass = (App)type.GetConstructor(new Type[] { typeof(SpiderHost), typeof(String[]) }).Invoke(new Object[] { this, uri.Split(':') });
-
+                appClass.Tag = Form;
                 Apps.Add(appId, appClass);
                 appClass.Navigate(segments);
                 this.Controls.Add(appClass);
