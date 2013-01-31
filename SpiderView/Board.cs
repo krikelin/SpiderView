@@ -563,6 +563,7 @@ namespace Spider
             try
             {
                 BufferedGraphics bgc = BGC.Allocate(g, target);
+                bgc.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
                 bgc.Graphics.FillRegion(new SolidBrush(this.Block.BackColor), new System.Drawing.Region(new Rectangle(0, 0, this.Width, this.Height)));
                 foreach (Element elm in Children)
                 {
