@@ -20,6 +20,7 @@ namespace Spider
 {
     public partial class Board : UserControl
     {
+        public SectionView Section;
         public enum Mode
         {
             Normal, Error
@@ -485,7 +486,6 @@ namespace Spider
                 
                 row += child.Height;
 
-                if (child.Children.Count > 0)
                     child.PackChildren();
                
                
@@ -550,8 +550,15 @@ namespace Spider
         {
             this.CreateGraphics().PageUnit = GraphicsUnit.Pixel;
         }
+        public class DrawBuffer
+        {
+            public int x, y;
+            public Element elm;
+        }
+        public List<DrawBuffer> overflows = new List<DrawBuffer>();
         public void Draw(Graphics g, ref int x, ref int y, Rectangle target)
         {
+           
             this.BackColor = Block.BackColor;
             try
             {
@@ -565,10 +572,20 @@ namespace Spider
                     elm.Draw(bgc.Graphics, ref x, ref y);
                     elm.AbsoluteTop = y;
                     elm.AbsoluteLeft = x;
+                    if (elm.GetType() == typeof(columnheader))
+                    {
+                        overflows.Add(new DrawBuffer() { x = x, y = y, elm = elm });
+                    }
                     x -= elm.X;
                     y -= elm.Y;
 
                 }
+                foreach (DrawBuffer db in overflows)
+                {
+                    db.elm.Draw(bgc.Graphics, ref db.x, ref db.y); 
+                }
+                overflows.Clear();
+                
                 bgc.Render();
             }
             catch (System.ComponentModel.Win32Exception e)

@@ -42,12 +42,18 @@ namespace Spider.Skinning
             var trackSelected = new Block(bitmap.GetPixel(6, 0), bitmap.GetPixel(5, 0), Color.Transparent, Color.Black);
             trackSelected.Font = new Font("MS Sans Serif", 8);
             this.blocks.Add("track::selected", trackSelected);
-
+            var even = new Block(bitmap.GetPixel(0, 0), track.ForeColor, track.TextShadowColor, track.AlternateBackColor);
+            even.Font = new Font("MS Sans Serif", 8);
+            this.blocks.Add("track::even", even) ;
             track.AlternateBackColor = bitmap.GetPixel(9, 0);
             track.Font = new Font("MS Sans Serif", 8);
 
             this.Blocks.Add("Divider", new Block(sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)), Color.White, Color.Black, Color.White));
             this.Blocks.Add("::selection", new Block(bitmap.GetPixel(6, 0), bitmap.GetPixel(5, 0), Color.Black, Color.White));
+            var ch = new Block(sliceBitmap(bitmap,new Rectangle(0, 99, 65, 19)), bitmap.GetPixel(3, 117), bitmap.GetPixel(65, 99), bitmap.GetPixel(3, 117));
+            ch.Font = new Font("MS Sans Serif", 8);
+            this.Blocks.Add("columnheader", ch);
+            this.blocks.Add("hr", new Block(Color.FromArgb(0, 0, 0, 0), bitmap.GetPixel(14, 0), Color.White, Color.Black));
             this.Blocks.Add("ListView", new Block(bitmap.GetPixel(8, 0), Color.White, Color.Black, bitmap.GetPixel(8, 0)));
             this.Blocks.Add("Body", new Block(bitmap.GetPixel(0, 0), bitmap.GetPixel(1, 0), Color.Black, bitmap.GetPixel(8, 0)));
         }

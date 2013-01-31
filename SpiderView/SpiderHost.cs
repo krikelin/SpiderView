@@ -60,13 +60,20 @@ namespace Spider
                 // If app is already loaded bring it to front
                 if (Apps.ContainsKey(appId))
                 {
+                    
                     App app = Apps[appId];
                     app.BringToFront();
                     app.Navigate(arguments);
                     if (this.Navigated != null)
                         this.Navigated(this, new SpiderNavigationEventArgs() { Arguments = arguments });
                     Future.Clear();
-
+                    
+                    app.Show();
+                    foreach (Control a in this.Controls)
+                    {
+                        if (a != app)
+                            a.Hide();
+                    }
                     return;
                 }
                 Type type = RegistredAppTypes[ns];
@@ -75,9 +82,15 @@ namespace Spider
                 Apps.Add(appId, appClass);
                 appClass.Navigate(segments);
                 this.Controls.Add(appClass);
-               
+                
                 appClass.Dock = DockStyle.Fill;
                 appClass.BringToFront();
+                appClass.Show();
+                foreach (Control a in this.Controls)
+                {
+                    if (a != appClass)
+                        a.Hide();
+                }
                 if (this.Navigated != null)
                     this.Navigated(this, new SpiderNavigationEventArgs() { Arguments = arguments });
                 Future.Clear();

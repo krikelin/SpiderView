@@ -455,6 +455,10 @@ namespace Spider
                 elm.Draw(g, ref x, ref y);
                 elm.AbsoluteLeft = x;
                 elm.AbsoluteTop = y;
+                if (elm.GetType() == typeof(columnheader))
+                {
+                    Board.overflows.Add(new Spider.Board.DrawBuffer() { x = x, y = y, elm = elm });
+                }
                x -= elm.X;
                y -=elm.Y;
            }
@@ -520,12 +524,13 @@ namespace Spider
         public hr(Board board, XmlElement node)
             : base(board, node)
         {
-
+            this.Block = (Block)this.Stylesheet.Blocks["hr"].Clone();
+            this.Height = 50;
         }
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             base.Draw(g, ref x, ref y);
-            g.DrawLine(new Pen(Block.AlternateBackColor, 1), new Point(0, y), new Point(this.Board.Width, y));
+            g.DrawLine(new Pen(Block.ForeColor, 1), new Point(0, this.Height / 2 + y), new Point(this.Board.Width, y + this.Height / 2));
         }
         public override void BeforePackChildren()
         {
@@ -759,23 +764,43 @@ namespace Spider
     }
     public class columnheader : Element
     {
+       
+        public Dictionary<String, ColumnHeader> ColumnHeaders;
         public playlist Playlist { get; set; }
         public columnheader(Board host, XmlElement node)
             : base(host, node)
         {
+            this.Block = (Block)this.Stylesheet.Blocks["columnheader"].Clone();
+            this.ColumnHeaders = new Dictionary<string, ColumnHeader>();
+            this.ColumnHeaders.Add("no", new ColumnHeader() { Name="", Left = 2, Width = 30 });
+            this.ColumnHeaders.Add("name", new ColumnHeader() { Name="Title", Left = 12, Width = 140 });
+            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 152, Width = 100 });
+            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name="Duration", Left = 253, Width = 50 });
+            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 305, Width = 310 });
+
         }
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             base.Draw(g, ref x, ref y);
             int nX = x;
-            int nY = y;
-            g.FillRectangle(new SolidBrush(Color.FromArgb(255, 166, 166, 166)), new Rectangle(x, y, this.Width, this.Height));
-            g.DrawString("Columnheaders is coming", Block.Font, new SolidBrush(Color.Black), new Point(x + 2, y +2));
-         /*   if (Board.VerticalScroll.Value > y)
+            int nY = y - this.Board.Section.VerticalScroll.Value;
+            if (nY < 0)
             {
-                nX = 0;
-                nY = 0;
-            }*/
+                nY = this.Board.Section.VerticalScroll.Value;
+            }
+            else
+            {
+                nY = y;
+            }
+            g.DrawImage(this.Block.BackgroundImage, new Rectangle(nX, nY, this.Width, this.Block.BackgroundImage.Height));
+          //  g.FillRectangle(new SolidBrush(Color.FromArgb(255, 166, 166, 166)), new Rectangle(nX, nY, this.Width, this.Height));
+          // g.DrawString("Columnheaders is coming", Block.Font, new SolidBrush(Color.Black), new Point(x + 2, y +2));
+
+            foreach (ColumnHeader ch in this.ColumnHeaders.Values)
+            {
+                g.DrawString(ch.Name, this.Block.Font, new SolidBrush(this.Block.ForeColor), new Point(nX + 20 + ch.Left, nY + 2));
+            }
+            
         }
         public override void PackChildren()
         {
@@ -794,44 +819,51 @@ namespace Spider
         private int trackHeight = 20;
         public override void PackChildren()
         {
-            if (this.Parent == null)
-                return;
-            int i = 0;
-            
-            foreach (Element track in this.Children)
+            try
             {
-                if (track.GetType() == typeof(columnheader))
-                {
-                    track.Height = trackHeight;
-                    track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
-                    this.ColumnHeader = (columnheader)track;
-                    this.ColumnHeader.Playlist = this;
-                    track.X = 0;
-                    track.Y = i * trackHeight;
-                }
-                if (track.GetType() == typeof(track))
-                {
-                    //  if (track.GetType() != typeof(track) |)
-                    //    throw new Exception("Invalid type");
-                    track.Height = trackHeight;
-                    track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+                int i = 0;
 
-                    track.X = 0;
-                    track.Y = i * trackHeight;
-                }
-                if (track.GetType() == typeof(text))
+                foreach (Element track in this.Children)
                 {
-                    track.Height = trackHeight;
-                    track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+                    if (track.GetType() == typeof(columnheader))
+                    {
+                        track.Height = trackHeight;
+                        track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+                        this.ColumnHeader = (columnheader)track;
+                        this.ColumnHeader.Playlist = this;
+                        track.X = 0;
+                        track.Y = i * trackHeight;
+                    }
+                    if (track.GetType() == typeof(track))
+                    {
+                        //  if (track.GetType() != typeof(track) |)
+                        //    throw new Exception("Invalid type");
+                        track.Height = trackHeight;
+                        track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
+                        ((track)track).Playlist = this;
+                        track.X = 0;
+                        track.Y = i * trackHeight;
+                        if (i % 2 == 0)
+                        {
+                            track.Block = this.Stylesheet.Blocks["track::even"];
+                        }
+                    }
+                    if (track.GetType() == typeof(text))
+                    {
+                        track.Height = trackHeight;
+                        track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
 
-                    track.X = 0;
-                    track.Y = i * trackHeight;
+                        track.X = 0;
+                        track.Y = i * trackHeight;
+                    }
+                    i++;
                 }
-                i++;
+                if (i * trackHeight > this.Height)
+                    this.Height = i * trackHeight + 25;
             }
-            if(i * trackHeight > this.Height)
-                this.Height = i * trackHeight + 25;
-            
+            catch (Exception e)
+            {
+            }
         }
         public playlist(Board host, XmlElement node) : base (host, node)
         {
@@ -845,8 +877,15 @@ namespace Spider
            
         }
     }
+    public class ColumnHeader
+    {
+        public String Name;
+        public int Left;
+        public int Width;
+    }
     public class track : Element
     {
+        public columnheader columnHeader;
         public override void BeforePackChildren()
         {
 
@@ -861,12 +900,16 @@ namespace Spider
                 this.Board.Invalidate(new Rectangle(X, Y, Width, Height));
             }
         }
+        public playlist Playlist {get;set;}
         public Track Track { get; set; }
         public bool Selected { get; set; }
         public Block SelectedBlock;
+        private XmlElement node;
         public track(Board host, XmlElement node)
             : base(host, node)
         {
+            this.node = node;
+
             IMusicService ms = host.SpiderView.Host.MusicService;
 
             this.Track = new Track(ms);
@@ -920,19 +963,18 @@ namespace Spider
                 fgColor = this.SelectedBlock.ForeColor;
             }
             
+            if(columnHeader == null)
+                columnHeader =  this.Playlist != null && this.Playlist.ColumnHeader != null ? this.Playlist.ColumnHeader : new columnheader(this.Board, node);
+            
             g.FillRectangle(new SolidBrush(bgColor), new Rectangle(x, y, this.Width, this.Height));
-            g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(x, y + this.Height - 1), new Point(this.Width + x, this.Height - 1 + y));
+          //  g.DrawLine(new Pen(new SolidBrush(this.Block.AlternateBackColor)), new Point(x, y + this.Height - 1), new Point(this.Width + x, this.Height - 1 + y));
             if (Track.Loaded)
             {
-                // Draw title
-                if (!Selected)
-                {
-                    g.DrawString(Track.Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(15 + x, 0 + y));
-                    g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Point(215 + x, 0 + y));
-                }
+                //
 
-                g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x, 1 + y));
-                g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(215 + x, 1 + y));
+                g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x + columnHeader.ColumnHeaders["name"].Left, 1 + y));
+                g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y));
+                g.DrawString(Track.Album.Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["album"].Left, 1 + y));
             }
         }
 

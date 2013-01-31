@@ -63,7 +63,6 @@ namespace Spider
             InitializeComponent();
             this.tabBar = new TabBar(this);
             this.deck = new Panel();
-            this.deck.AutoScroll = true;
             tabBar.Dock = DockStyle.Top;
             tabBar.Height = 23;
             this.Controls.Add(deck);
@@ -77,6 +76,18 @@ namespace Spider
             this.timer.Tick += timer_Tick;
             this.timer.Interval = 1000;
             this.Click += SpiderView_Click;
+        }
+
+        void SpiderView_Scroll(object sender, ScrollEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void deck_Scroll(object sender, ScrollEventArgs e)
+        {
+            
+            this.Invalidate();
+    
         }
 
         void SpiderView_Click(object sender, EventArgs e)
@@ -213,6 +224,7 @@ namespace Spider
                 
                 Board childBoard = new Board(this);
                 SectionView sv = new SectionView(childBoard, this);
+                childBoard.Section = sv;
                 Sections.Add(tab.ID, sv);
                 childBoard.LoadNodes(_section);
                 childBoard.ScriptCalled += childBoard_ScriptCalled;
@@ -252,6 +264,13 @@ namespace Spider
         }
         private TabBar tabBar;
         private Panel deck;
+        public Panel Deck
+        {
+            get
+            {
+                return this.deck;
+            }
+        }
         private void SpiderView_Load(object sender, EventArgs e)
         {
            

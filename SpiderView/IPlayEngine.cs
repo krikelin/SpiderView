@@ -612,7 +612,7 @@ namespace Spider.Media
             Thread.Sleep((int)Math.Round((double)new Random().Next(1,3000)));
             return new Track(this, identifier)
             {
-                Name = identifier,
+                Name = "Test",
                 Artists = new Artist[] {
                    new Artist(this) {
                        Name = "Test",
