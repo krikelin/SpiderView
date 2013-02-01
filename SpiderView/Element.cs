@@ -14,6 +14,7 @@ using Spider.Skinning;
 using BungaSpotify09.Models;
 using System.Drawing.Drawing2D;
 using Spider.Media;
+using System.ComponentModel;
 
 
 namespace Spider
@@ -39,6 +40,20 @@ namespace Spider
     /// </summary>
     public abstract class Element
     {
+
+        private bool visible = true;
+        public bool Visible
+        {
+            get
+            {
+                return visible;
+            }
+            set
+            {
+                this.visible = value;
+                this.Board.PackChildren();
+            }
+        }
         /// <summary>
         /// Get tracks inside
         /// </summary>
@@ -774,9 +789,9 @@ namespace Spider
             this.ColumnHeaders = new Dictionary<string, ColumnHeader>();
             this.ColumnHeaders.Add("no", new ColumnHeader() { Name="", Left = 2, Width = 30 });
             this.ColumnHeaders.Add("name", new ColumnHeader() { Name="Title", Left = 12, Width = 140 });
-            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 152, Width = 100 });
-            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name="Duration", Left = 253, Width = 50 });
-            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 305, Width = 310 });
+            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 652, Width = 100 });
+            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name="Duration", Left = 853, Width = 50 });
+            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 905, Width = 310 });
 
         }
         public override void Draw(Graphics g, ref int x, ref int y)
@@ -825,6 +840,11 @@ namespace Spider
 
                 foreach (Element track in this.Children)
                 {
+                    if (!track.Visible)
+                    {
+                        i++;
+                        continue;
+                    }
                     if (track.GetType() == typeof(columnheader))
                     {
                         track.Height = trackHeight;
@@ -885,6 +905,7 @@ namespace Spider
     }
     public class track : Element
     {
+       
         public columnheader columnHeader;
         public override void BeforePackChildren()
         {
@@ -908,15 +929,16 @@ namespace Spider
         public track(Board host, XmlElement node)
             : base(host, node)
         {
+            this.Visible = false;
             this.node = node;
 
             IMusicService ms = host.SpiderView.Host.MusicService;
-
-            this.Track = new Track(ms);
+            this.Visible = false;
+            this.Track = new Track(ms, node.GetAttribute("uri").Split(':')[2]);
             this.Track.TrackLoaded += Track_TrackLoaded;
             this.Track.Element = this;
             this.Track.LoadAsync(this);
-
+            
             this.Track.Name = node.GetAttribute("name");
            
 
@@ -930,6 +952,7 @@ namespace Spider
 
         void Track_TrackLoaded(object sender, Track.TrackLoadEventArgs e)
         {
+            this.Visible = true;
             this.Board.Invalidate(new Rectangle(this.X, this.Y, this.Width, this.Height));
         }
         public override void OnMouseDown(int x, int y)
@@ -952,6 +975,16 @@ namespace Spider
             base.Draw(g, ref x, ref y);
             Color fgColor = this.Block.ForeColor;
             Color bgColor = this.Block.BackColor;
+            switch (Track.Status)
+            {
+                case Spider.Media.Resource.State.BadKarma:
+                    fgColor = Color.DarkGoldenrod;
+                    break;
+                case Spider.Media.Resource.State.Removed:
+                case Spider.Media.Resource.State.NotAvailable:
+                    fgColor = Color.FromArgb(255, Color.FromArgb(100,50,50));
+                    break;
+            }
             if (Track.Playing)
             {
                 bgColor = Color.Black;
@@ -1040,6 +1073,7 @@ namespace Spider
             }
             
         }
+        
         private bool hasShadow = true;
         public override void Draw(Graphics g, ref int x, ref int y)
         {

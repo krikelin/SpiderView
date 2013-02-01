@@ -70,6 +70,7 @@
     </Compile>
     <Compile Include="Class1.cs" />
     <Compile Include="CSS\CSS.cs" />
+    <Compile Include="DummyService.cs" />
     <Compile Include="Element.cs" />
     <Compile Include="IPlayEngine.cs" />
     <Compile Include="ITrack.cs" />

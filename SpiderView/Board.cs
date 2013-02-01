@@ -242,6 +242,68 @@ namespace Spider
             IAsyncResult iar = request.BeginGetRequestStream(new AsyncCallback(this.lua_web_response), new RequestState() { Request=(HttpWebRequest)request, Callback = callback, URL = url });
 
         }
+        public void SelectNext()
+        {
+            track lastTrack = null;
+
+            for (int i = 0; i < Tracks.Count; i++)
+            {
+                track track = this.Tracks[i];
+                if (lastTrack != null)
+                {
+                    track.Selected = true;
+                    
+                    foreach(track t in this.Tracks) {
+                        if (t != track)
+                        {
+                            t.Selected = false;
+                        }
+                    }
+                    if (track.Y + track.Height < this.Section.VerticalScroll.Value)
+                    {
+                        this.Section.VerticalScroll.Value = track.Y;
+                    }
+                    if (track.Y + track.Height > this.Section.VerticalScroll.Value + this.Section.Height)
+                    {
+                        this.Section.VerticalScroll.Value = track.Y - track.Height;
+                    }
+                    return;
+                }
+                if (track.Selected)
+                {
+                    lastTrack = track;
+
+                }
+
+            }
+        }
+        public void SelectPrev()
+        {
+            track lastTrack = null;
+
+            for (int i = Tracks.Count-1; i >= 0; i--)
+            {
+                track track = this.Tracks[i];
+                if (lastTrack != null)
+                {
+                    track.Selected = true;
+                    foreach (track t in this.Tracks)
+                    {
+                        if (t != track)
+                        {
+                            t.Selected = false;
+                        }
+                    }
+                    return;
+                }
+                if (track.Selected)
+                {
+                    lastTrack = track;
+
+                }
+
+            }
+        }
         public void lua_web_response(IAsyncResult pass)
         {
             RequestState rs = (RequestState)pass.AsyncState;  //Récupération de l'objet etat 
@@ -277,7 +339,37 @@ namespace Spider
             spiderView.Scripting.RegisterFunction("sendToWeb", new lua_delegate_send_http_request(lua_send_http_request), this);
             spiderView.Scripting.RegisterFunction("json", new get_obj(get_json), this);
             this.MouseDoubleClick += Board_MouseDoubleClick;
+            this.KeyDown += Board_KeyDown;
+            Timer t = new Timer();
+            t.Tick += t_Tick;
 
+        }
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Right || keyData == Keys.Down || keyData == Keys.Up)
+                return true;
+            return base.IsInputKey(keyData);
+        }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            switch (e.KeyCode)
+            {
+                case Keys.Down:
+                    SelectNext();
+                    break;
+                case Keys.Up:
+                    SelectPrev();
+                    break;
+            }
+        }
+        void t_Tick(object sender, EventArgs e)
+        {
+           
+        }
+
+        void Board_KeyDown(object sender, KeyEventArgs e)
+        {
+           
         }
 
         public void Board_MouseDown(object sender, MouseEventArgs e)
@@ -570,7 +662,8 @@ namespace Spider
 
                     x += elm.X;
                     y += elm.Y;
-                    elm.Draw(bgc.Graphics, ref x, ref y);
+                    if(elm.Visible)
+                        elm.Draw(bgc.Graphics, ref x, ref y);
                     elm.AbsoluteTop = y;
                     elm.AbsoluteLeft = x;
                     if (elm.GetType() == typeof(columnheader))

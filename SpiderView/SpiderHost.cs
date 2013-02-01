@@ -33,7 +33,7 @@ namespace Spider
             for (int i = 0; i <  PlayContext.Tracks.Count; i++)
             {
                 track track = PlayContext.Tracks[i];
-                if (lastTrack != null)
+                if (lastTrack != null && lastTrack.Status == Track.State.Available)
                 {
                     MusicService.Stop();
                     track.Track.Play();
@@ -47,7 +47,7 @@ namespace Spider
                    
             }
         }
-
+      
         public void Navigate(String uri)
         {
             try
