@@ -40,7 +40,15 @@ namespace Spider
     /// </summary>
     public abstract class Element
     {
-
+        public class DragEventArgs
+        {
+            public Element elm;
+            public String Uri;
+        }
+        public delegate void DragEventHandler(object sender, DragEventArgs e);
+        public event DragEventHandler BeginDrag;
+        public event DragEventHandler Drop;
+        public String Uri;
         private bool visible = true;
         public bool Visible
         {
@@ -122,7 +130,7 @@ namespace Spider
         public void CheckHover(int x, int y)
         {
 
-
+            Board.HoveredElement = this;
             this.OnMouseOver(x, y);
             x -= this.X;
             y -= this.Y;
@@ -140,11 +148,12 @@ namespace Spider
             x += this.X;
             y += this.Y;
 
-
+            
         }
         public event MouseEventHandler MouseMove;
         public virtual void OnMouseOver(int x, int y)
         {
+            this.Board.HoveredElement = this;
             if (!String.IsNullOrEmpty(this.Hyperlink) && this.GetType() != typeof(track))
             {
                 this.Board.foundLink = true;
@@ -174,6 +183,10 @@ namespace Spider
             if (!String.IsNullOrEmpty(this.Hyperlink))
             {
                 this.Board.foundLink = true;
+                if (BeginDrag != null)
+                {
+                    BeginDrag(this, new DragEventArgs() { Uri = this.Hyperlink, elm = this });
+                }
             }
             if (this.MouseDown != null)
                 this.MouseDown(this, new MouseEventArgs(x, y));
@@ -323,6 +336,10 @@ namespace Spider
         }
         public Element(Board Host, XmlElement node)
         {
+            if (node.HasAttribute("uri"))
+            {
+                this.Uri = node.GetAttribute("uri");
+            }
             this.Board = Host;
             this.node = node;
             this.Block = (Block)this.Board.Stylesheet.Blocks["Body"].Clone();
@@ -403,6 +420,12 @@ namespace Spider
             }
             if (node.HasAttribute("height"))
             {
+                if (node.GetAttribute("height") == "100%")
+                {
+                    if(this.Parent != null)
+                        this.AbsoluteHeight = this.Parent.Height;
+                    return;
+                }
                 this.AbsoluteHeight = int.Parse(node.GetAttribute("height"));
                 this.Height = this.AbsoluteHeight;
             }
@@ -829,6 +852,8 @@ namespace Spider
     }
     public class playlist : Element
     {
+        public bool AllowsReoreder { get; set; }
+        public Playlist Playlist { get; set; }
         public columnheader ColumnHeader;
         public bool HasHeaders {get;set;}
         private int trackHeight = 20;
@@ -861,6 +886,7 @@ namespace Spider
                         track.Height = trackHeight;
                         track.Width = this.Width == -1 ? this.Parent.Width : this.Width;
                         ((track)track).Playlist = this;
+                        ((track)track).Parent = this;
                         track.X = 0;
                         track.Y = i * trackHeight;
                         if (i % 2 == 0)
@@ -887,7 +913,9 @@ namespace Spider
         }
         public playlist(Board host, XmlElement node) : base (host, node)
         {
-           
+            if(node.HasAttribute("allowsReorder")) {
+                this.AllowsReoreder = node.GetAttribute("allowsReorder") == "true";
+            }
             
 
         }
@@ -1193,7 +1221,14 @@ namespace Spider
         public override void PackChildren()
         {
             int pos = 0;
-            int quote = this.Width / this.Children.Count;
+            int quote = 0;
+            try
+            {
+                quote = this.Width / this.Children.Count;
+            }
+            catch (Exception e)
+            {
+            }
             int count_flex= 0;
             int flexible_width = 0;
             int static_width = 0;

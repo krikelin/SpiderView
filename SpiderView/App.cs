@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Spider.Media;
 
 namespace Spider
 {
@@ -62,7 +63,10 @@ namespace Spider
         {
             e.Result = Loading(e.Argument);
         }
+        public virtual void Reorder(int oldPos, int count, int newPos)
+        {
 
+        }
         /// <summary>
         /// Override this function to load
         /// </summary>

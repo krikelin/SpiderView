@@ -14,6 +14,14 @@ namespace Spider.Media
     /// </summary>
     public abstract class Resource
     {
+        public override bool Equals (object obj)
+        {
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+            return ((Resource)obj).Uri == this.Uri;
+        }
         public int RealStatus
         {
             get
@@ -144,6 +152,24 @@ namespace Spider.Media
         }
        
     }
+    public class PlaylistTrack : Track
+    {
+        public DateTime Added {get; set;}
+        public User User { get; set; }
+
+
+        private String username = "";
+        public override void LoadData(object sender, DoWorkEventArgs e)
+        {
+            base.LoadData(sender, e);
+            this.User = Service.LoadUser(username);
+        }
+        public PlaylistTrack(IMusicService service, String identifier, String user)
+            : base(service, identifier)
+        {
+            this.username = user;
+        }
+    }
     public class Track : Resource
     {
        
@@ -174,7 +200,7 @@ namespace Spider.Media
         public void LoadAsync(object data)
         {
             BackgroundWorker bw = new BackgroundWorker();
-            bw.DoWork += bw_DoWork;
+            bw.DoWork += LoadData;
             bw.RunWorkerCompleted += bw_RunWorkerCompleted;
             bw.RunWorkerAsync(data);
         }
@@ -189,7 +215,7 @@ namespace Spider.Media
             
         }
 
-        void bw_DoWork(object sender, DoWorkEventArgs e)
+        public virtual void LoadData(object sender, DoWorkEventArgs e)
         {
             Track t = this.Service.LoadTrack(this.Identifier);
             this.Duration = t.Duration;
@@ -226,6 +252,8 @@ namespace Spider.Media
             this.Identifier = identifier;
             this.Duration = 3;
         }
+
+        
     }
     public class Release : Context
     {
@@ -428,6 +456,18 @@ namespace Spider.Media
     /// </summary>
     public class Playlist : Context
     {
+        public String Description { get; set; }
+        public User User { get; set; }
+        /// <summary>
+        /// LoadTracks must be called first before this will be available
+        /// </summary>
+        public TrackCollection Tracks { get; set; }
+        public void LoadTracks()
+        {
+            this.Tracks = Service.GetPlaylistTracks(this, 0);
+
+        }
+
         public Playlist(IMusicService service)
             :base(service)
         {
@@ -508,12 +548,6 @@ namespace Spider.Media
         ReleaseCollection LoadReleasesForGivenArtist(Artist artist, ReleaseType type, int page);
 
         /// <summary>
-        /// Loads a track collection
-        /// </summary>
-        /// <param name="playlist"></param>
-        /// <returns></returns>
-        TrackCollection LoadTracksForPlaylist(Playlist playlist);
-        /// <summary>
         /// Loads an album, with a list of songs.
         /// </summary>
         /// <param name="identifier"></param>
@@ -583,7 +617,17 @@ namespace Spider.Media
         /// <returns></returns>
         User GetCurrentUser();
 
-        
+        bool InsertTrack(Playlist playlist, Track track, int pos);
+        bool ReorderTracks(Playlist playlist, int startPos, int count, int newPos);
+        bool DeleteTrack(Playlist playlist, Track track);
+
+        /// <summary>
+        /// Get tracks from the playlist
+        /// </summary>
+        /// <param name="playlist">The playlist</param>
+        /// <param name="revision">The revision of the playlist</param>
+        /// <returns></returns>
+        TrackCollection GetPlaylistTracks(Playlist playlist, int revision);
 
     }
    

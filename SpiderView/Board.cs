@@ -318,14 +318,16 @@ namespace Spider
             this.SpiderView = spiderView;
             this.Stylesheet = (this.SpiderView).Stylesheet;
             this.Click += Board_Click;
+            this.MouseUp += Board_MouseUp;
             this.MouseClick += Board_MouseClick;
             this.MinimumSize = new Size(640, 480);
             this.MouseDown += Board_MouseDown;
             InitializeComponent();
-
+            this.DragDrop += Board_DragDrop;
+            this.DragOver += Board_DragOver;
             this.Paint += Board_Paint;
             this.Resize += Board_Resize;
-
+            this.DragEnter += Board_DragEnter;
             this.Block = Stylesheet.Blocks["Body"];
             tmrDraw = new Timer();
             tmrDraw.Tick += tmrDraw_Tick;
@@ -343,6 +345,93 @@ namespace Spider
             Timer t = new Timer();
             t.Tick += t_Tick;
 
+        }
+
+        void Board_DragOver(object sender, DragEventArgs e)
+        {
+            int x = e.X;
+            int y = e.Y;
+            foreach (Element elm in Children)
+            {
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    this.HoveredElement = elm;
+                    elm.CheckHover(x, y);
+                }
+                else
+                {
+                }
+            }
+            if (HoveredElement.Parent != null)
+            {
+                if (HoveredElement.Parent.GetType() == typeof(playlist))
+                {
+                    playlist pls = (playlist)HoveredElement.Parent;
+                    if (pls.AllowsReoreder)
+                    {
+                        e.Effect = DragDropEffects.Copy;
+                    }
+                }
+            }
+        }
+        public class ReorderEventArgs
+        {
+            public int Position { get; set; }
+            public int NewPosition { get; set; }
+            public List<Element> Elements { get; set; }
+            public Element Context { get; set; }
+            public bool Cancel { get; set; }
+            
+        }
+        public delegate void ReorderEventHandler(object sender, ReorderEventArgs e);
+        public event ReorderEventHandler BeforeReorder;
+        public event ReorderEventHandler Reordered;
+        void Board_DragDrop(object sender, DragEventArgs e)
+        {
+            if (DragElements.Count > 0)
+            {
+                if (HoveredElement != null)
+                {
+
+                    Element context = DragElements[0].Parent;
+                    Element targetSite = HoveredElement;
+                    
+                     ReorderEventArgs args = new ReorderEventArgs();
+                     args.Elements = dragElements;
+                     args.Position = context.Children.IndexOf(DragElements[0]);
+                    args.NewPosition = context.Children.IndexOf(HoveredElement);
+                    if(BeforeReorder != null)    
+                        BeforeReorder(this, args);
+                    if (BeforeReorder == null || !args.Cancel )
+                    {
+                           
+                        
+                        // Reorder the elements in reality
+                        foreach (Element elm in DragElements)
+                        {
+                            context.Children.Remove(elm);
+                        }
+                        context.Children.InsertRange(args.NewPosition, DragElements);
+                        this.PackChildren();
+
+                    }
+                }
+
+            }
+        }
+
+        void Board_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.Text))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            
+        }
+
+        void Board_MouseUp(object sender, MouseEventArgs e)
+        {
+            dragURI = null;
         }
         protected override bool IsInputKey(Keys keyData)
         {
@@ -371,15 +460,23 @@ namespace Spider
         {
            
         }
-
+        public List<Element> DragElements = new List<Element>();
         public void Board_MouseDown(object sender, MouseEventArgs e)
         {
+            
             if ((Control.ModifierKeys & Keys.ControlKey) == 0)
             {
+
+
+                
+                
                 foreach (track t in Tracks)
                 {
-                    t.Selected = false;
+                    if(this.HoveredElement.GetType() == typeof(track))
+                     if(!((track)this.HoveredElement).Selected) 
+                        t.Selected = false;
                 }
+                
             }
             int x = e.X;
             int y = e.Y;
@@ -394,6 +491,18 @@ namespace Spider
                 }
             }
             catch (Exception ex) { }
+            Element hoveringElement = this.HoveredElement;
+            if (hoveringElement.Hyperlink != null)
+            {
+                dragURI = hoveringElement.Hyperlink;
+                DragStartPosition = new Point(e.X, e.Y);
+            }
+        }
+        public Point DragStartPosition;
+        public String dragURI = "";
+        public int Diff(int x, int y)
+        {
+            return x > y ? x - y : y - x;
         }
         
         /// <summary>
@@ -486,9 +595,30 @@ namespace Spider
                 }
             }
         }
+        private List<Element> dragElements = new List<Element>();
         public bool foundLink = false;
         void Board_MouseMove(object sender, MouseEventArgs e)
         {
+            if (DragStartPosition != null)
+            {
+                if (dragURI != null)
+                {
+                    if (Diff(e.X, DragStartPosition.X) > 10 || Diff(e.Y, DragStartPosition.Y) > 10)
+                    {
+                        DragElements = new List<Element>();
+                        DragElements.AddRange(SelectedTracks);
+                        foreach (Element elm in DragElements)
+                        {
+                            dragURI += elm.Hyperlink + "\n";
+
+                        }
+                        DataObject d = new DataObject(DataFormats.StringFormat, dragURI);
+                        DoDragDrop(d, DragDropEffects.All);
+                      
+                        dragURI = null;
+                    }
+                }
+            }
             this.foundLink = false;
             int x = e.X;
             int y = e.Y;
@@ -586,7 +716,8 @@ namespace Spider
            
             
         }
-        
+
+        public Element HoveredElement { get; set; }
         public void assignHeight(Element element)
         {
             if (element.GetType() != typeof(vbox))
@@ -629,6 +760,7 @@ namespace Spider
                     try
                     {
                         Element _elm = (Element)Type.GetType("Spider." + elm.Name).GetConstructor(new Type[] { typeof(Board), typeof(XmlElement) }).Invoke(new Object[] { this, elm });
+                        
                         this.Children.Add(_elm);
                     }
                     catch (Exception e)
