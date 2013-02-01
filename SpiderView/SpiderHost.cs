@@ -47,6 +47,39 @@ namespace Spider
                    
             }
         }
+        public App LoadApp(String uri)
+        {
+            String[] segments = uri.Split(':');
+            var ns = segments[1];
+            String appId = uri;
+            String[] arguments = new String[segments.Length - 2];
+            System.Array.Copy(segments, 2, arguments, 0, segments.Length - 2);
+            // If app is already loaded bring it to front
+            if (Apps.ContainsKey(appId))
+            {
+
+                App app = Apps[appId];
+               
+                app.Navigate(arguments);
+                if (this.Navigated != null)
+                    this.Navigated(this, new SpiderNavigationEventArgs() { Arguments = arguments });
+                Future.Clear();
+
+
+                return app;
+            }
+            Type type = RegistredAppTypes[ns];
+            App appClass = (App)type.GetConstructor(new Type[] { typeof(SpiderHost), typeof(String[]) }).Invoke(new Object[] { this, uri.Split(':') });
+            appClass.Tag = Form;
+            Apps.Add(appId, appClass);
+            appClass.Navigate(segments);
+            this.Controls.Add(appClass);
+
+            appClass.Dock = DockStyle.Fill;
+           
+            Future.Clear();
+            return appClass;
+        }
       
         public void Navigate(String uri)
         {

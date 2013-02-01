@@ -12,6 +12,7 @@ namespace Spider
     [Serializable]
     public class SPListItem
     {
+        public App AppInstance { get; set; }
         public bool Touched { get; set; }
         public Color Color
         {
@@ -32,6 +33,7 @@ namespace Spider
         public String Text { get; set; }
         public Image Icon;
         private SPListView parent;
+#if(False)
         public SPListItem AddItem(String text, Uri uri)
         {
             SPListItem c = new SPListItem(this.Parent);
@@ -39,6 +41,24 @@ namespace Spider
             c.Uri = uri;
             this.Children.Add(c);
             return c;
+        }
+#endif
+
+        private String loadedText = "";
+        public SPListItem AddItem(String text, Uri uri)
+        {
+
+            
+            SPListItem c = new SPListItem(this.Parent);
+            c.Text = text;
+            c.Uri = uri;
+            this.Children.Add(c);
+            return c;
+        }
+
+        void instance_Loaded(object sender, EventArgs e)
+        {
+            this.Text = this.AppInstance.GetName();
         }
         public SPListItem AddItem(String text, Uri uri, Image icon)
         {
@@ -95,8 +115,26 @@ namespace Spider
 
         }
         public List<SPListItem> Children { get; set; }
+        public SPListItem(SPListView parent, String uri)
+        {
+            this.parent = parent;
+            this.Uri = new Uri(uri);
+            this.Children = new List<SPListItem>();
+            this.AppInstance = this.Parent.Host.LoadApp(uri.ToString());
+            AppInstance.Loaded += instance_Loaded;
+            this.Text = "Loading..";
+        }
+        public SPListItem(SPListView parent, String uri, String title)
+        {
+            this.parent = parent;
+            this.Uri = new Uri(uri);
+            this.Children = new List<SPListItem>();
+            
+            this.Text = title;
+        }
         public SPListItem(SPListView parent)
         {
+
             this.parent = parent;
             this.Children = new List<SPListItem>();
         }

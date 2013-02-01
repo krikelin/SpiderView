@@ -220,7 +220,7 @@ namespace Spider
         public ReleaseCollection LoadReleasesForGivenArtist(Artist artist, ReleaseType type, int page)
         {
             List<Release> items = new List<Release>();
-            DataSet dsReleases = MakeDataSet("SELECT *, release.status FROM release, artist  WHERE artist.id = release.artist AND artist.identifier = '" + artist.Identifier + "' AND type = " + ((int)type).ToString() + " ORDER BY release_date DESC");
+            DataSet dsReleases = MakeDataSet("SELECT *, release.status FROM release, artist  WHERE artist.id = release.artist AND artist.identifier = '" + artist.Identifier + "' AND type = " + ((int)type).ToString() + " AND release.status = 0 ORDER BY release_date DESC");
            ReleaseCollection rc = new ReleaseCollection(this, items);
             foreach (DataRow releaseRow in dsReleases.Tables[0].Rows)
             {

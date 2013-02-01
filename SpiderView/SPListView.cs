@@ -12,12 +12,14 @@ namespace Spider
     [Serializable]
     public partial class SPListView : UserControl
     {
+        public SpiderHost Host { get; set; }
         public Block Block { get; set; }
         public Block SelectedStyle { get; set; }
       
         public Style stylesheet;
-        public SPListView(Spider.Skinning.Style stylesheet)
+        public SPListView(Spider.Skinning.Style stylesheet, SpiderHost host)
         {
+            this.Host = host;
             InitializeComponent();
             this.Items = new List<SPListItem>();
 
@@ -259,13 +261,21 @@ namespace Spider
             }
             return positive;
         }
-        public SPListItem AddItem(String text, Uri uri)
+        public SPListItem AddItem(Uri uri)
         {
-            SPListItem c = new SPListItem(this);
-            c.Text = text;
-            c.Uri = uri;
+            SPListItem c = new SPListItem(this, uri.ToString());
+           
 
             this.Items.Add(c);
+            return c;
+        }
+        public SPListItem AddItem(String text, Uri uri)
+        {
+            SPListItem c = new SPListItem(this, uri.ToString(), text);
+            c.Text = text;
+            c.Uri = uri;
+            this.Items.Add(c);
+            this.Refresh();
             return c;
         }
         public SPListItem AddItem(String text, Uri uri, Image icon)

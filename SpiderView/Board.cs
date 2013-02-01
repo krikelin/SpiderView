@@ -355,6 +355,7 @@ namespace Spider
             {
                 if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
+
                     this.HoveredElement = elm;
                     elm.CheckHover(x, y);
                 }
@@ -364,7 +365,7 @@ namespace Spider
             }
             if (HoveredElement.Parent != null)
             {
-                if (HoveredElement.Parent.GetType() == typeof(playlist))
+                if (HoveredElement != null && HoveredElement.Parent != null && HoveredElement.Parent.GetType() == typeof(playlist) && ((playlist)HoveredElement.Parent).AllowsReoreder)
                 {
                     playlist pls = (playlist)HoveredElement.Parent;
                     if (pls.AllowsReoreder)
@@ -390,7 +391,7 @@ namespace Spider
         {
             if (DragElements.Count > 0)
             {
-                if (HoveredElement != null)
+                if (HoveredElement != null && HoveredElement.Parent != null && HoveredElement.Parent.GetType() == typeof(playlist) && ((playlist)HoveredElement.Parent).AllowsReoreder)
                 {
 
                     Element context = DragElements[0].Parent;
@@ -411,7 +412,14 @@ namespace Spider
                         {
                             context.Children.Remove(elm);
                         }
-                        context.Children.InsertRange(args.NewPosition, DragElements);
+                        try
+                        {
+                            context.Children.InsertRange(args.NewPosition, DragElements);
+                        }
+                        catch (Exception ex)
+                        {
+                            context.Children.InsertRange(args.Position, DragElements);
+                        }
                         this.PackChildren();
 
                     }
@@ -605,17 +613,23 @@ namespace Spider
                 {
                     if (Diff(e.X, DragStartPosition.X) > 10 || Diff(e.Y, DragStartPosition.Y) > 10)
                     {
-                        DragElements = new List<Element>();
-                        DragElements.AddRange(SelectedTracks);
-                        foreach (Element elm in DragElements)
+                        if (SelectedTracks.Count > 0)
                         {
-                            dragURI += elm.Hyperlink + "\n";
+                            
+                                DragElements = new List<Element>();
+                                DragElements.AddRange(SelectedTracks);
+                                foreach (Element elm in DragElements)
+                                {
+                                    dragURI += elm.Hyperlink + "\n";
 
+                                }
+                                DataObject d = new DataObject(DataFormats.StringFormat, dragURI);
+                                DoDragDrop(d, DragDropEffects.All);
+
+                                dragURI = null;
+                            
                         }
-                        DataObject d = new DataObject(DataFormats.StringFormat, dragURI);
-                        DoDragDrop(d, DragDropEffects.All);
-                      
-                        dragURI = null;
+                       
                     }
                 }
             }

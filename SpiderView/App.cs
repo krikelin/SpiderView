@@ -16,6 +16,8 @@ namespace Spider
     /// </summary>
     public partial class App : UserControl
     {
+        public delegate void LoadEventHandler(object sender, EventArgs e);
+        public event LoadEventHandler Loaded;
         public Object Tag { get; set; }
         public SpiderHost Host { get; set; }
         public String Template { get; set; }
@@ -52,11 +54,17 @@ namespace Spider
             
 
         }
-
+        
+        public virtual String GetName()
+        {
+            return "";
+        }
         void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             spiderView.LoadFile(Template);
             spiderView.refresh(e.Result);
+            if(this.Loaded != null)
+                this.Loaded(this, new EventArgs());
         }
 
         void bw_DoWork(object sender, DoWorkEventArgs e)
