@@ -13,6 +13,20 @@ namespace Spider
     [Serializable]
     public class SPListItem
     {
+        public int AbsoluteY
+        {
+            get
+            {
+                int pos = 0;
+                foreach (SPListItem item in this.parent.Items)
+                {
+                    if (item == this)
+                        return pos;
+                    pos += item.Height;
+                }
+                return pos;
+            }
+        }
         public class ListIcon
         {
             public Image Normal;

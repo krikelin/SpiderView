@@ -28,7 +28,50 @@ namespace Spider
             this.Block = stylesheet.Blocks["ListView"];
             this.AllowDrop = true;
             this.DragEnter += SPListView_DragEnter;
+            this.DragOver += SPListView_DragOver;
             this.DragDrop += SPListView_DragDrop;
+            this.MouseMove +=SPListView_MouseMove;
+        }
+
+        void SPListView_DragOver(object sender, DragEventArgs e)
+        {
+            BufferedGraphicsContext bgc = new BufferedGraphicsContext();
+            BufferedGraphics bg = bgc.Allocate(this.CreateGraphics(), new Rectangle(0, 0, this.Width, this.Height));
+            this.Draw(bg.Graphics);
+            Point c = PointToClient(new Point(e.X, e.Y));
+            if (c.Y < (ItemHeight * 4))
+            {
+                e.Effect = DragDropEffects.None;
+                return;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.All;
+            }
+            Point cPoint = PointToClient(new Point(e.X, e.Y));
+            HoveredElement = GetItemUnderCursor(cPoint);
+            if (HoveredElement != null)
+            {
+                
+                if (cPoint.Y > HoveredElement.AbsoluteY + 4 && cPoint.Y < HoveredElement.AbsoluteY + HoveredElement.Height - 4)
+                {
+                    if (HoveredElement.AppInstance.AllowsDrop(e.Data))
+                    {
+                        bg.Graphics.DrawRectangle(new Pen(Color.White), new Rectangle(0, HoveredElement.AbsoluteY, this.Width, HoveredElement.Height));
+                    }
+                     
+                } 
+
+                else {
+
+                    bg.Graphics.DrawLine(new Pen(Color.White), new Point(0, HoveredElement.AbsoluteY), new Point(this.Width, HoveredElement.AbsoluteY));
+
+                
+                   
+                }
+
+            }
+            bg.Render();
         }
         public SPListItem GetItemUnderCursor(Point e)
         {
@@ -46,37 +89,64 @@ namespace Spider
         }
         void SPListView_DragDrop(object sender, DragEventArgs e)
         {
+            this.mouseDown = false;
+            
             if (e.Data.GetData(DataFormats.StringFormat) != null)
             {
                 String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
                 if (data.StartsWith("spotify:"))
                 {
-                    int startIndex = 0;
-                    SPListItem existingItem = null;
-
-                    // Check if there is an existing item
-                    foreach (SPListItem item in this.Items)
+                    Point c = PointToClient(new Point(e.X, e.Y));
+                   
+                    if (c.Y < (ItemHeight * 4)) 
                     {
-                        if (item.Uri.ToString() == data)
-                        {
-                            startIndex = this.Items.IndexOf(item);
-                            existingItem = item;
-                        }
-                    }
-
-                    // If we found an existing item remove it!
-                    if (existingItem != null)
-                        this.Items.Remove(existingItem);
-
-                    // Get the current item under the cursor
-                    SPListItem itemC = this.GetItemUnderCursor(this.PointToClient(new Point(e.X, e.Y)));
-                    if (itemC != null)
-                    {
-                        this.InsertItem(Items.IndexOf(itemC), new Uri(data));
+                        e.Effect = DragDropEffects.None;
+                        return;
                     }
                     else
                     {
-                        this.AddItem(new Uri(data));
+                        e.Effect = DragDropEffects.All;
+                    }
+                    // If we are pointing on an element that accepts drop and we are inside it's bounds (4) we will begin a drop operation to the app iself.
+                    if (this.HoveredElement != null && c.Y > this.HoveredElement.AbsoluteY + 4 && c.Y < this.HoveredElement.AbsoluteY + this.HoveredElement.Height - 4 && this.HoveredElement.AppInstance.AllowsDrop(e.Data))
+                    {
+                        this.HoveredElement.AppInstance.DropItem(e.Data);
+                    }
+                    else // Otherwise reorder
+                    {
+                        int startIndex = 0;
+                        SPListItem existingItem = null;
+
+                        // Check if there is an existing item
+                        foreach (SPListItem item in this.Items)
+                        {
+                            if (item.Uri.ToString() == data)
+                            {
+                                startIndex = this.Items.IndexOf(item);
+                                existingItem = item;
+                            }
+                        }
+
+                        // If we found an existing item remove it!
+                        if (existingItem != null)
+                            this.Items.Remove(existingItem);
+
+                        // Get the current item under the cursor
+                        SPListItem itemC = this.GetItemUnderCursor(this.PointToClient(new Point(e.X, e.Y)));
+                        if (itemC != null)
+                        {
+                            if (existingItem != null)
+                                this.Items.Insert(Items.IndexOf(itemC), existingItem);
+                            else
+                                this.InsertItem(Items.IndexOf(itemC), new Uri(data));
+                        }
+                        else
+                        {
+                            if (existingItem != null)
+                                this.Items.Add(existingItem);
+                            else
+                                this.AddItem(new Uri(data));
+                        }
                     }
                     this.Refresh();
                 }
@@ -337,14 +407,31 @@ namespace Spider
         {
 
         }
-
+        private bool mouseDown = false;
+        public int Diff(int x, int y) {
+            return x > y ? x - y : y - x;
+        }
+        
+        public Point cursor;
         private void SPListView_MouseMove(object sender, MouseEventArgs e)
         {
-            /*    float f = (float)(((float)this.ListHeight + 1) / (float)this.Height + 1) ;
-                this.ScrollY = (int)(f * e.Y);*/
-            if (this.scrollScale > 0)
+            try
             {
-                this.Draw(CreateGraphics());
+                /*    float f = (float)(((float)this.ListHeight + 1) / (float)this.Height + 1) ;
+                    this.ScrollY = (int)(f * e.Y);*/
+                if (mouseDown)
+                    if (Diff(e.X, cursor.X) > 10 || Diff(e.Y, cursor.Y) > 10)
+                    {
+                        HoveredElement = GetItemUnderCursor(new Point(e.X, e.Y));
+                        DataObject d = new DataObject(System.Windows.Forms.DataFormats.Text, HoveredElement.Uri.ToString());
+                        DoDragDrop(d, DragDropEffects.Copy);
+                    }
+                    else
+                    {
+                    }
+            }
+            catch (Exception ex)
+            {
             }
         }
         private void deselectItem(SPListItem item)
@@ -381,7 +468,8 @@ namespace Spider
         }
         private void SPListView_MouseDown(object sender, MouseEventArgs e)
         {
-
+            cursor = new Point(e.X, e.Y);
+            mouseDown = true;
             int pos = -ScrollY;
             int level = 0;
             // Draw all list items
@@ -447,6 +535,7 @@ namespace Spider
 
         private void SPListView_MouseUp(object sender, MouseEventArgs e)
         {
+            mouseDown = false;
             myScroll = 0;
             try
             {
@@ -478,6 +567,8 @@ namespace Spider
         }
 
         public int ScrollY { get; set; }
+
+        public SPListItem HoveredElement { get; set; }
     }
 
 }

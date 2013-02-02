@@ -81,6 +81,28 @@ namespace Spider
         {
             e.Result = Loading(e.Argument);
         }
+
+        /// <summary>
+        /// What happens when the user are trying to drop on the view
+        /// </summary>
+        /// <param name="data"></param>
+        public virtual void DropItem(IDataObject data)
+        {
+        }
+        /// <summary>
+        /// Asks for allowing drop on the current app.
+        /// </summary>
+        /// <param name="sObject"></param>
+        public virtual bool AllowsDrop(IDataObject data)
+        {
+            return false;
+        }
+        /// <summary>
+        /// On reorder
+        /// </summary>
+        /// <param name="oldPos"></param>
+        /// <param name="count"></param>
+        /// <param name="newPos"></param>
         public virtual void Reorder(int oldPos, int count, int newPos)
         {
 
