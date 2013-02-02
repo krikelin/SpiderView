@@ -242,8 +242,20 @@ namespace Spider
                 }
                 if (this.IsPlaylist)
                 {
-                    sv.Board.MinimumSize = new Size(10, 10);
-                    sv.Board.Height = 100;
+                    sv.Board.MinimumSize = new Size(0, 0);
+                    if (_section.HasAttribute("height"))
+                    {
+                        if (int.Parse(_section.GetAttribute("height")) < 1)
+                        {
+                            sv.Board.Hide();
+                            sv.Board.Height = 0;
+                        }
+                        sv.Board.Height = int.Parse(_section.GetAttribute("height"));
+                    }
+                    else
+                    {
+                        sv.Board.Height = 120;
+                    }
                     sv.Board.Left = 0;
                     sv.Board.Top = 0;
                     sv.Board.Width = this.Width;
