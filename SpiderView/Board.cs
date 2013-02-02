@@ -563,22 +563,15 @@ namespace Spider
                 {
                     if (Diff(e.X, DragStartPosition.X) > 10 || Diff(e.Y, DragStartPosition.Y) > 10)
                     {
-                        if (SelectedTracks.Count > 0)
-                        {
+                     
                             
-                                DragElements = new List<Element>();
-                                DragElements.AddRange(SelectedTracks);
-                                foreach (Element elm in DragElements)
-                                {
-                                    dragURI += elm.Hyperlink + "\n";
-
-                                }
+                              
                                 DataObject d = new DataObject(DataFormats.StringFormat, dragURI);
                                 DoDragDrop(d, DragDropEffects.All);
 
                                 dragURI = null;
                             
-                        }
+                        
                        
                     }
                 }

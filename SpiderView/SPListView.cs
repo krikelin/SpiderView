@@ -26,6 +26,74 @@ namespace Spider
             this.stylesheet = stylesheet;
             this.SelectedBlock = stylesheet.Blocks["::selection"];
             this.Block = stylesheet.Blocks["ListView"];
+            this.AllowDrop = true;
+            this.DragEnter += SPListView_DragEnter;
+            this.DragDrop += SPListView_DragDrop;
+        }
+        public SPListItem GetItemUnderCursor(Point e)
+        {
+            int pos = 0;
+            foreach (SPListItem item in this.Items)
+            {
+               
+                if (e.Y > pos && e.Y < item.Height + pos)
+                {
+                    return item;
+                }
+                pos += item.Height;
+            }
+            return null;
+        }
+        void SPListView_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetData(DataFormats.StringFormat) != null)
+            {
+                String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
+                if (data.StartsWith("spotify:"))
+                {
+                    int startIndex = 0;
+                    SPListItem existingItem = null;
+
+                    // Check if there is an existing item
+                    foreach (SPListItem item in this.Items)
+                    {
+                        if (item.Uri.ToString() == data)
+                        {
+                            startIndex = this.Items.IndexOf(item);
+                            existingItem = item;
+                        }
+                    }
+
+                    // If we found an existing item remove it!
+                    if (existingItem != null)
+                        this.Items.Remove(existingItem);
+
+                    // Get the current item under the cursor
+                    SPListItem itemC = this.GetItemUnderCursor(this.PointToClient(new Point(e.X, e.Y)));
+                    if (itemC != null)
+                    {
+                        this.InsertItem(Items.IndexOf(itemC), new Uri(data));
+                    }
+                    else
+                    {
+                        this.AddItem(new Uri(data));
+                    }
+                    this.Refresh();
+                }
+            }
+        }
+
+        void SPListView_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetData(DataFormats.StringFormat) != null)
+            {
+                String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
+                if (data.StartsWith("spotify:"))
+                {
+                    e.Effect = DragDropEffects.Copy;
+                    
+                }
+            }
         }
         public int GetIndexByName(String name)
         {
@@ -222,6 +290,14 @@ namespace Spider
                 }
             }
             return positive;
+        }
+        public SPListItem InsertItem(int pos, Uri uri)
+        {
+            SPListItem c = new SPListItem(this, uri.ToString());
+
+
+            this.Items.Insert(pos, c);
+            return c;
         }
         public SPListItem AddItem(Uri uri)
         {
