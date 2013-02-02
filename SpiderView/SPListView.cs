@@ -64,7 +64,7 @@ namespace Spider
 
                 else {
 
-                    bg.Graphics.DrawLine(new Pen(Color.White), new Point(0, HoveredElement.AbsoluteY), new Point(this.Width, HoveredElement.AbsoluteY));
+                    bg.Graphics.DrawLine(new Pen(Color.White), new Point(0, HoveredElement.AbsoluteY + HoveredElement.Height), new Point(this.Width, HoveredElement.AbsoluteY + HoveredElement.Height));
 
                 
                    
@@ -90,78 +90,92 @@ namespace Spider
         void SPListView_DragDrop(object sender, DragEventArgs e)
         {
             this.mouseDown = false;
-            
+
             if (e.Data.GetData(DataFormats.StringFormat) != null)
             {
-                String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
-                if (data.StartsWith("spotify:"))
+                try
                 {
-                    Point c = PointToClient(new Point(e.X, e.Y));
-                   
-                    if (c.Y < (ItemHeight * 4)) 
+                    String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
+                    if (data.StartsWith("spotify:"))
                     {
-                        e.Effect = DragDropEffects.None;
-                        return;
-                    }
-                    else
-                    {
-                        e.Effect = DragDropEffects.All;
-                    }
-                    // If we are pointing on an element that accepts drop and we are inside it's bounds (4) we will begin a drop operation to the app iself.
-                    if (this.HoveredElement != null && c.Y > this.HoveredElement.AbsoluteY + 4 && c.Y < this.HoveredElement.AbsoluteY + this.HoveredElement.Height - 4 && this.HoveredElement.AppInstance.AllowsDrop(e.Data))
-                    {
-                        this.HoveredElement.AppInstance.DropItem(e.Data);
-                    }
-                    else // Otherwise reorder
-                    {
-                        int startIndex = 0;
-                        SPListItem existingItem = null;
+                        Point c = PointToClient(new Point(e.X, e.Y));
 
-                        // Check if there is an existing item
-                        foreach (SPListItem item in this.Items)
+                        if (c.Y < (ItemHeight * 4))
                         {
-                            if (item.Uri.ToString() == data)
-                            {
-                                startIndex = this.Items.IndexOf(item);
-                                existingItem = item;
-                            }
-                        }
-
-                        // If we found an existing item remove it!
-                        if (existingItem != null)
-                            this.Items.Remove(existingItem);
-
-                        // Get the current item under the cursor
-                        SPListItem itemC = this.GetItemUnderCursor(this.PointToClient(new Point(e.X, e.Y)));
-                        if (itemC != null)
-                        {
-                            if (existingItem != null)
-                                this.Items.Insert(Items.IndexOf(itemC), existingItem);
-                            else
-                                this.InsertItem(Items.IndexOf(itemC), new Uri(data));
+                            e.Effect = DragDropEffects.None;
+                            return;
                         }
                         else
                         {
-                            if (existingItem != null)
-                                this.Items.Add(existingItem);
-                            else
-                                this.AddItem(new Uri(data));
+                            e.Effect = DragDropEffects.All;
                         }
+                        // If we are pointing on an element that accepts drop and we are inside it's bounds (4) we will begin a drop operation to the app iself.
+                        if (this.HoveredElement != null && c.Y > this.HoveredElement.AbsoluteY + 4 && c.Y < this.HoveredElement.AbsoluteY + this.HoveredElement.Height - 4 && this.HoveredElement.AppInstance.AllowsDrop(e.Data))
+                        {
+                            this.HoveredElement.AppInstance.DropItem(e.Data);
+                        }
+                        else // Otherwise reorder
+                        {
+                            int startIndex = 0;
+                            SPListItem existingItem = null;
+
+                            // Check if there is an existing item
+                            foreach (SPListItem item in this.Items)
+                            {
+                                if (item.Uri.ToString() == data)
+                                {
+                                    startIndex = this.Items.IndexOf(item);
+                                    existingItem = item;
+                                }
+                            }
+
+                            // If we found an existing item remove it!
+                            if (existingItem != null)
+                                this.Items.Remove(existingItem);
+
+                            // Get the current item under the cursor
+                            SPListItem itemC = this.GetItemUnderCursor(this.PointToClient(new Point(e.X, e.Y)));
+                            if (itemC != null)
+                            {
+                                if (existingItem != null)
+                                    this.Items.Insert(Items.IndexOf(itemC), existingItem);
+                                else
+                                    this.InsertItem(Items.IndexOf(itemC), new Uri(data));
+                            }
+                            else
+                            {
+                                if (existingItem != null)
+                                    this.Items.Add(existingItem);
+                                else
+                                    this.AddItem(new Uri(data));
+                            }
+                        }
+                        this.Refresh();
                     }
-                    this.Refresh();
+                }
+                catch (Exception xe)
+                {
                 }
             }
+             
         }
 
         void SPListView_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetData(DataFormats.StringFormat) != null)
             {
-                String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
-                if (data.StartsWith("spotify:"))
+                try
                 {
-                    e.Effect = DragDropEffects.Copy;
-                    
+                    String data = ((String)e.Data.GetData(System.Windows.Forms.DataFormats.StringFormat)).Replace("dummy:", "spotify:");
+                    if (data.StartsWith("spotify:"))
+                    {
+                        e.Effect = DragDropEffects.Copy;
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    e.Effect = DragDropEffects.None;
                 }
             }
         }

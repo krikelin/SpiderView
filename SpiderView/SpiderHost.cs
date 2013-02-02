@@ -46,20 +46,26 @@ namespace Spider
                 }
                    
             }
-            foreach (Spider.CListView.CListViewItem t in this.PlayContext.Section.ListView.Items)
+            try
             {
+                foreach (Spider.CListView.CListViewItem t in this.PlayContext.Section.ListView.Items)
+                {
 
-                Track track = t.Track;
-                if (lastTrack != null && lastTrack.Status == Track.State.Available)
-                {
-                    track.Play();
-                    return;
+                    Track track = t.Track;
+                    if (lastTrack != null && lastTrack.Status == Track.State.Available)
+                    {
+                        track.Play();
+                        return;
+                    }
+                    if (track.Playing)
+                    {
+                        lastTrack = track;
+
+                    }
                 }
-                if (track.Playing)
-                {
-                    lastTrack = track;
-                   
-                }
+            }
+            catch (Exception e)
+            {
             }
         }
         public App LoadApp(String uri)

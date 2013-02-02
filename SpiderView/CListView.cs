@@ -487,10 +487,10 @@ namespace Spider
                 }
                 int Containing = ContainingItems;
                 int CI = (Containing > Count - scrollY ? Containing : Count);
-                for (int i = scrollY; i < scrollY + CI -1  ; i++)
+                for (int i = scrollY; i < scrollY + CI   ; i++)
                 {
                     int top = (i - scrollY + 1) * ItemHeight;
-                    if (i > Count-1)
+                    if (i > Count)
                         continue;
                     CListViewItem Item = (CListViewItem)Items[i];
                    
