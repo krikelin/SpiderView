@@ -181,6 +181,7 @@ namespace Spider.Skinning
             newSelector.Padding = Padding;
             newSelector.Margin = Margin;
             newSelector.BackColor = BackColor;
+            newSelector.Font = Font;
             newSelector.ForeColor = ForeColor;
             return newSelector;
         }

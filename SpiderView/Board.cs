@@ -363,69 +363,12 @@ namespace Spider
                 {
                 }
             }
-            if (HoveredElement.Parent != null)
-            {
-                if (HoveredElement != null && HoveredElement.Parent != null && HoveredElement.Parent.GetType() == typeof(playlist) && ((playlist)HoveredElement.Parent).AllowsReoreder)
-                {
-                    playlist pls = (playlist)HoveredElement.Parent;
-                    if (pls.AllowsReoreder)
-                    {
-                        e.Effect = DragDropEffects.Copy;
-                    }
-                }
-            }
         }
-        public class ReorderEventArgs
-        {
-            public int Position { get; set; }
-            public int NewPosition { get; set; }
-            public List<Element> Elements { get; set; }
-            public Element Context { get; set; }
-            public bool Cancel { get; set; }
-            
-        }
-        public delegate void ReorderEventHandler(object sender, ReorderEventArgs e);
-        public event ReorderEventHandler BeforeReorder;
-        public event ReorderEventHandler Reordered;
+       
         void Board_DragDrop(object sender, DragEventArgs e)
         {
-            if (DragElements.Count > 0)
-            {
-                if (HoveredElement != null && HoveredElement.Parent != null && HoveredElement.Parent.GetType() == typeof(playlist) && ((playlist)HoveredElement.Parent).AllowsReoreder)
-                {
 
-                    Element context = DragElements[0].Parent;
-                    Element targetSite = HoveredElement;
-                    
-                     ReorderEventArgs args = new ReorderEventArgs();
-                     args.Elements = dragElements;
-                     args.Position = context.Children.IndexOf(DragElements[0]);
-                    args.NewPosition = context.Children.IndexOf(HoveredElement);
-                    if(BeforeReorder != null)    
-                        BeforeReorder(this, args);
-                    if (BeforeReorder == null || !args.Cancel )
-                    {
-                           
-                        
-                        // Reorder the elements in reality
-                        foreach (Element elm in DragElements)
-                        {
-                            context.Children.Remove(elm);
-                        }
-                        try
-                        {
-                            context.Children.InsertRange(args.NewPosition, DragElements);
-                        }
-                        catch (Exception ex)
-                        {
-                            context.Children.InsertRange(args.Position, DragElements);
-                        }
-                        this.PackChildren();
-
-                    }
-                }
-
-            }
+            
         }
 
         void Board_DragEnter(object sender, DragEventArgs e)
@@ -696,9 +639,14 @@ namespace Spider
                 
                 
             }
-            this.Width = 1100;
-            this.Height = max_height;
+
+            if (!CustomHeight)
+            {
+                this.Width = 1100;
+                this.Height = max_height;
+            }
         }
+        public bool CustomHeight = false;
         public void PackChildren(bool c =true)
         {
             int row = 0;

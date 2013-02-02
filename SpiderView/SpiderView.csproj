@@ -69,6 +69,9 @@
       <DependentUpon>Board.cs</DependentUpon>
     </Compile>
     <Compile Include="Class1.cs" />
+    <Compile Include="CListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="CSS\CSS.cs" />
     <Compile Include="DummyService.cs" />
     <Compile Include="Element.cs" />
@@ -178,6 +181,7 @@
     <EmbeddedResource Include="Board.resx">
       <DependentUpon>Board.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="CListView.resx" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

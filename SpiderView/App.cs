@@ -64,12 +64,17 @@ namespace Spider
         {
             return "";
         }
+        public virtual void LoadFinished()
+        {
+
+        }
         void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             spiderView.LoadFile(Template);
             spiderView.refresh(e.Result);
             if(this.Loaded != null)
                 this.Loaded(this, new EventArgs());
+            LoadFinished();
         }
 
         void bw_DoWork(object sender, DoWorkEventArgs e)

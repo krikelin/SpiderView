@@ -155,24 +155,7 @@ namespace Spider.Media
         }
        
     }
-    public class PlaylistTrack : Track
-    {
-        public DateTime Added {get; set;}
-        public User User { get; set; }
-
-
-        private String username = "";
-        public override void LoadData(object sender, DoWorkEventArgs e)
-        {
-            base.LoadData(sender, e);
-            this.User = Service.LoadUser(username);
-        }
-        public PlaylistTrack(IMusicService service, String identifier, String user)
-            : base(service, identifier)
-        {
-            this.username = user;
-        }
-    }
+  
     public class Track : Resource
     {
        
@@ -180,6 +163,28 @@ namespace Spider.Media
         public track Element { get; set; }
         public Artist[] Artists { get; set; }
         public Release Album { get; set; }
+        private Spider.CListView.CListViewItem item;
+        public Spider.CListView.CListViewItem Item
+        {
+            get
+            {
+                return item;
+            }
+            set
+            {
+                item = value;
+                if (this.Item != null)
+                {
+                    this.Item.Name = this.Name;
+                    if(this.Artists != null && this.Artists.Length > 0)
+                    this.Item.SubItems.Add(this.Artists[0].Name);
+                    this.Item.SubItems.Add("3:10");
+                    if(this.Album != null)
+                    this.Item.SubItems.Add(this.Album.Name);
+                    this.Item.Spawn.Refresh();
+                }
+            }
+        }
         public int Duration { get; set; }
         public bool Loaded { get; set; }
         public bool Playing
@@ -215,6 +220,8 @@ namespace Spider.Media
             {
                 TrackLoaded(this, new TrackLoadEventArgs() { Data = e.Result, Track = this });
             }
+           
+        
             
         }
 
@@ -243,6 +250,11 @@ namespace Spider.Media
             if (Element != null)
             {
                 Element.Board.Invalidate(new Rectangle(Element.X, Element.Y, Element.Width, Element.Height));
+            }
+            if (Item != null)
+            {
+                Item.Spawn.Section.SpiderView.Host.PlayContext = Item.Spawn.Section.Board;
+                Item.Spawn.Invalidate();
             }
         }
         public Track(IMusicService service)

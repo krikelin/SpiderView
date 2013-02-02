@@ -29,7 +29,7 @@ namespace Spider
         public void PlayNext()
         {
             Track lastTrack = null;
-          
+            if(PlayContext != null)
             for (int i = 0; i <  PlayContext.Tracks.Count; i++)
             {
                 track track = PlayContext.Tracks[i];
@@ -45,6 +45,21 @@ namespace Spider
                    
                 }
                    
+            }
+            foreach (Spider.CListView.CListViewItem t in this.PlayContext.Section.ListView.Items)
+            {
+
+                Track track = t.Track;
+                if (lastTrack != null && lastTrack.Status == Track.State.Available)
+                {
+                    track.Play();
+                    return;
+                }
+                if (track.Playing)
+                {
+                    lastTrack = track;
+                   
+                }
             }
         }
         public App LoadApp(String uri)

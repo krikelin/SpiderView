@@ -216,6 +216,7 @@ namespace Spider
             }
             
         }
+        public bool IsPlaylist { get; set; }
         public void AddSection(XmlElement _section) {
             Tab tab = new Tab();
                 tab.Title = _section.GetAttribute("title");
@@ -234,6 +235,35 @@ namespace Spider
                 //        childBoard.Padding = new Spider.Padding(_section.GetAttribute("padding"));
                 this.deck.Controls.Add(sv);
                 sv.Dock = DockStyle.Fill;
+                if (_section.HasAttribute("playlist"))
+                {
+                    sv.Board.CustomHeight = true;
+                    this.IsPlaylist = _section.GetAttribute("playlist") == "true";
+                }
+                if (this.IsPlaylist)
+                {
+                    sv.Board.MinimumSize = new Size(10, 10);
+                    sv.Board.Height = 100;
+                    sv.Board.Left = 0;
+                    sv.Board.Top = 0;
+                    sv.Board.Width = this.Width;
+                    sv.Board.Anchor |= AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                    sv.ListView = new CListView(sv);
+                    sv.Controls.Add(sv.ListView);
+                    sv.ListView.Top = sv.Board.Height;
+
+                    sv.ListView.Anchor |= AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                    sv.ListView.Height = 1200;
+                    sv.ListView.Width = this.Width;
+                    sv.ListView.Columns.Add("No.", 52);
+                    sv.ListView.Columns.Add("Title", 300);
+                    sv.ListView.Columns.Add("Artist", 100);
+                    sv.ListView.Columns.Add("Duration", 100);
+                    sv.ListView.Columns.Add("Album", 300);
+                    sv.ListView.Columns.Add("User", 100);
+                    sv.ListView.Columns.Add("Time", 100);
+                    sv.ListView.BringToFront();
+                }
         }
         public void LoadNodes(XmlElement element)
         {

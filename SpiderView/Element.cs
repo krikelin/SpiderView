@@ -931,6 +931,7 @@ namespace Spider
         public String Name;
         public int Left;
         public int Width;
+        public int Index;
     }
     public class track : Element
     {
