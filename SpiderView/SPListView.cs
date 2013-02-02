@@ -14,7 +14,7 @@ namespace Spider
     {
         public SpiderHost Host { get; set; }
         public Block Block { get; set; }
-        public Block SelectedStyle { get; set; }
+        public Block SelectedBlock { get; set; }
       
         public Style stylesheet;
         public SPListView(Spider.Skinning.Style stylesheet, SpiderHost host)
@@ -24,7 +24,7 @@ namespace Spider
             this.Items = new List<SPListItem>();
 
             this.stylesheet = stylesheet;
-            this.SelectedStyle = stylesheet.Blocks["::selection"];
+            this.SelectedBlock = stylesheet.Blocks["::selection"];
             this.Block = stylesheet.Blocks["ListView"];
         }
         public int GetIndexByName(String name)
@@ -63,43 +63,8 @@ namespace Spider
         /// <param name="level"></param>
         private void drawItem(Graphics g, SPListItem Item, ref int pos, ref int level)
         {
-            try
-            {
-                Color foreColor = Item.CustomColor ? Item.Color : this.Block.ForeColor;
-                Color backColor = this.Block.BackColor;
-                if (Item.Text.StartsWith("-"))
-                {
-                    g.DrawLine(new Pen(SelectedStyle.TextShadowColor), new Point(0, pos + (ItemHeight / 2)), new Point(this.Width, pos + (ItemHeight / 2)));
-                } else if (Item.Selected)
-                {
-                    foreColor = SelectedStyle.ForeColor;
-                    backColor = SelectedStyle.BackColor;
-
-                    g.FillRectangle(new SolidBrush(backColor), new Rectangle(0, pos, this.Width, ItemHeight));
-                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 2));
-                }
-                else if (Item.Text.StartsWith("#"))
-                {
-                    foreColor = SelectedStyle.TextShadowColor;
-                    g.DrawString(Item.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(4, pos + 0));
-                    g.DrawString(Item.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Point(4, pos - 1));
-                }
-                else
-                {
-                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Point(level + 16, pos + 2));
-                    g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 3));
-                }
-              //  g.DrawString(Item.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 2));
-                if (Item.Icon != null)
-                {
-                    g.DrawImage(Item.Icon, level + 16, pos + 1, 16, 16);
-                }
-                // If has subItems create expander
-                if (Item.Children.Count > 0)
-                {
-                    //Image expander = Item.Expanded ? Properties.Resources.ic_expander_open : Properties.Resources.ic_expander_closed;
-                    // g.DrawImage(expander, level, pos, 16, 16);
-                }
+          
+                Item.Draw(g, ref level, ref pos);
 
                // pos += 16;
                 // If has subitems draw them
@@ -150,10 +115,7 @@ namespace Spider
                         drawItem(g, subItem, ref pos, ref level);
                         level -= 16;
                     }
-            }
-            catch (Exception e)
-            {
-            }
+            
 
         }
         public int ListHeight
@@ -278,7 +240,7 @@ namespace Spider
             this.Refresh();
             return c;
         }
-        public SPListItem AddItem(String text, Uri uri, Image icon)
+        public SPListItem AddItem(String text, Uri uri, Spider.SPListItem.ListIcon icon)
         {
             SPListItem c = new SPListItem(this);
             c.Text = text;

@@ -184,7 +184,7 @@ namespace Spider
             r.Name = (String)releaseRow["release.title"];
             r.Image = (String)releaseRow["release.image"];
             r.Identifier = (String)releaseRow["release.identifier"];
-           
+            r.ReleaseDate = (DateTime)releaseRow["release_date"];
                 r.Status = (Spider.Media.Resource.State)releaseRow["release.status"];
             
             r.Artist = new Artist(this)
@@ -214,6 +214,8 @@ namespace Spider
 
                 }
             };
+            var pop = ((decimal)dr["track.popularity"]);
+            t.Popularity = (float)pop / 100;
             return t;
         }
 
@@ -295,19 +297,21 @@ namespace Spider
             {
                 return Cache[identifier];
             }
-            DataSet trackSet = MakeDataSet("SELECT track.status AS status, artist.title AS artist_title, artist.[identifier] AS artist_identifier, release.[identifier] AS release_identifier, release.[title] AS release_title, track.title " +
+            DataSet trackSet = MakeDataSet("SELECT * " +
                 "FROM (artist INNER JOIN release ON artist.ID = release.artist) INNER JOIN track ON (release.ID = track.album) AND (artist.ID = track.artist) AND (artist.ID = track.artist)" + 
                 "WHERE (((track.identifier)=\"" + identifier + "\"));");
             Track t = new Track(this);
             DataRow track = trackSet.Tables[0].Rows[0];
-            t.Name = (String)track["title"];
+            t.Name = (String)track["track.title"];
             t.Identifier = identifier;
-            t.Status = (Spider.Media.Resource.State)track["status"];
-            t.Artists = new Artist[] { new Artist(this) { Name = (String)track["artist_title"], Identifier = (String)track["artist_identifier"] } };
+            var pop = (decimal)track["track.popularity"];
+            t.Popularity = (float)pop / 100f;
+            t.Status = (Spider.Media.Resource.State)track["track.status"];
+            t.Artists = new Artist[] { new Artist(this) { Name = (String)track["artist.title"], Identifier = (String)track["artist.identifier"] } };
             t.Album = new Release(this)
             {
-                Name = (String)track["release_title"],
-                Identifier = (String)track["release_identifier"]
+                Name = (String)track["release.title"],
+                Identifier = (String)track["release.identifier"]
             };
 
 
@@ -317,7 +321,13 @@ namespace Spider
             }
             catch (Exception e)
             {
-                return Cache[identifier];
+                try
+                {
+                    return Cache[identifier];
+                }
+                catch (Exception ex)
+                {
+                }
             }
             return t;
         }
@@ -325,9 +335,33 @@ namespace Spider
 
         public TopList LoadTopListForResource(Resource res)
         {
-            throw new NotImplementedException();
-        }
+            TopList t = new TopList(this);
+            if (res.GetType() == typeof(Country))
+            {
+                DataSet topTracks = MakeDataSet("SELECT TOP 100  * FROM track, artist, release WHERE track.artist = artist.id AND track.album = release.id ORDER BY track.popularity DESC");
+                t.TopTracks = new TrackCollection(this, t, new List<Track>());
+                t.TopAlbums = new ReleaseCollection(this,  new List<Release>());
+                foreach (DataRow row in topTracks.Tables[0].Rows)
+                {
+                    Track _track = TrackFromDataRow(row);
+                    t.TopTracks.Add(_track);
+                }
+                DataSet topAlbums= MakeDataSet("SELECT TOP 100 * FROM artist, release WHERE release.artist = artist.id ORDER BY release.popularity DESC");
+                foreach (DataRow row in topTracks.Tables[0].Rows)
+                {
+                    Release _album = ReleaseFromDataRow(row);
+                    t.TopAlbums.Add(_album);
+                }
+                return t;
+            }
+            return null;
+            
 
+        }
+        public Country GetCurrentCountry()
+        {
+            return new Country(this, "Sweden");
+        }
         public User LoadUser(string identifier)
         {
             return new User(this)

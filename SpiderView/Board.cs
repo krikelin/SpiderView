@@ -476,13 +476,19 @@ namespace Spider
             {
 
 
-                
-                
+
+
                 foreach (track t in Tracks)
                 {
-                    if(this.HoveredElement.GetType() == typeof(track))
-                     if(!((track)this.HoveredElement).Selected) 
-                        t.Selected = false;
+                    try
+                    {
+                        if (this.HoveredElement.GetType() == typeof(track))
+                            if (!((track)this.HoveredElement).Selected)
+                                t.Selected = false;
+                    }
+                    catch (Exception ex)
+                    {
+                    }
                 }
                 
             }
@@ -500,6 +506,7 @@ namespace Spider
             }
             catch (Exception ex) { }
             Element hoveringElement = this.HoveredElement;
+            if(hoveringElement != null)
             if (hoveringElement.Hyperlink != null)
             {
                 dragURI = hoveringElement.Hyperlink;
@@ -796,7 +803,8 @@ namespace Spider
         public List<DrawBuffer> overflows = new List<DrawBuffer>();
         public void Draw(Graphics g, ref int x, ref int y, Rectangle target)
         {
-           
+            if (!this.Visible)
+                return;
             this.BackColor = Block.BackColor;
             try
             {

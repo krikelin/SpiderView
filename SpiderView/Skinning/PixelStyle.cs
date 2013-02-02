@@ -54,7 +54,7 @@ namespace Spider.Skinning
             var ch = new Block(sliceBitmap(bitmap,new Rectangle(0, 99, 65, 19)), bitmap.GetPixel(3, 117), bitmap.GetPixel(65, 99), bitmap.GetPixel(3, 117));
             ch.Font = new Font("MS Sans Serif", 8);
             this.Blocks.Add("columnheader", ch);
-            this.blocks.Add("hr", new Block(Color.FromArgb(0, 0, 0, 0), bitmap.GetPixel(14, 1), Color.White, Color.Black));
+            this.blocks.Add("hr", new Block(Color.FromArgb(0, 0, 0, 0), bitmap.GetPixel(15, 1), Color.White, Color.Black));
             this.Blocks.Add("ListView", new Block(bitmap.GetPixel(8, 0), Color.White, Color.Black, bitmap.GetPixel(8, 0)));
             this.Blocks.Add("Body", new Block(bitmap.GetPixel(0, 0), bitmap.GetPixel(1, 0), Color.Black, bitmap.GetPixel(8, 0)));
         }

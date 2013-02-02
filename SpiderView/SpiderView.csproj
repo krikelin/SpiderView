@@ -201,6 +201,7 @@
   <ItemGroup>
     <None Include="Resources\skin.png" />
     <None Include="Resources\shadow.png" />
+    <Content Include="NSpotifyLib.dll" />
     <Content Include="Scopus.dll" />
     <Content Include="System.Drawing.Html\System.Drawing.Html.csproj" />
   </ItemGroup>

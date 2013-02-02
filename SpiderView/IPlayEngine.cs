@@ -14,6 +14,7 @@ namespace Spider.Media
     /// </summary>
     public abstract class Resource
     {
+        public float Popularity { get; set; }
         public override bool Equals (object obj)
         {
             if (obj.GetType() != this.GetType())
@@ -76,28 +77,30 @@ namespace Spider.Media
             this.Image = "http://o.scdn.co/300/69bfa0d62f92a60ffbc98a7c3df87928da6d5c39";
         }
     }
+    public class Country : Resource
+    {
+        public Country(IMusicService service, String name)
+            : base(service)
+        {
+            this.Identifier = name;
+        }
+    }
 
     /// <summary>
     /// A Top List
     /// </summary>
-    public class TopList : Resource
+    public class TopList : Context
     {
         public Resource BelongsTo { get; set; }
-        private TrackCollection topTracks;
-        private ReleaseCollection topAlbums;
         public TrackCollection TopTracks
         {
-            get
-            {
-                return topTracks;
-            }
+            get;
+            set;
         }
         public ReleaseCollection TopAlbums
         {
-            get
-            {
-                return topAlbums;
-            }
+            get;
+            set;
         }
         public TopList(IMusicService service)
             : base(service)
@@ -222,6 +225,7 @@ namespace Spider.Media
             this.Artists = t.Artists;
             this.Album = t.Album;
             this.Status = t.Status;
+            this.Popularity = t.Popularity;
             this.Name = t.Name;
             e.Result = t;
            
@@ -258,7 +262,14 @@ namespace Spider.Media
     public class Release : Context
     {
         public Artist Artist { get; set; }
-        
+        public DateTime ReleaseDate { get; set; }
+        public int Year
+        {
+            get
+            {
+                return ReleaseDate.Year;
+            }
+        }
         private TrackCollection tracks;
         public new TrackCollection Tracks
         {
@@ -267,6 +278,7 @@ namespace Spider.Media
                 return tracks;
             }
         }
+        public ReleaseType Type { get; set; }
         private bool isTracksLoaded;
         public bool IsTracksLoaded
         {
@@ -629,6 +641,11 @@ namespace Spider.Media
         /// <returns></returns>
         TrackCollection GetPlaylistTracks(Playlist playlist, int revision);
 
+        /// <summary>
+        /// Get current country
+        /// </summary>
+        /// <returns></returns>
+        Country GetCurrentCountry();
     }
    
 

@@ -811,10 +811,11 @@ namespace Spider
             this.Block = (Block)this.Stylesheet.Blocks["columnheader"].Clone();
             this.ColumnHeaders = new Dictionary<string, ColumnHeader>();
             this.ColumnHeaders.Add("no", new ColumnHeader() { Name="", Left = 2, Width = 30 });
-            this.ColumnHeaders.Add("name", new ColumnHeader() { Name="Title", Left = 12, Width = 140 });
-            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 652, Width = 100 });
-            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name="Duration", Left = 853, Width = 50 });
-            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 905, Width = 310 });
+            this.ColumnHeaders.Add("name", new ColumnHeader() { Name="Title", Left = 30, Width = 140 });
+            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 584, Width = 100 });
+            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name = "Duration", Left = 482, Width = 50 });
+            this.ColumnHeaders.Add("popularity", new ColumnHeader() { Name = "Popularity", Left = 517, Width = 35 });
+            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 1025, Width = 310 });
 
         }
         public override void Draw(Graphics g, ref int x, ref int y)
@@ -1034,8 +1035,25 @@ namespace Spider
                 //
 
                 g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x + columnHeader.ColumnHeaders["name"].Left, 1 + y));
-                g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y));
+                if(Track.Artists != null && Track.Artists.Length > 0)
+                    g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y));
+                if(Track.Album != null)
                 g.DrawString(Track.Album.Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["album"].Left, 1 + y));
+                if (columnHeader.ColumnHeaders.ContainsKey("popularity"))
+                {
+                    ColumnHeader cp = columnHeader.ColumnHeaders["popularity"];
+                    float popularity = Track.Popularity; // Change soon
+                    for (int i = 0; i < cp.Width; i+= 3)
+                    {
+                        Color tagColor = Color.White;
+                        float progress =  ((float)popularity) / 100f;
+                        if (((float)i / (float)cp.Width) > progress)
+                        {
+                            tagColor = Color.Gray;
+                        }
+                        g.FillRectangle(new SolidBrush(tagColor), new Rectangle(x + cp.Left + i, y +6, 2, 8));
+                    }
+                }
             }
         }
 
@@ -1222,14 +1240,11 @@ namespace Spider
         {
             int pos = 0;
             int quote = 0;
-            try
+            if(this.Width > 0 && this.Children.Count > 0)
             {
                 quote = this.Width / this.Children.Count;
             }
-            catch (Exception e)
-            {
-            }
-            int count_flex= 0;
+             int count_flex= 0;
             int flexible_width = 0;
             int static_width = 0;
             foreach (Element elm in this.Children)

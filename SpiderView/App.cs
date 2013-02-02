@@ -47,6 +47,11 @@ namespace Spider
             bw.RunWorkerCompleted += bw_RunWorkerCompleted;
             bw.RunWorkerAsync(this.Arguments);
         }
+        public virtual String GetSubName()
+        {
+            return "";
+        }
+
         public App()
         {
             
@@ -80,6 +85,10 @@ namespace Spider
         /// </summary>
         /// <param name="arguments"></param>
         public virtual object Loading(object arguments)
+        {
+            return null;
+        }
+        public virtual Spider.SPListItem.ListIcon GetIcon()
         {
             return null;
         }
