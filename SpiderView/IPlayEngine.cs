@@ -185,6 +185,7 @@ namespace Spider.Media
                     if(this.Album != null)
                     this.Item.SubItems.Add(this.Album.Name);
                     this.Item.Spawn.Refresh();
+                    
                 }
             }
         }
@@ -590,7 +591,12 @@ namespace Spider.Media
     public enum ReleaseType {
         Single = 2, Album = 1, EP = 3, Compilation = 4
     }
+    public class UserObjectsEventArgs {
+        public String[] Objects;
+    }
     public delegate void PlayStateChangedEventHandler(object sender, EventArgs e);
+    public delegate void UserObjectsventHandler(object sender, UserObjectsEventArgs e);
+    
     /// <summary>
     /// An engine
     /// </summary>
@@ -601,6 +607,8 @@ namespace Spider.Media
         event TrackChangedEventHandler TrackAdded;
         event TrackChangedEventHandler TrackReordered;
         event PlayStateChangedEventHandler PlaybackFinished;
+        event UserObjectsventHandler ObjectsDelivered;
+
         
         /// <summary>
         /// Namespace of the service
@@ -753,6 +761,13 @@ namespace Spider.Media
         /// <returns></returns>
         bool DeleteTracks(Playlist playlist, int[] indexes);
 
+
+        /// <summary>
+        /// Creates a new playlist
+        /// </summary>
+        /// <param name="name">The name of the playlist</param>
+        /// <returns>The identifier for the new playlist</returns>
+        String NewPlaylist(String name);
         /// <summary>
         /// Get tracks from the playlist
         /// </summary>
@@ -766,6 +781,11 @@ namespace Spider.Media
         /// </summary>
         /// <returns></returns>
         Country GetCurrentCountry();
+
+        /// <summary>
+        /// Request user objects
+        /// </summary>
+        void RequestUserObjects();
     }
    
 

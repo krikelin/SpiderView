@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Data.OleDb;
 using System.Data;
+using System.ComponentModel;
 namespace Spider
 {
     public class DummyService : IMusicService
@@ -133,7 +134,8 @@ namespace Spider
         }
         public Playlist LoadPlaylist(string username, string identifier)
         {
-            DataSet dr = MakeDataSet("SELECT * FROM users, playlist WHERE playlist.user = users.id AND users.identifier = '" + username + "' AND playlist.identifier = '" + identifier + "'");
+            String query = "SELECT * FROM users, playlist WHERE playlist.user = users.id AND users.identifier = '" + username + "' AND playlist.identifier = '" + identifier + "'";
+            DataSet dr = MakeDataSet(query);
             Playlist pl = PlaylistFromRow(dr.Tables[0].Rows[0]);
             return pl;
         }
@@ -457,9 +459,19 @@ namespace Spider
         public TrackCollection GetPlaylistTracks(Playlist playlist, int revision)
         {
             DataSet ds = MakeDataSet("SELECT data FROM [playlist], [users] WHERE [users].[id] = [playlist].[user] AND [playlist].[identifier] = '" + playlist.Identifier + "' AND [users].[identifier] = '" + playlist.User.Identifier + "'");
-            String d = (String)ds.Tables[0].Rows[0]["data"];
+            String d = "";
+            try
+            {
+                d = (String)ds.Tables[0].Rows[0]["data"];
+            }
+            catch (Exception e)
+            {
+            }
+            
             String[] tracks = d.Split('&');
             TrackCollection tc = new TrackCollection(this, playlist, new List<Track>());
+            if (String.IsNullOrEmpty(d))
+                return tc;
             foreach (String strtrack in tracks)
             {
                 Track pt = MakeUserTrackFromString(strtrack);
@@ -496,6 +508,66 @@ namespace Spider
             command.ExecuteNonQuery();
             conn.Close();
             return true;
+        }
+
+        /// <summary>
+        /// NOTE: This method MUST return the WHOLE URI, not the identifier only!
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string NewPlaylist(string name)
+        {
+            String identifier = name.Trim().Replace(" ", "");
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("INSERT INTO playlist (identifier,  title, data, [user]) VALUES ('" + identifier + "', '" + name + "', 1)", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
+            return "spotify:user:drsounds:playlist:" + identifier;
+        }
+
+
+        public event UserObjectsventHandler ObjectsDelivered;
+
+        public void RequestUserObjects()
+        {
+            
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.DoWork += bw_DoWork;
+            bw.RunWorkerCompleted+=bw_RunWorkerCompleted;
+            bw.RunWorkerAsync();
+        }
+
+        void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (this.ObjectsDelivered != null)
+            {
+                this.ObjectsDelivered(this, new UserObjectsEventArgs()
+                {
+                    Objects = bgw
+                });
+            }
+        }
+        String[] bgw;
+        void bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Thread.Sleep(100);
+            DataSet ds = MakeDataSet("SELECT favorites FROM users WHERE users.identifier = 'drsounds'");
+            String d = "";
+            try
+            {
+                d = (String)ds.Tables[0].Rows[0]["favorites"];
+            }
+            catch (Exception ex)
+            {
+            }
+            if(String.IsNullOrEmpty(d))
+            {
+                bgw = new String[]{};
+                return;
+            }
+            bgw = d.Split('&');
+           
         }
     }
 }

@@ -197,11 +197,17 @@ namespace Spider
            
             return item;
         }
-        public ListView.SelectedListViewItemCollection SelectedItems
+        public List<CListViewItem> SelectedItems
         {
             get
             {
-                return Spawn.SelectedItems;
+                List<CListViewItem> items = new List<CListViewItem>();
+                foreach (CListView.CListViewItem item in this.Items)
+                {
+                    if(item.Selected)
+                      items.Add(item);
+                }
+                return items;
             }
 
         }
@@ -258,7 +264,7 @@ namespace Spider
         public event LinkClickEventHandler LinkClicked;
         protected override void OnMouseClick(MouseEventArgs e)
         {
-
+           
             base.OnMouseClick(e);
             for (int i = scrollY; i < scrollY + ContainingItems; i++)
             {
@@ -701,11 +707,52 @@ namespace Spider
             // CListView
             // 
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CListView_MouseDown);
-
+            
             this.ResumeLayout(false);
             this.MouseDoubleClick += CListView_MouseDoubleClick;
             this.DragOver += CListView_DragOver;
+            
         }
+        public event ReorderEventHandler ItemsDeleting;
+        public event ReorderEventHandler ItemsDeleted;
+        protected override void OnKeyPress(KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (Char)Keys.Delete)
+            {
+                ReorderEventArgs args = new ReorderEventArgs();
+                List<int> indexes = new List<int>();
+                foreach (CListViewItem item in this.SelectedItems)
+                {
+                    indexes.Add(this.Items.IndexOf(item));
+                }
+                args.Indexes = indexes.ToArray();
+                if (ItemsDeleting != null)
+                {
+                    ItemsDeleting(this, args);
+
+                }
+                if (!args.Cancel)
+                {
+                    foreach (int i in indexes)
+                    {
+                        this.Items.RemoveAt(i);
+                    }
+                    if (ItemsDeleted != null)
+                    {
+                        ItemsDeleted(this, args);
+
+                    }
+                }
+
+            } base.OnKeyPress(e);
+        }
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Right || keyData == Keys.Down || keyData == Keys.Up ||keyData == Keys.Delete)
+                return true;
+            return base.IsInputKey(keyData);
+        }
+        
         CListViewItem HoveredElement;
         void CListView_DragOver(object sender, DragEventArgs e)
         {

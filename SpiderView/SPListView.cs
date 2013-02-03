@@ -15,7 +15,15 @@ namespace Spider
         public SpiderHost Host { get; set; }
         public Block Block { get; set; }
         public Block SelectedBlock { get; set; }
-      
+        public class SelectedItemEventArgs
+        {
+            public SPListItem Item { get; set; }
+            public bool Cancel { get; set; }
+        }
+        public delegate void SelectItemEventHandler(object sender, SelectedItemEventArgs e);
+        public event SelectItemEventHandler ItemSelecting;
+        public event SelectItemEventHandler ItemSelected;
+
         public Style stylesheet;
         public SPListView(Spider.Skinning.Style stylesheet, SpiderHost host)
         {
@@ -204,7 +212,6 @@ namespace Spider
             public SPListItem Item { get; set; }
         }
         public delegate void SPListItemMouseEventHandler(object Sender, SPListItemEventArgs e);
-        public event SPListItemMouseEventHandler ItemSelected;
 
 
         protected override void OnPaintBackground(PaintEventArgs e)
@@ -397,6 +404,14 @@ namespace Spider
             this.Items.Add(c);
             return c;
         }
+        public SPListItem AddItem(int index, Uri uri)
+        {
+            SPListItem c = new SPListItem(this, uri.ToString());
+
+
+            this.Items.Insert(index, c);
+            return c;
+        }
         public SPListItem AddItem(String text, Uri uri)
         {
             SPListItem c = new SPListItem(this, uri.ToString(), text);
@@ -470,11 +485,16 @@ namespace Spider
 
 
 
-
-                Item.Selected = true;
-                SPListItemEventArgs args = new SPListItemEventArgs();
+                SelectedItemEventArgs args = new SelectedItemEventArgs();
                 args.Item = Item;
-                this.ItemSelected(this, args);
+                if (ItemSelecting != null)
+                    ItemSelecting(this, args);
+                if (!args.Cancel)
+                {
+                    Item.Selected = true;
+                    if(this.ItemSelected != null)
+                        this.ItemSelected(this, args);
+                }
             }
             pos += ItemHeight;
             // If has subitems draw them

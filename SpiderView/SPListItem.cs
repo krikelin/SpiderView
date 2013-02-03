@@ -162,6 +162,7 @@ namespace Spider
             if (this.AppInstance.GetIcon() != null)
                 this.Icon = this.AppInstance.GetIcon();
             this.SubText = this.AppInstance.GetSubName();
+            this.parent.Invalidate();
        
         }
         public SPListItem AddItem(String text, Uri uri, ListIcon icon)
