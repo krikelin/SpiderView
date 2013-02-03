@@ -137,7 +137,8 @@ namespace Spider
                 return this.spiderView;
             }
         }
-        private SpiderView spiderView;
+
+        public SpiderView spiderView;
         private void App_Load(object sender, EventArgs e)
         {
            

@@ -158,7 +158,10 @@ namespace Spider.Media
   
     public class Track : Resource
     {
-       
+        public String Zerofill(int number)
+        {
+            return number > 10 ? number.ToString() : "0" + number.ToString();
+        }
         
         public track Element { get; set; }
         public Artist[] Artists { get; set; }
@@ -178,7 +181,7 @@ namespace Spider.Media
                     this.Item.Name = this.Name;
                     if(this.Artists != null && this.Artists.Length > 0)
                     this.Item.SubItems.Add(this.Artists[0].Name);
-                    this.Item.SubItems.Add("3:10");
+                    this.Item.SubItems.Add(String.Format("{0}:{1}", (this.Length.Minutes), Zerofill(this.Length.Seconds)));
                     if(this.Album != null)
                     this.Item.SubItems.Add(this.Album.Name);
                     this.Item.Spawn.Refresh();
@@ -487,6 +490,45 @@ namespace Spider.Media
     /// </summary>
     public class Playlist : Context
     {
+        public class TrackChangedEventArgs {
+            public Track Track {get;set;}
+            public int Index;
+        }
+        public delegate void TrackChangedEventHandler (object sender, TrackChangedEventArgs e);
+        public event TrackChangedEventHandler TrackDeleted;
+        public event TrackChangedEventHandler TrackAdded;
+        public void OnTrackDeleted(int pos)
+        {
+            if (TrackDeleted != null)
+            {
+            }
+        }
+        public void Add(Track track)
+        {
+            this.Service.InsertTrack(this, track, 0);
+            if (TrackAdded != null)
+            {
+                TrackAdded(this, new TrackChangedEventArgs() { Track = track, Index =  0 });
+            }
+
+        }
+        public void Delete(Track track)
+        {
+            this.Service.DeleteTrack(this, track);
+            if (TrackAdded != null)
+            {
+                TrackAdded(this, new TrackChangedEventArgs() { Track = track, Index = 0 });
+            }
+
+        }
+        public void AddAt(Track track, int index)
+        {
+            this.Service.InsertTrack(this, track, index);
+            if (TrackAdded != null)
+            {
+                TrackAdded(this, new TrackChangedEventArgs() { Track = track, Index = index });
+            }
+        }
         public String Description { get; set; }
         public User User { get; set; }
         /// <summary>
