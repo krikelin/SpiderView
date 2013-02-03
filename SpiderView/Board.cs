@@ -20,6 +20,7 @@ namespace Spider
 {
     public partial class Board : UserControl
     {
+        
         public SectionView Section;
         public enum Mode
         {
@@ -383,6 +384,20 @@ namespace Spider
         void Board_MouseUp(object sender, MouseEventArgs e)
         {
             dragURI = null;
+            try
+            {
+
+                int x = e.X;
+                int y = e.Y;
+                foreach (Element elm in this.Children)
+                {
+                    if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                    {
+                        elm.CheckMouseUp(e.X, e.Y);
+                    }
+                }
+            }
+            catch (Exception ex) { }
         }
         protected override bool IsInputKey(Keys keyData)
         {

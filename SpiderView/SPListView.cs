@@ -55,11 +55,17 @@ namespace Spider
                 
                 if (cPoint.Y > HoveredElement.AbsoluteY + 4 && cPoint.Y < HoveredElement.AbsoluteY + HoveredElement.Height - 4)
                 {
-                    if (HoveredElement.AppInstance.AllowsDrop(e.Data))
-                    {
-                        bg.Graphics.DrawRectangle(new Pen(Color.White), new Rectangle(0, HoveredElement.AbsoluteY, this.Width, HoveredElement.Height));
-                    }
-                     
+                    if(HoveredElement != null)
+                        try
+                        {
+                            if (HoveredElement.AppInstance.AllowsDrop(e.Data))
+                            {
+                                bg.Graphics.DrawRectangle(new Pen(Color.White), new Rectangle(0, HoveredElement.AbsoluteY, this.Width, HoveredElement.Height));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                        }
                 } 
 
                 else {

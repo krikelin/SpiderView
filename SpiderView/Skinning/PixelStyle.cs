@@ -58,6 +58,13 @@ namespace Spider.Skinning
             this.blocks.Add("hr", new Block(Color.FromArgb(0, 0, 0, 0), bitmap.GetPixel(15, 1), Color.White, Color.Black));
             this.Blocks.Add("ListView", new Block(bitmap.GetPixel(8, 0), Color.White, Color.Black, bitmap.GetPixel(8, 0)));
             this.Blocks.Add("Body", new Block(bitmap.GetPixel(0, 0), bitmap.GetPixel(1, 0), Color.Black, bitmap.GetPixel(8, 0)));
+
+            var btn = new Block(sliceBitmap(bitmap, new Rectangle(128, 1, 105, 20)), Color.Black, Color.White, Color.Black);
+            var btnPressed = new Block(sliceBitmap(bitmap, new Rectangle(128, 22, 105, 20)), Color.Black, Color.White, Color.Black);
+            this.blocks.Add("button", btn);
+            this.blocks.Add("button:active", btnPressed);
+            btn.Font = new Font("MS Sans Serif", 8);
+            btnPressed.Font = new Font("MS Sans Serif", 8);
         }
         public Bitmap sliceBitmap(Bitmap src, Rectangle region)
         {

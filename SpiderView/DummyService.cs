@@ -308,7 +308,9 @@ namespace Spider
             t.Popularity = (float)pop / 100f;
             t.Status = (Spider.Media.Resource.State)track["track.status"];
             t.Artists = new Artist[] { new Artist(this) { Name = (String)track["artist.title"], Identifier = (String)track["artist.identifier"] } };
-            t.Album = new Release(this)
+            t.Album = new Release(this);
+            t.Duration = (int)track[25];
+            t.Album = new Release(this) 
             {
                 Name = (String)track["release.title"],
                 Identifier = (String)track["release.identifier"]

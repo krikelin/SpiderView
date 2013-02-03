@@ -178,6 +178,35 @@ namespace Spider
             mouseOver = true;
       //      this.Draw(Board.CreateGraphics(), ref x, ref y);
         }
+        public virtual void OnMouseUp(int x, int y)
+        {
+            if (!String.IsNullOrEmpty(this.Hyperlink))
+            {
+                this.Board.foundLink = true;
+                if (BeginDrag != null)
+                {
+                    BeginDrag(this, new DragEventArgs() { Uri = this.Hyperlink, elm = this });
+                }
+            }
+            if (this.MouseDown != null)
+                this.MouseDown(this, new MouseEventArgs(x, y));
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in this.Children)
+            {
+                if ((x > elm.X && x < elm.Y + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.OnMouseUp(x, y);
+                }
+            }
+            x += this.X;
+            y += this.Y;
+#if(DEBUG)
+            this.mouseDown = false;
+#endif
+            mouseDown = true;
+            //      this.Draw(Board.CreateGraphics(), ref x, ref y);
+        }
         public virtual void OnMouseDown(int x, int y)
         {
             if (!String.IsNullOrEmpty(this.Hyperlink))
@@ -204,6 +233,7 @@ namespace Spider
 #if(DEBUG)
                this.mouseOver = true;
 #endif
+               this.mouseDown = true;
             mouseOver = true;
             //      this.Draw(Board.CreateGraphics(), ref x, ref y);
         }
@@ -213,14 +243,15 @@ namespace Spider
             if(this.Hyperlink != null) {
                this.Board.SpiderView.BeginNavigate(new Uri(this.Hyperlink));
             }
+            
             this.OnClick(x, y);
             Graphics g = this.Board.CreateGraphics();
           //  g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
             this.OnClick(x, y);
 
-            if (this.ElementEventHandlers.ContainsKey("click"))
+            if (this.node.HasAttribute("onClick"))
             {
-                this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.ElementEventHandlers["click"], Element = this, Event = "click", View = this.Board.SpiderView });
+                this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.node.GetAttribute("onClick"), Element = this, Event = "click", View = this.Board.SpiderView });
 
             }
 
@@ -277,7 +308,40 @@ namespace Spider
 
 
         }
-       
+        public void CheckMouseUp(int x, int y)
+        {
+
+
+            this.OnMouseUp(x, y);
+            Graphics g = this.Board.CreateGraphics();
+            g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+            this.OnClick(x, y);
+
+            if (this.ElementEventHandlers.ContainsKey("onmoueup"))
+            {
+                this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.ElementEventHandlers["mouseup"], Element = this, Event = "mouseup", View = this.Board.SpiderView });
+
+            }
+
+            x -= this.X;
+            y -= this.Y;
+            foreach (Element elm in Children)
+            {
+
+                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                {
+                    elm.CheckMouseUp(x, y);
+                }
+                else
+                {
+
+                }
+            }
+            x += this.X;
+            y += this.Y;
+
+
+        }
         private Color ParseColorAttribute(String propertyName, String attribute, XmlElement elm)
         {
             if (elm.HasAttribute(attribute))
@@ -324,7 +388,7 @@ namespace Spider
         public String Name { get; set; }
         public Style Stylesheet = new PixelStyle();
         public Dictionary<String, String> ElementEventHandlers = new Dictionary<string, string>();
-        private XmlNode node;
+        private XmlElement node;
         public int MinHeight { get; set; }
         public int MinWidth { get; set; }
         public String Alt { get; set; }
@@ -548,6 +612,8 @@ namespace Spider
             x += this.X;
             y += this.Y;
         }
+
+        public bool mouseDown { get; set; }
     }
     public class link : text
     {
@@ -1082,9 +1148,67 @@ namespace Spider
             }
         }
     }
-    public class button : control
+    public class button : Element
     {
+        public String Text { get; set; }
+        public Block PressedBlock;
         public button(Board host, XmlElement node)
+            : base(host, node)
+        {
+            this.Width = 105;
+            this.Height = 20;
+            this.Block = (Block)host.Stylesheet.Blocks["button"].Clone();
+            this.PressedBlock = (Block)host.Stylesheet.Blocks["button:active"].Clone();
+            if (node.HasAttribute("text"))
+            {
+                this.Text = node.GetAttribute("text");
+            }
+
+
+
+        }
+        public bool mouseDown = false;
+        public override void OnMouseUp(int x, int y)
+        {
+            base.OnMouseUp(x, y);
+            base.mouseDown = false;
+            this.Board.Invalidate(new Rectangle(x, y, this.Width, this.Height));
+        }
+        public override void OnMouseDown(int x, int y)
+        {
+            base.OnMouseDown(x, y);
+            base.mouseDown = true;
+            this.Board.Invalidate(new Rectangle(x, y, this.Width, this.Height));
+        }
+        public override void Draw(Graphics g, ref int x, ref int y)
+        {
+            base.Draw(g, ref x, ref y);
+            Image bgImage = base.mouseDown ? this.PressedBlock.BackgroundImage : this.Block.BackgroundImage;
+            g.DrawImageUnscaled(bgImage, new Rectangle(x, y, bgImage.Width, bgImage.Height));
+            g.DrawString(this.Text, this.Block.Font, new SolidBrush(this.Block.ForeColor), new Point(x + 20, y + 2));
+
+             
+        }
+        public void DrawPressed(Graphics g, ref int x, ref int y)
+        {
+            base.Draw(g, ref x, ref y);
+            g.DrawImageUnscaled(this.PressedBlock.BackgroundImage, new Rectangle(x, y, this.Block.BackgroundImage.Width, this.Block.BackgroundImage.Height));
+            g.DrawString(this.Text, this.Block.Font, new SolidBrush(this.Block.ForeColor), new Point(x + 20, y + 2));
+
+        }
+
+        public override void PackChildren()
+        {
+            
+        }
+
+        public override void BeforePackChildren()
+        {
+        }
+    }
+    public class winbutton : control
+    {
+        public winbutton(Board host, XmlElement node)
             : base(host, node)
         {
          

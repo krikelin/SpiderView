@@ -186,6 +186,13 @@ namespace Spider.Media
             }
         }
         public int Duration { get; set; }
+        public TimeSpan Length
+        {
+            get
+            {
+                return new TimeSpan(0, 0, Duration);
+            }
+        }
         public bool Loaded { get; set; }
         public bool Playing
         {
@@ -486,6 +493,21 @@ namespace Spider.Media
         /// LoadTracks must be called first before this will be available
         /// </summary>
         public TrackCollection Tracks { get; set; }
+        public delegate decimal sum(Track track);
+        public TimeSpan Duration
+        {
+            get
+            {
+                if (this.Tracks == null)
+                    return new TimeSpan(0);
+
+                return this.Tracks.Aggregate(TimeSpan.Zero, (subtotal, t) => subtotal.Add(new TimeSpan(0, 0, t.Duration)));
+            }
+        }
+        public int Minutes {
+            get {
+                return this.Duration.Minutes;
+            }}
         public void LoadTracks()
         {
             this.Tracks = Service.GetPlaylistTracks(this, 0);
