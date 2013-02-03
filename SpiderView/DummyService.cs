@@ -395,11 +395,51 @@ namespace Spider
 
         public bool InsertTrack(Playlist playlist, Track track, int pos)
         {
+            DataSet t = MakeDataSet("SELECT * FROM playlist WHERE identifier = '" + playlist.Identifier + "'");
+            DataRow _playlist = t.Tables[0].Rows[0];
+            String tracks = (String)_playlist["data"];
+
+            List<String> Rows = new List<string>(tracks.Split('&')); 
+
+            Rows.Insert(pos, "spotify:track:" + track.Identifier + ":user:drsounds");
+            
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE playlist SET data = '" + String.Join("&", Rows.ToArray()) + "' WHERE playlist.identifier = '" + playlist.Identifier + "'", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
+
+
             return true;   
         }
 
-        public bool ReorderTracks(Playlist playlist, int startPos, int count, int newPos)
+        public bool ReorderTracks(Playlist playlist, int startPos, int[] ltracks, int newPos)
         {
+            DataSet t = MakeDataSet("SELECT * FROM playlist WHERE identifier = '" + playlist.Identifier + "'");
+            DataRow _playlist = t.Tables[0].Rows[0];
+            String tracks = (String)_playlist["data"];
+
+            List<String> Rows = new List<string>(tracks.Split('&'));
+            List<Track> movingTracks = new List<Track>();
+            foreach(int i in ltracks)
+            {
+                movingTracks.Add(playlist.Tracks.ElementAt(i));
+                Rows.RemoveAt(i);
+
+            }
+
+            int x = 0;
+            foreach (Track _track in movingTracks)
+            {
+                Rows.Insert(newPos + x, "spotify:track:" + _track.Identifier + ":user:drsounds");
+                x++;
+            }
+            
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE playlist SET data = '" + String.Join("&", Rows.ToArray()) + "' WHERE playlist.identifier = '" + playlist.Identifier + "'", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
             return true;
         }
 
@@ -426,6 +466,36 @@ namespace Spider
                 tc.Add((Track)pt);
             }
             return tc;
+        }
+
+        public event TrackChangedEventHandler TrackDeleted;
+
+        public event TrackChangedEventHandler TrackAdded;
+
+        public event TrackChangedEventHandler TrackReordered;
+
+
+        public bool DeleteTracks(Playlist playlist, int[] indexes)
+        {
+            DataSet t = MakeDataSet("SELECT * FROM playlist WHERE identifier = '" + playlist.Identifier + "'");
+            DataRow _playlist = t.Tables[0].Rows[0];
+            String tracks = (String)_playlist["data"];
+
+            List<String> Rows = new List<string>(tracks.Split('&'));
+            List<Track> movingTracks = new List<Track>();
+            foreach (int i in indexes)
+            {
+                movingTracks.Add(playlist.Tracks.ElementAt(i));
+                Rows.RemoveAt(i);
+
+            }
+
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE playlist SET data = '" + String.Join("&", Rows.ToArray()) + "' WHERE playlist.identifier = '" + playlist.Identifier + "'");
+            command.ExecuteNonQuery();
+            conn.Close();
+            return true;
         }
     }
 }

@@ -704,7 +704,6 @@ namespace Spider
 
             this.ResumeLayout(false);
             this.MouseDoubleClick += CListView_MouseDoubleClick;
-            this.DragDrop += CListView_DragDrop;
             this.DragOver += CListView_DragOver;
         }
         CListViewItem HoveredElement;
@@ -730,6 +729,7 @@ namespace Spider
             public int NewPosition { get; set; }
             public List<Spider.CListView.CListViewItem> Elements { get; set; }
             public Spider.CListView.CListViewItem Context { get; set; }
+            public int[] Indexes { get; set; }
             public bool Cancel { get; set; }
 
         }
@@ -739,7 +739,7 @@ namespace Spider
         public List<CListViewItem> DragElements = new List<CListViewItem>();
         void CListView_DragDrop(object sender, DragEventArgs e)
         {
-
+            
             HoveredElement = GetElementUnderPosition(this.PointToClient(new Point(e.X, e.Y)));
             this.mouseDown = false;
             if (DragElements.Count > 0)
@@ -749,7 +749,7 @@ namespace Spider
 
                     CListViewItem context = DragElements[0];
                     CListViewItem targetSite = HoveredElement;
-
+                    List<int> indexes = new List<int>();
                     ReorderEventArgs args = new ReorderEventArgs();
                     args.Elements = DragElements;
                     args.Position = this.Items.IndexOf(DragElements[0]);
@@ -763,6 +763,7 @@ namespace Spider
                         // Reorder the elements in reality
                         foreach (CListViewItem elm in DragElements)
                         {
+                            indexes.Add(this.Items.IndexOf(elm));
                             this.Items.Remove(elm);
                         }
                         try
@@ -781,7 +782,9 @@ namespace Spider
                                 this.Items.Insert(i + args.Position, element);
                             }
                         }
-
+                        args.Indexes = indexes.ToArray();
+                        if (Reordered != null)
+                            Reordered(this, args);
                     }
                 }
                 this.Refresh();

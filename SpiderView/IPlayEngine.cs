@@ -485,50 +485,67 @@ namespace Spider.Media
         public int Pages { get; set; }
       
     }
+
+    public class TrackChangedEventArgs
+    {
+        public Playlist Playlist { get; set; }
+        public Track[] Tracks { get; set; }
+        public Track Track { get; set; }
+        public int Index { get; set; }
+        public int NewIndex { get; set; }
+        public int[] Indexes { get; set; }
+    }
+    public delegate void TrackChangedEventHandler(object sender, TrackChangedEventArgs e);
     /// <summary>
     /// A playlist
     /// </summary>
     public class Playlist : Context
     {
-        public class TrackChangedEventArgs {
-            public Track Track {get;set;}
-            public int Index;
-        }
-        public delegate void TrackChangedEventHandler (object sender, TrackChangedEventArgs e);
         public event TrackChangedEventHandler TrackDeleted;
         public event TrackChangedEventHandler TrackAdded;
-        public void OnTrackDeleted(int pos)
+        public event TrackChangedEventHandler TrackReordered;
+        public void OnTrackDeleted(int[] indexes)
         {
             if (TrackDeleted != null)
             {
+                TrackDeleted(this, new TrackChangedEventArgs() {Playlist=this, Indexes=indexes });
+
+            }
+        }
+        public void OnTrackAdded(Track track, int pos)
+        {
+            if (TrackAdded != null)
+            {
+                TrackReordered(this, new TrackChangedEventArgs() { Index = pos, Track = track, NewIndex = pos, Playlist = this });
+
+            }
+        }
+        public void OnTrackReordered(int pos, int newPos)
+        {
+            if (TrackReordered != null)
+            {
+                TrackReordered(this, new TrackChangedEventArgs() { Index = pos, Tracks = (Track[])this.Tracks.Items.GetRange(pos, newPos).ToArray(), NewIndex = newPos, Playlist = this });
+
             }
         }
         public void Add(Track track)
         {
             this.Service.InsertTrack(this, track, 0);
-            if (TrackAdded != null)
-            {
-                TrackAdded(this, new TrackChangedEventArgs() { Track = track, Index =  0 });
-            }
+        }
+        public void Insert(Track track, int pos)
+        {
+            this.Service.InsertTrack(this, track, pos);
+        }
+        public void Reorder(int oldPos, int[] tracks, int newPos)
+        {
+            this.Service.ReorderTracks(this, oldPos, tracks, newPos);
+        }
+        public void Delete(int[] indexes)
+        {
+            this.Service.DeleteTracks(this, indexes);
 
         }
-        public void Delete(Track track)
-        {
-            this.Service.DeleteTrack(this, track);
-            if (TrackAdded != null)
-            {
-                TrackAdded(this, new TrackChangedEventArgs() { Track = track, Index = 0 });
-            }
-
-        }
-        public void AddAt(Track track, int index)
-        {
-            this.Service.InsertTrack(this, track, index);
-            if (TrackAdded != null)
-            {
-                TrackAdded(this, new TrackChangedEventArgs() { Track = track, Index = index });
-            }
-        }
+        
         public String Description { get; set; }
         public User User { get; set; }
         /// <summary>
@@ -580,7 +597,11 @@ namespace Spider.Media
     public interface IMusicService
     {
         
+        event TrackChangedEventHandler TrackDeleted;
+        event TrackChangedEventHandler TrackAdded;
+        event TrackChangedEventHandler TrackReordered;
         event PlayStateChangedEventHandler PlaybackFinished;
+        
         /// <summary>
         /// Namespace of the service
         /// </summary>
@@ -705,9 +726,32 @@ namespace Spider.Media
         /// <returns></returns>
         User GetCurrentUser();
 
+        /// <summary>
+        /// This method can be run on a separate thread ae we assume the event happens asynchronizly
+        /// </summary>
+        /// <param name="playlist"></param>
+        /// <param name="track"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
         bool InsertTrack(Playlist playlist, Track track, int pos);
-        bool ReorderTracks(Playlist playlist, int startPos, int count, int newPos);
-        bool DeleteTrack(Playlist playlist, Track track);
+
+        /// <summary>
+        /// This method can be run on a separate thread ae we assume the event happens asynchronizly
+        /// </summary>
+        /// <param name="playlist"></param>
+        /// <param name="track"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        bool ReorderTracks(Playlist playlist, int startPos, int[] tracks, int newPos);
+
+        /// <summary>
+        /// This method can be run on a separate thread ae we assume the event happens asynchronizly
+        /// </summary>
+        /// <param name="playlist"></param>
+        /// <param name="track"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        bool DeleteTracks(Playlist playlist, int[] indexes);
 
         /// <summary>
         /// Get tracks from the playlist
