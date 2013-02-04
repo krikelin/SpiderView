@@ -184,6 +184,7 @@ namespace Spider.Media
                     this.Item.SubItems.Add(String.Format("{0}:{1}", (this.Length.Minutes), Zerofill(this.Length.Seconds)));
                     if(this.Album != null)
                     this.Item.SubItems.Add(this.Album.Name);
+                    if(this.Item.Spawn != null)
                     this.Item.Spawn.Refresh();
                     
                 }
@@ -264,7 +265,7 @@ namespace Spider.Media
             }
             if (Item != null)
             {
-                Item.Spawn.Section.SpiderView.Host.PlayContext = Item.Spawn.Section.Board;
+                    Item.Spawn.Section.SpiderView.Host.PlayContext = Item.Spawn.Section.Board;
                 Item.Spawn.Invalidate();
             }
         }
@@ -803,6 +804,7 @@ namespace Spider.Media
         /// <param name="newPos"></param>
         void insertUserObject(String uri, int pos);
 
+        TrackCollection GetCollection(String type, String identifier);
     }
    
 

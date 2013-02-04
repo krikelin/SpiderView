@@ -494,7 +494,7 @@ namespace Spider
                     {
                         HoveredElement = GetItemUnderCursor(new Point(e.X, e.Y));
                         DataObject d = new DataObject(System.Windows.Forms.DataFormats.Text, HoveredElement.Uri.ToString());
-                        DoDragDrop(d, DragDropEffects.Copy);
+                        //DoDragDrop(d, DragDropEffects.Copy);
                     }
                     else
                     {

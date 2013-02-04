@@ -335,7 +335,7 @@ namespace Spider
             base.OnMouseMove(e);
             Cursor = Cursors.Default;
             if(mouseDown)
-            if (Diff(e.X, cursor.X) > 10 || Diff(e.Y, cursor.Y) > 10)
+            if ((Diff(e.X, cursor.X) > 10 || Diff(e.Y, cursor.Y) > 10) && this.AllowsReoreder)
             {
                 HoveredElement = GetElementUnderPosition(new Point(e.X, e.Y));
                 StringBuilder sb = new StringBuilder();
@@ -346,6 +346,7 @@ namespace Spider
                     DragElements.Add(i);
                 }
                 DataObject d = new DataObject(System.Windows.Forms.DataFormats.Text, sb);
+                
                 DoDragDrop(d, DragDropEffects.Copy);
             }
             else

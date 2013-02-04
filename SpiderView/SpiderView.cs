@@ -268,6 +268,7 @@ namespace Spider
                     sv.ListView.Height = 1200;
                     sv.ListView.Width = this.Width;
                     sv.ListView.Columns.Add("No.", 52);
+                    sv.ListView.AllowsReoreder = false;
                     sv.ListView.Columns.Add("Title", 300);
                     sv.ListView.Columns.Add("Artist", 100);
                     sv.ListView.Columns.Add("Duration", 100);

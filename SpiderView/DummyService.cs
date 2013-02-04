@@ -644,5 +644,24 @@ namespace Spider
             command.ExecuteNonQuery();
             conn.Close();
         }
+
+
+        public TrackCollection GetCollection(string type, string identifier)
+        {
+            switch (type)
+            {
+                case "own":
+                    TrackCollection TC = new TrackCollection(this, null, new List<Track>());
+                    DataSet DS = MakeDataSet("SELECT * FROM track, artist, release, users WHERE release.id = track.album AND track.artist = artist.id AND users.artist = artist.id ORDER BY release.release_date DESC");
+                    foreach (DataRow dr in DS.Tables[0].Rows)
+                    {
+                        Track t = TrackFromDataRow(dr);
+                        TC.Add(t);
+                    }
+                    return TC;
+                   
+            }
+            return null;
+        }
     }
 }
