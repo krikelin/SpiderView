@@ -278,6 +278,7 @@ namespace Spider.Media
         {
             this.Identifier = identifier;
             this.Duration = 3;
+            
         }
 
         
@@ -786,6 +787,22 @@ namespace Spider.Media
         /// Request user objects
         /// </summary>
         void RequestUserObjects();
+
+        /// <summary>
+        /// Move user object
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="pos"></param>       
+        void MoveUserObject(int oldPos, int newPos);
+
+
+        /// <summary>
+        /// Insert an user object at the specified location
+        /// </summary>
+        /// <param name="oldPos"></param>
+        /// <param name="newPos"></param>
+        void insertUserObject(String uri, int pos);
+
     }
    
 

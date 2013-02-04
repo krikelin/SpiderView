@@ -406,8 +406,13 @@ namespace Spider
             }
             this.Board = Host;
             this.node = node;
-            this.Block = (Block)this.Board.Stylesheet.Blocks["Body"].Clone();
+            if (this.Parent != null && this.Parent.Block != null)
+                this.Block = (Block)this.Parent.Block.Clone();
+            else
+                this.Block = (Block)this.Board.Stylesheet.Blocks["Body"].Clone();
             this.BackColor = ParseColorAttribute("BackColor", ("bgcolor"), node);
+
+           
 
             this.ForeColor = ParseColorAttribute("ForeColor", "color", node);
             foreach(XmlAttribute attribute in node.Attributes) 
@@ -417,7 +422,10 @@ namespace Spider
                 }
 
             }
-
+            if (node.HasAttribute("class"))
+            {
+                this.Block = (Block)this.Board.Stylesheet.Blocks["." + node.GetAttribute("class").Split(' ')[0]].Clone();
+            }
             if (node.HasAttribute("fgcolor"))
             {
                 this.ForeColor = ColorTranslator.FromHtml(node.GetAttribute("fgcolor"));

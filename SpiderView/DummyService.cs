@@ -53,7 +53,7 @@ namespace Spider
         public event PlayStateChangedEventHandler PlaybackFinished;
         public string Namespace
         {
-            get { return "dummy"; }
+            get { return "spotify"; }
         }
         /// <summary>
         /// Simulate the track playback by a timer
@@ -61,7 +61,7 @@ namespace Spider
         System.Windows.Forms.Timer timer;
         public string Name
         {
-            get { return "Dumify"; }
+            get { return "Spotify"; }
         }
         int position = 0;
         private Track CurrentTrack;
@@ -366,13 +366,34 @@ namespace Spider
         {
             return new Country(this, "Sweden");
         }
+        public User MakeUserFromRow(DataRow dr)
+        {
+            User user = new User(this);
+            user.Name = (String)dr["canoncialName"];
+            user.Image = (String)dr["image"];
+            try {
+                DataRow artist = MakeDataSet("SELECT * FROM artist WHERE artist.user = " + ((int)dr["id"]).ToString()).Tables[0].Rows[0];
+                Artist art = ArtistFromDataSet(artist);
+                user.Artist = art;
+            } catch (Exception e) {
+            }
+            return user;
+        }
         public User LoadUser(string identifier)
         {
-            return new User(this)
+            DataSet ds = MakeDataSet("SELECT * FROM users WHERE identifier = '" + identifier + "'");
+            if (ds.Tables[0].Rows.Count < 1)
             {
-                Name = identifier,
-                CanoncialName = identifier
-            };
+                return new User(this)
+                {
+                    Name = identifier,
+                    CanoncialName = "unknown"
+                };
+            }
+           return MakeUserFromRow(ds.Tables[0].Rows[0]);
+
+
+           
         }
 
 
@@ -474,6 +495,8 @@ namespace Spider
                 return tc;
             foreach (String strtrack in tracks)
             {
+                if (String.IsNullOrEmpty(strtrack))
+                    continue;
                 Track pt = MakeUserTrackFromString(strtrack);
                 tc.Add((Track)pt);
             }
@@ -520,7 +543,7 @@ namespace Spider
             String identifier = name.Trim().Replace(" ", "");
             OleDbConnection conn = MakeConnection();
             conn.Open();
-            OleDbCommand command = new OleDbCommand("INSERT INTO playlist (identifier,  title, data, [user]) VALUES ('" + identifier + "', '" + name + "', 1)", conn);
+            OleDbCommand command = new OleDbCommand("INSERT INTO playlist (identifier,  title, data, description, [image], [user]) VALUES ('" + identifier + "', '" + name + "', '', '', '', 1)", conn);
             command.ExecuteNonQuery();
             conn.Close();
             return "spotify:user:drsounds:playlist:" + identifier;
@@ -568,6 +591,58 @@ namespace Spider
             }
             bgw = d.Split('&');
            
+        }
+
+
+        public void MoveUserObject(int oldPos, int newPos)
+        {
+             Thread t = new Thread(_moveUserObject);
+           
+           
+            
+        }
+        private void _moveUserObject(object parameters)
+        {
+           
+            int _oldPos = ((int[])parameters)[0];
+            int _newPos = ((int[])parameters)[1];
+            DataSet ds = MakeDataSet("SELECT * FROM user WHERE identifier = 'drsounds'");
+            DataRow _playlist = ds.Tables[0].Rows[0];
+            String tracks = (String)_playlist["favorites"];
+
+            List<String> Rows = new List<string>(tracks.Split('&'));
+            String c = Rows[_oldPos];
+            Rows.RemoveAt(_oldPos);
+            Rows.Insert(_newPos, c);
+
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE user SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE user.identifier = 'drsounds'", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
+        }
+
+        public void insertUserObject(string uri, int pos)
+        {
+            Thread t = new Thread(_insertUserObject);
+        }
+        private void _insertUserObject(object parameters)
+        {
+            String uri = (String)((Object[])parameters)[0];
+            int pos = (int)((Object[])parameters)[1];
+            DataSet ds = MakeDataSet("SELECT * FROM user WHERE identifier = 'drsounds'");
+            DataRow _playlist = ds.Tables[0].Rows[0];
+            String tracks = (String)_playlist["favorites"];
+
+            List<String> Rows = new List<string>(tracks.Split('&'));
+
+            Rows.Insert(pos, uri);
+
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE user SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE user.identifier = 'drsounds'", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
         }
     }
 }

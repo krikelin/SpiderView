@@ -62,6 +62,8 @@ namespace Spider.Skinning
             var btn = new Block(sliceBitmap(bitmap, new Rectangle(128, 1, 105, 20)), Color.Black, Color.White, Color.Black);
             var btnPressed = new Block(sliceBitmap(bitmap, new Rectangle(128, 22, 105, 20)), Color.Black, Color.White, Color.Black);
             this.blocks.Add("button", btn);
+            this.blocks.Add(".biography", new Block(Color.FromArgb(255, 255, 255, 233), Color.Black, Color.White, Color.Black));
+
             this.blocks.Add("button:active", btnPressed);
             btn.Font = new Font("MS Sans Serif", 8);
             btnPressed.Font = new Font("MS Sans Serif", 8);

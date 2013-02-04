@@ -837,6 +837,7 @@ namespace Spider
                 this.Refresh();
 
             }
+            this.Parent.Refresh();
         }
 
         void CListView_MouseDoubleClick(object sender, MouseEventArgs e)

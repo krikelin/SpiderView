@@ -40,9 +40,12 @@ namespace Spider
             this.DragDrop += SPListView_DragDrop;
             this.MouseMove +=SPListView_MouseMove;
         }
-
+        Timer winkTimer;
+        SPListItem WinkElement;
         void SPListView_DragOver(object sender, DragEventArgs e)
         {
+            
+
             BufferedGraphicsContext bgc = new BufferedGraphicsContext();
             BufferedGraphics bg = bgc.Allocate(this.CreateGraphics(), new Rectangle(0, 0, this.Width, this.Height));
             this.Draw(bg.Graphics);
@@ -58,16 +61,31 @@ namespace Spider
             }
             Point cPoint = PointToClient(new Point(e.X, e.Y));
             HoveredElement = GetItemUnderCursor(cPoint);
+            if ( HoveredElement != WinkElement && HoveredElement != null)
+                if (winkTimer != null)
+                {
+                    winkTimer.Stop();
+                    winkTimer = null;
+                }
             if (HoveredElement != null)
             {
                 
                 if (cPoint.Y > HoveredElement.AbsoluteY + 4 && cPoint.Y < HoveredElement.AbsoluteY + HoveredElement.Height - 4)
                 {
+                   
                     if(HoveredElement != null)
                         try
                         {
                             if (HoveredElement.AppInstance.AllowsDrop(e.Data))
                             {
+                                WinkElement = HoveredElement;
+                                if (winkTimer == null)
+                                {
+                                    winkTimer = new Timer();
+                                    winkTimer.Tick += winkTimer_Tick;
+                                    winkTimer.Interval = 3000;
+                                    winkTimer.Start();
+                                }
                                 bg.Graphics.DrawRectangle(new Pen(Color.White), new Rectangle(0, HoveredElement.AbsoluteY, this.Width, HoveredElement.Height));
                             }
                         }
@@ -86,6 +104,13 @@ namespace Spider
 
             }
             bg.Render();
+        }
+
+        void winkTimer_Tick(object sender, EventArgs e)
+        {
+            this.Host.Navigate(HoveredElement.Uri.ToString());
+            winkTimer.Stop();
+            winkTimer = null;
         }
         public SPListItem GetItemUnderCursor(Point e)
         {
@@ -173,6 +198,16 @@ namespace Spider
             }
              
         }
+        public class ItemReorderEventArgs
+        {
+            public SPListItem Item { get; set; }
+            public bool Cancel { get; set; }
+            public int OldPosition { get; set; }
+            public int NewPosition { get; set; }
+        }
+        public delegate void ItemReorderEventHandler(object sender, ItemReorderEventArgs e);
+        public event ItemReorderEventHandler ItemReordering;
+        public event ItemReorderEventHandler ItemReordered;
 
         void SPListView_DragEnter(object sender, DragEventArgs e)
         {
@@ -590,9 +625,9 @@ namespace Spider
                     }
                     if (Items != null)
 
-                        foreach (SPListItem Item in Items)
+                        for (int i = 0; i < Items.Count; i++)
                         {
-
+                            SPListItem Item = Items[i];
                             checkItem(Item, e, ref level, ref pos);
 
                         }
@@ -600,7 +635,7 @@ namespace Spider
                 expanding = false;
 
             }
-            catch (Exception ex)
+            catch (NullReferenceException ex)
             {
             }
             this.Draw(this.CreateGraphics());
