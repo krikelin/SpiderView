@@ -32,9 +32,10 @@
             // 
             // SPListView
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 14F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "SPListView";
+            this.Size = new System.Drawing.Size(150, 139);
             this.Load += new System.EventHandler(this.ucMenu_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.SPListView_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.SPListView_MouseMove);

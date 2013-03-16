@@ -77,7 +77,7 @@ namespace Spider
             this.timer.Interval = 1000;
             this.Click += SpiderView_Click;
         }
-
+       
         void SpiderView_Scroll(object sender, ScrollEventArgs e)
         {
             throw new NotImplementedException();
@@ -230,7 +230,7 @@ namespace Spider
                 childBoard.LoadNodes(_section);
                 childBoard.ScriptCalled += childBoard_ScriptCalled;
                 childBoard.AutoResize();
-                childBoard.Width = 1280;
+                childBoard.Width = 31280;
                 //if(_section.HasAttribute("padding"))
                 //        childBoard.Padding = new Spider.Padding(_section.GetAttribute("padding"));
                 this.deck.Controls.Add(sv);
@@ -280,6 +280,11 @@ namespace Spider
         }
         public void LoadNodes(XmlElement element)
         {
+            XmlNodeList elements = element.GetElementsByTagName("title");
+            foreach(XmlElement elm in elements) 
+            {
+                this.tabBar.Titles.Add(new TabBar.Link() { Title = elm.InnerText, Uri = new Uri(elm.GetAttribute("uri")) });
+            }
             var sections = element.GetElementsByTagName("section");
             foreach (XmlElement _section in sections)
             {

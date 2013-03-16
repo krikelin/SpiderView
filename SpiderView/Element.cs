@@ -280,7 +280,7 @@ namespace Spider
 
             this.OnMouseDown(x, y);
             Graphics g = this.Board.CreateGraphics();
-            g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+       //     g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
             this.OnClick(x, y);
 
             if (this.ElementEventHandlers.ContainsKey("onmousedown"))
@@ -314,7 +314,7 @@ namespace Spider
 
             this.OnMouseUp(x, y);
             Graphics g = this.Board.CreateGraphics();
-            g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+    //        g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
             this.OnClick(x, y);
 
             if (this.ElementEventHandlers.ContainsKey("onmoueup"))
@@ -534,7 +534,131 @@ namespace Spider
             }
         }
         public Board Board { get; set; }
-        public Element Parent { get; set; }
+        private Element parent;
+        public Element Parent
+        {
+            get
+            {
+                return parent;
+            }
+            set
+            {
+                parent = value;
+                if (parent.Block != null && this.GetType() != typeof(track) && this.GetType() != typeof(img))
+                {
+                    this.Block = (Block)parent.Block.Clone();
+
+                    this.BackColor = ParseColorAttribute("BackColor", ("bgcolor"), node);
+
+
+
+                    this.ForeColor = ParseColorAttribute("ForeColor", "color", node);
+                    foreach (XmlAttribute attribute in node.Attributes)
+                    {
+                        if (attribute.Name.StartsWith("on"))
+                        {
+                            this.ElementEventHandlers.Add(attribute.Name.Substring(2), node.GetAttribute(attribute.Name));
+                        }
+
+                    }
+                    if (node.HasAttribute("class"))
+                    {
+                        this.Block = (Block)this.Board.Stylesheet.Blocks["." + node.GetAttribute("class").Split(' ')[0]].Clone();
+                    }
+                    if (node.HasAttribute("fgcolor"))
+                    {
+                        this.ForeColor = ColorTranslator.FromHtml(node.GetAttribute("fgcolor"));
+
+                    }
+                    if (node.HasAttribute("bgcolor"))
+                    {
+                        this.BackColor = ColorTranslator.FromHtml(node.GetAttribute("bgcolor"));
+                    }
+                    if (node.HasAttribute("onclick"))
+                    {
+
+                    }
+                    if (node.HasAttribute("minHeight"))
+                    {
+                        this.MinHeight = int.Parse(node.GetAttribute("minHeight"));
+                    }
+                    if (node.HasAttribute("minWidth"))
+                    {
+                        this.MinWidth = int.Parse(node.GetAttribute("minWidth"));
+                    }
+                    if (node.HasAttribute("margin"))
+                    {
+                        Block.Margin = new Margin(node.GetAttribute("margin"));
+                    }
+                    if (node.HasAttribute("flex"))
+                    {
+                        this.Flex = int.Parse(node.GetAttribute("flex"));
+                    }
+                    if (node.HasAttribute("padding"))
+                    {
+                        Block.Padding = new Skinning.Padding(node.GetAttribute("padding"));
+                    }
+                    if (node.HasAttribute("uri"))
+                    {
+                        this.Hyperlink = node.GetAttribute("uri");
+                    }
+                    if (node.HasAttribute("name"))
+                    {
+                        this.Name = node.GetAttribute("name");
+                    }
+                    if (node.HasAttribute("alt"))
+                    {
+                        this.Alt = node.GetAttribute("alt");
+                    }
+                    if (node.HasAttribute("width"))
+                    {
+                        if (node.GetAttribute("width") == "100%")
+                        {
+                            Dock |= DockStyle.Right;
+                            Width = -1;
+                            //Width = Parent.Width - Margin * 2 + Parent.Padding * 2;
+                        }
+                        else
+                        {
+                            this.AbsoluteWidth = int.Parse(node.GetAttribute("width"));
+                            this.Width = this.AbsoluteWidth;
+                        }
+                    }
+                    else
+                    {
+                        this.AbsoluteWidth = Parent != null ? Parent.Width : Board.Width;
+                        this.Width = this.AbsoluteWidth;
+                    }
+                    if (node.HasAttribute("height"))
+                    {
+                        if (node.GetAttribute("height") == "100%")
+                        {
+                            if (this.Parent != null)
+                                this.AbsoluteHeight = this.Parent.Height;
+                            return;
+                        }
+                        this.AbsoluteHeight = int.Parse(node.GetAttribute("height"));
+                        this.Height = this.AbsoluteHeight;
+                    }
+                    else
+                    {
+                        this.AbsoluteHeight = 32;
+                        this.Height = this.AbsoluteHeight;
+                    }
+                    if (node.HasAttribute("style"))
+                    {
+                        this.Block = new Block(node.GetAttribute("style"), Block);
+                    }
+                    if (node.HasAttribute("fontWeight"))
+                    {
+                        if (node.GetAttribute("fontWeight") == "bold")
+                        {
+                            this.Block.Font = new Font(this.Block.Font, FontStyle.Bold);
+                        }
+                    }
+                }
+            }
+        }
         public class MouseEventArgs {
             public MouseEventArgs(int x, int y)
             {
@@ -652,6 +776,7 @@ namespace Spider
         {
         }
     }
+   
     public class text : Element
     {
         public int FontSize { get; set; }
@@ -677,6 +802,10 @@ namespace Spider
         public text(Board host, XmlElement node)
             : base(host, node)
         {
+            if (this.Parent != null && this.Parent.Block != null)
+                this.Block = (Block)this.Parent.Block.Clone();
+            else
+                this.Block = (Block)this.Board.Stylesheet.Blocks["Body"].Clone();
             Text = node.InnerText;
             if (node.HasAttribute("fontSize"))
             {
@@ -698,6 +827,17 @@ namespace Spider
             base.OnMouseOver(x, y);
            
         }
+         public class Hyperlink
+         {
+             public int position = 0;
+             public string Text;
+             public Uri uri;
+         }
+         public List<Hyperlink> Hyperlinks
+         {
+             get;
+             set;
+         }
         private Bitmap GenerateBitmap()
         {
             try
@@ -710,10 +850,10 @@ namespace Spider
                 String html = "<font face=\"" + Block.Font.FontFamily.Name + "\" size=\"1\" color=\"" + ColorTranslator.ToHtml(Block.ForeColor) + "\">" + Text + "</font>";
                 InitialContainer htmlContainer = new InitialContainer(html);
                 htmlPanel.HtmlContainer.Text = html;
-                //HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
-                if (this.Shadow)
-                    g.DrawString(Text, new Font("MS Sans Serif", 11), new SolidBrush(Block.TextShadowColor), new RectangleF(0f, -1f, (float)Width, (float)Height));
-                g.DrawString(Text, new Font("MS Sans Serif", 11), new SolidBrush(ForeColor), new RectangleF(0f, -0f, (float)Width, (float)Height));
+                HtmlRenderer.Render(g, html, new Point(0, 0), this.Width);
+                //if (this.Shadow)
+                 //   g.DrawString(Text, new Font("MS Sans Serif", 11), new SolidBrush(Block.TextShadowColor), new RectangleF(0f, -1f, (float)Width, (float)Height));
+                //g.DrawString(Text, new Font("MS Sans Serif", 11), new SolidBrush(ForeColor), new RectangleF(0f, -0f, (float)Width, (float)Height));
 
                 return c;
             }
@@ -732,16 +872,8 @@ namespace Spider
             base.Draw(g, ref  x, ref y);
             //if(bitmap != null)
             //   g.DrawImage(bitmap, new Point(x, y));
-            g.DrawString(Text, this.Block.Font, new SolidBrush(ForeColor), new RectangleF(x, y, (float)Width, (float)Height));
-            /*label.Width = this.Width;
-            label.Height = this.Height;
-            label.BackColor =this.BackColor;
-            label.ForeColor = this.ForeColor;
-            if(this.Width > 0 && this.Height > 0) {
-                Bitmap bitmap = new Bitmap(this.Width, this.Height);
-                label.DrawToBitmap(bitmap, new Rectangle(0, 0, this.Width, this.Height));
-                g.DrawImage(bitmap, 0, 0);
-             }*/
+            this.Stylesheet.DrawString(g, Text, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
+            
             
 
         }
@@ -885,11 +1017,11 @@ namespace Spider
             this.Block = (Block)this.Stylesheet.Blocks["columnheader"].Clone();
             this.ColumnHeaders = new Dictionary<string, ColumnHeader>();
             this.ColumnHeaders.Add("no", new ColumnHeader() { Name="", Left = 2, Width = 30 });
-            this.ColumnHeaders.Add("name", new ColumnHeader() { Name="Title", Left = 30, Width = 140 });
-            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 584, Width = 100 });
-            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name = "Duration", Left = 482, Width = 50 });
-            this.ColumnHeaders.Add("popularity", new ColumnHeader() { Name = "Popularity", Left = 517, Width = 35 });
-            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 1025, Width = 310 });
+            this.ColumnHeaders.Add("name", new ColumnHeader() { Name="Title", Left = 18, Width = 140 });
+            this.ColumnHeaders.Add("artist", new ColumnHeader() { Name="Artist", Left = 484, Width = 100 });
+            this.ColumnHeaders.Add("duration", new ColumnHeader() { Name = "Duration", Left = 182, Width = 50 });
+            this.ColumnHeaders.Add("popularity", new ColumnHeader() { Name = "Popularity", Left = 417, Width = 35 });
+            this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 625, Width = 310 });
 
         }
         public override void Draw(Graphics g, ref int x, ref int y)
@@ -931,7 +1063,7 @@ namespace Spider
         public Playlist Playlist { get; set; }
         public columnheader ColumnHeader;
         public bool HasHeaders {get;set;}
-        private int trackHeight = 20;
+        private int trackHeight = 18;
         public override void PackChildren()
         {
             try
@@ -1109,24 +1241,24 @@ namespace Spider
             {
                 //
 
-                g.DrawString(Track.Name, this.Block.Font, new SolidBrush(fgColor), new Point(15 + x + columnHeader.ColumnHeaders["name"].Left, 1 + y));
+                this.Stylesheet.DrawString(g, Track.Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(10 + x + columnHeader.ColumnHeaders["name"].Left, 1 + y, 300, 30));
                 if(Track.Artists != null && Track.Artists.Length > 0)
-                    g.DrawString(Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y));
+                    this.Stylesheet.DrawString(g, Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y, 300, 30));
                 if(Track.Album != null)
-                g.DrawString(Track.Album.Name, this.Block.Font, new SolidBrush(fgColor), new Point(x + columnHeader.ColumnHeaders["album"].Left, 1 + y));
+                this.Stylesheet.DrawString(g, Track.Album.Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(x + columnHeader.ColumnHeaders["album"].Left, 1 + y, 300, 30));
                 if (columnHeader.ColumnHeaders.ContainsKey("popularity"))
                 {
                     ColumnHeader cp = columnHeader.ColumnHeaders["popularity"];
                     float popularity = Track.Popularity; // Change soon
                     for (int i = 0; i < cp.Width; i+= 3)
                     {
-                        Color tagColor = Color.White;
-                        float progress =  ((float)popularity) / 100f;
+                        Color tagColor = Color.FromArgb(226, 226, 226);
+                        float progress =  ((float)popularity) ;
                         if (((float)i / (float)cp.Width) > progress)
                         {
-                            tagColor = Color.Gray;
+                            tagColor = Color.FromArgb(94,94,94);
                         }
-                        g.FillRectangle(new SolidBrush(tagColor), new Rectangle(x + cp.Left + i, y +6, 2, 8));
+                        g.FillRectangle(new SolidBrush(tagColor), new Rectangle(x + cp.Left + i, y +4, 2, 8));
                     }
                 }
             }
@@ -1192,9 +1324,11 @@ namespace Spider
         {
             base.Draw(g, ref x, ref y);
             Image bgImage = base.mouseDown ? this.PressedBlock.BackgroundImage : this.Block.BackgroundImage;
-            g.DrawImageUnscaled(bgImage, new Rectangle(x, y, bgImage.Width, bgImage.Height));
-            g.DrawString(this.Text, this.Block.Font, new SolidBrush(this.Block.ForeColor), new Point(x + 20, y + 2));
-
+            if (bgImage != null)
+            {
+                g.DrawImageUnscaled(bgImage, new Rectangle(x, y, bgImage.Width, bgImage.Height));
+                g.DrawString(this.Text, this.Block.Font, new SolidBrush(this.Block.ForeColor), new Point(x + 20, y + 2));
+            }
              
         }
         public void DrawPressed(Graphics g, ref int x, ref int y)
@@ -1310,6 +1444,12 @@ namespace Spider
         public static Dictionary<String, Image> ImageCollection = new Dictionary<string, Image>();
         public void LoadImage(String url)
         {
+            if (url.StartsWith("res:"))
+            {
+                url = url.Replace("res:", "");
+                ImageCollection.Add("res:" + url, (Image)Properties.Resources.ResourceManager.GetObject(url));
+
+            }
             if (String.IsNullOrEmpty(url) || !(url.StartsWith("http://") || url.StartsWith("https://")))
                 return;
             WebClient wc = new WebClient();
@@ -1341,6 +1481,7 @@ namespace Spider
 #endif
         }
     }
+   
     /// <summary>
     /// HBox
     /// </summary>

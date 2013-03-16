@@ -1,6 +1,6 @@
 ﻿namespace Spider
 {
-    partial class SpiderHost
+    partial class AppHeader
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,13 +30,13 @@
         {
             this.SuspendLayout();
             // 
-            // SpiderHost
+            // AppHead
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Name = "SpiderHost";
-            this.Size = new System.Drawing.Size(513, 306);
-            this.Load += new System.EventHandler(this.SpiderHost_Load);
+            this.Name = "AppHead";
+            this.Load += new System.EventHandler(this.AppHead_Load);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.AppHead_Paint);
             this.ResumeLayout(false);
 
         }

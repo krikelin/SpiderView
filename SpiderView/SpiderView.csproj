@@ -62,6 +62,12 @@
     <Compile Include="App.Designer.cs">
       <DependentUpon>App.cs</DependentUpon>
     </Compile>
+    <Compile Include="AppHead.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="AppHead.Designer.cs">
+      <DependentUpon>AppHead.cs</DependentUpon>
+    </Compile>
     <Compile Include="Board.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -93,7 +99,7 @@
     <Compile Include="LuaInterface\MethodWrapper.cs" />
     <Compile Include="LuaInterface\ObjectTranslator.cs" />
     <Compile Include="LuaInterface\ProxyType.cs" />
-    <Compile Include="PB\CSS.cs" />
+    <Compile Include="PB\Protocol.cs" />
     <Compile Include="Preprocessor\Liquidcs.cs" />
     <Compile Include="Preprocessor\LuaPreprocessor.cs" />
     <Compile Include="Preprocessor\Mako.cs" />
@@ -107,7 +113,7 @@
     <Compile Include="Scripting\Interpreter.cs" />
     <Compile Include="Scripting\LuaInterpreter.cs" />
     <Compile Include="SectionView.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="SectionView.Designer.cs">
       <DependentUpon>SectionView.cs</DependentUpon>
@@ -178,6 +184,12 @@
     <Compile Include="TestingProgram.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="App.resx">
+      <DependentUpon>App.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AppHead.resx">
+      <DependentUpon>AppHead.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Board.resx">
       <DependentUpon>Board.cs</DependentUpon>
     </EmbeddedResource>
@@ -188,6 +200,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SectionView.resx">
       <DependentUpon>SectionView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SpiderHost.resx">
+      <DependentUpon>SpiderHost.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SpiderView.resx">
       <DependentUpon>SpiderView.cs</DependentUpon>
@@ -206,6 +221,7 @@
     <None Include="Resources\skin.png" />
     <None Include="Resources\shadow.png" />
     <Content Include="NSpotifyLib.dll" />
+    <None Include="Resources\toptracks.png" />
     <Content Include="Scopus.dll" />
     <Content Include="System.Drawing.Html\System.Drawing.Html.csproj" />
   </ItemGroup>

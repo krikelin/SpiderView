@@ -228,6 +228,7 @@ namespace Spider
         public SectionView Section;
         public CListView(SectionView sv)
         {
+            this.DoubleBuffered = true;
             this.Section = sv;
             this.DragDrop +=CListView_DragDrop;
             this.AllowDrop = true;
@@ -534,7 +535,7 @@ namespace Spider
                                     foreach (Char c in P)
                                     {
                                         R.Append(c);
-                                        float r  = g.MeasureString(R.ToString(), this.Font).Width;
+                                        float r  = TextRenderer.MeasureText(R.ToString(), this.Font).Width;
                                         if ((int)r > d.Width)
                                         {
                                             R.Remove(R.Length - 4, 1);
@@ -545,7 +546,7 @@ namespace Spider
                                     }
                                 }
                                 P = P.TrimStart('$');
-                                g.DrawString(P, this.Font, new SolidBrush(FG), new Point(2 + left, top + GetItemPosition(ItemHeight, 16)));
+                                this.Block.Stylesheet.DrawString(g, P, this.Font, new SolidBrush(FG), new Rectangle(2 + left, top + GetItemPosition(ItemHeight, 16), 300, 20));
                                 left += d.Width;
                             }
                            

@@ -23,7 +23,7 @@ namespace Spider
         public delegate void SelectItemEventHandler(object sender, SelectedItemEventArgs e);
         public event SelectItemEventHandler ItemSelecting;
         public event SelectItemEventHandler ItemSelected;
-
+        public Block SubBlock;
         public Style stylesheet;
         public SPListView(Spider.Skinning.Style stylesheet, SpiderHost host)
         {
@@ -32,8 +32,8 @@ namespace Spider
             this.Items = new List<SPListItem>();
 
             this.stylesheet = stylesheet;
-            this.SelectedBlock = stylesheet.Blocks["::selection"];
-            this.Block = stylesheet.Blocks["ListView"];
+            this.SelectedBlock = (Block)stylesheet.Blocks["::selection"].Clone();
+            this.Block = (Block)stylesheet.Blocks["ListView"].Clone();
             this.AllowDrop = true;
             this.DragEnter += SPListView_DragEnter;
             this.DragOver += SPListView_DragOver;
@@ -493,7 +493,7 @@ namespace Spider
                     if (Diff(e.X, cursor.X) > 10 || Diff(e.Y, cursor.Y) > 10)
                     {
                         HoveredElement = GetItemUnderCursor(new Point(e.X, e.Y));
-                        DataObject d = new DataObject(System.Windows.Forms.DataFormats.Text, HoveredElement.Uri.ToString());
+                        //DataObject d = new DataObject.ataObject(); // DataObject(System.Windows.Forms.DataFormats.Text, HoveredElement.Uri.ToString());
                         //DoDragDrop(d, DragDropEffects.Copy);
                     }
                     else

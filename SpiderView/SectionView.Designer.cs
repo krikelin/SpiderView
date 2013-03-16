@@ -34,6 +34,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Width = 1024;
+            this.Height = 640;
             this.Name = "SectionView";
             this.Load += new System.EventHandler(this.SectionView_Load);
             this.ResumeLayout(false);

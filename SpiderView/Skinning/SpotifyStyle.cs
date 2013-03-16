@@ -134,5 +134,17 @@ namespace Spider.Skinning
         {
             get { return blocks; }
         }
+
+
+        public void DrawString(Graphics g, string text, Font font, SolidBrush brush, Rectangle pos)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Size MeasureString(string text, Font font)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

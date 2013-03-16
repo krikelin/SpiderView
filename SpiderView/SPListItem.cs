@@ -99,13 +99,14 @@ namespace Spider
         }
         public Block Block;
         public Block SelectedBlock;
+        public Block SubBlock;
         public int Height = 18;
         public void Draw(Graphics g, ref int level, ref int pos)
         {
             if (this.Block == null)
                 return;
             Color foreColor = this.CustomColor ? this.Color : this.Block.ForeColor;
-            Color intermediateColor = this.CustomColor ? this.Color : Color.Gray;
+            Color intermediateColor = this.CustomColor ? this.Color : this.SubBlock.ForeColor;
             Color backColor = this.Block.BackColor;
             if (this.Text.StartsWith("-"))
             {
@@ -118,36 +119,40 @@ namespace Spider
                 backColor = SelectedBlock.BackColor;
 
                 g.FillRectangle(new SolidBrush(backColor), new Rectangle(0, pos, this.ParentListView.Width, this.Height));
-                g.DrawString(this.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 32, pos + 2));
+            //    this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(foreColor), new Rectangle(level + 32, pos + 2, this.parent.Width, this.Height));
+                
+                g.DrawString(this.Text, this.Block.Font, new SolidBrush(foreColor), new Point(level + 32, pos + 2));
                 if (this.SubText != null)
                 {
-                    int left = level + 32 + (int)g.MeasureString(this.Text, new Font("MS Sans Serif", 8)).Width ;
-                    g.DrawString(this.SubText, new Font("MS Sans Serif", 8), new SolidBrush(intermediateColor), new Point(left, pos + 3));
+                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(this.Text, this.Block.Font).Width;
+                    g.DrawString(this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Point(left, pos + 3));
 
                 }
             }
             else if (this.Text.StartsWith("#"))
             {
                 foreColor = SelectedBlock.TextShadowColor;
-                g.DrawString(this.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(4, pos + 0));
-                g.DrawString(this.Text.ToUpper().Replace("#", ""), new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Point(4, pos - 1));
+                this.Block.Stylesheet.DrawString(g, this.Text.ToUpper().Replace("#", ""), this.Block.Font, new SolidBrush(foreColor), new Rectangle(4, pos + 0, this.parent.Width, this.Height));
+                this.Block.Stylesheet.DrawString(g, this.Text.ToUpper().Replace("#", ""), this.Block.Font, new SolidBrush(Block.TextShadowColor), new Rectangle(4, pos - 1, this.Parent.Width, this.Height));
             }
             else
             {
-                g.DrawString(this.Text, new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Point(level + 32, pos + 2));
-                g.DrawString(this.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 32, pos + 3));
+         //       this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Rectangle(level + 32, pos + 2, this.parent.Width, this.Height));
+          //      g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+          
+                this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(foreColor), new Rectangle(level + 32, pos + 3, this.parent.Width, this.Height));
                 if (this.SubText != null)
                 {
-                    int left = level + 32 + (int)g.MeasureString(this.Text, new Font("MS Sans Serif", 8)).Width;
-                    g.DrawString(this.SubText, new Font("MS Sans Serif", 8), new SolidBrush(ChangeColorBrightness(intermediateColor, -0.6f)), new Point(left, pos + 2));
-                    g.DrawString(this.SubText, new Font("MS Sans Serif", 8), new SolidBrush(intermediateColor), new Point(left, pos + 3));
+                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(this.Text, this.Block.Font).Width;
+       //             this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(ChangeColorBrightness(intermediateColor, -0.6f)), new Rectangle(left, pos + 2, this.parent.Width, this.Height));
+                    this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Rectangle(left, pos + 3, this.parent.Width, this.Height));
 
                 }
             }
             //  g.DrawString(this.Text, new Font("MS Sans Serif", 8), new SolidBrush(foreColor), new Point(level + 16, pos + 2));
             if (this.Icon != null)
             {
-                g.DrawImage(this.Selected ? this.Icon.Selected : this.Icon.Normal, level + 16, pos + 1, 18, 18);
+                g.DrawImage(this.Selected ? this.Icon.Selected : this.Icon.Normal, level + 3, pos + 1, 18, 18);
             }
             // If has subthiss create expander
             if (this.Children.Count > 0)
@@ -225,13 +230,14 @@ namespace Spider
         {
             this.parent = parent;
             this.ParentListView = parent;
-            this.Block = (Block)parent.Block.Clone();
+            this.Block = (Block)parent.stylesheet.Blocks["listitem"].Clone();
             this.SelectedBlock = (Block)parent.SelectedBlock.Clone();
             this.Uri = new Uri(uri);
             this.Children = new List<SPListItem>();
             this.AppInstance = this.Parent.Host.LoadApp(uri.ToString());
             AppInstance.Loaded += instance_Loaded;
             this.DividerBlock = (Block)parent.stylesheet.Blocks["hr"].Clone();
+            this.SubBlock = parent.stylesheet.Blocks["::sub"];
             this.Text = "Loading..";
         }
         public SPListItem(SPListView parent, String uri, String title)
@@ -246,6 +252,7 @@ namespace Spider
             this.Children = new List<SPListItem>();
             
             this.Text = title;
+            this.SubBlock = parent.stylesheet.Blocks["::sub"];
         }
         public SPListItem(SPListView parent)
         {

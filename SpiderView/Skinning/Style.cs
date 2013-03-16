@@ -76,7 +76,12 @@ namespace Spider.Skinning
     [Serializable]
     public class Block : ICloneable
     {
-     
+        public String Tag
+        {
+            get;
+            set;
+        }
+        public Style Stylesheet;
         public List<Selector> Selectors = new List<Selector>();
         public Margin Margin { get; set; }
         public Padding Padding { get; set; }
@@ -86,7 +91,7 @@ namespace Spider.Skinning
         public Color AlternateForeColor;
         public Image BackgroundImage;
         public Color TextShadowColor;
-        private Font font = new Font("MS Sans Serif", 11);
+        private Font font = new Font("MS Sans Serif", 11, FontStyle.Regular, GraphicsUnit.Pixel);
         public Font Font
         {
             get
@@ -98,11 +103,13 @@ namespace Spider.Skinning
                 this.font = value;
             }
         }
+       
         public Block()
         {
         }
         public Block(String code, Block parent)
         {
+           
             Aleros.CSS.Selector selector = new Aleros.CSS.Selector("@internal", code);
             this.Padding = new Padding("0");
             this.Margin = new Margin("1");
@@ -152,8 +159,10 @@ namespace Spider.Skinning
             }
             
         }
-        public Block(Color backColor, Color foreColor, Color textShadowColor, Color alternateColor)
+        public Block(Style parent, Color backColor, Color foreColor, Color textShadowColor, Color alternateColor)
         {
+            this.Font = new Font("MS Sans Serif", 8f, FontStyle.Regular);
+            this.Stylesheet = parent;
             this.Padding = new Padding("1");
             this.Margin = new Margin("1");
             this.BackColor = backColor;
@@ -163,8 +172,9 @@ namespace Spider.Skinning
             this.Padding = new Padding("0");
             this.Margin = new Margin("1");
         }
-        public Block(Image backgroundImage, Color foreColor, Color textShadowColor, Color alternateColor)
+        public Block(Style parent, Image backgroundImage, Color foreColor, Color textShadowColor, Color alternateColor)
         {
+            this.Stylesheet = parent;
             this.BackgroundImage = backgroundImage;
             this.ForeColor = foreColor;
             this.TextShadowColor = textShadowColor;
@@ -175,7 +185,7 @@ namespace Spider.Skinning
 
         public object Clone()
         {
-            Block newSelector = new Block(BackColor, ForeColor, TextShadowColor, AlternateBackColor);
+            Block newSelector = new Block(this.Stylesheet, BackColor, ForeColor, TextShadowColor, AlternateBackColor);
             if (this.BackgroundImage != null)
                 newSelector.BackgroundImage = this.BackgroundImage;
             newSelector.Padding = Padding;
@@ -183,6 +193,7 @@ namespace Spider.Skinning
             newSelector.BackColor = BackColor;
             newSelector.Font = Font;
             newSelector.ForeColor = ForeColor;
+            newSelector.Stylesheet = this.Stylesheet;
             return newSelector;
         }
     }
@@ -192,6 +203,8 @@ namespace Spider.Skinning
         /// Get selectors
         /// </summary>
         Dictionary<String, Block> Blocks { get; }
+        void DrawString(Graphics g, String text, Font font, SolidBrush brush, Rectangle pos);
+        Size MeasureString(String text, Font font);
     }
     
 }
