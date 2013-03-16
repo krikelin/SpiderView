@@ -840,6 +840,7 @@ namespace Spider
         private void ParseText(string t)
         {
             t = t.Trim();
+            t = t.Replace("\t\t", "");
             Chunks = new List<Chunk>();
             t = t.Replace("<br xmlns=\"http://segurify.net/TR/2011\" /" + ">", "\n");
             t = t.Replace("<br xmlns=\"http://segurify.net/TR/2011\" /" + ">", "\n");
@@ -873,6 +874,7 @@ namespace Spider
                     garbageCount += matches[i].Value.Length;
 
                 }
+                ParsedText += t.Substring(prevIndex, t.Length - prevIndex);
                 ParsedText = ParsedText.Trim() + " ";
 
                 RowPosition currentRow = new RowPosition();
@@ -882,6 +884,7 @@ namespace Spider
                 int j = 0;
                 float left = 0;
                 // Mark occurances
+                int roww = 0;
                 for (int i = 0; i < ParsedText.Length; i++)
                 {
                     
@@ -898,13 +901,14 @@ namespace Spider
 
                             currentChunk = null;
                         }
-                    if (c == '\n' || left > this.Width)
+                    if (c == '\n' || left * 1f > this.Width )
                     {
                         if (c == '\n')
                         {
                         }
                         row += Block.Font.Height;
                         left = 0;
+                        roww++;
                         if (currentChunk != null)
                         {
                             currentRow.end = left;
@@ -915,6 +919,7 @@ namespace Spider
 
                             currentRow.y = row;
                         }
+                        continue;
                     }
                     foreach (Chunk chunk in Chunks)
                     {
@@ -930,7 +935,7 @@ namespace Spider
                     
                     
                     j++;
-                    left += (float)(TextRenderer.MeasureText(c.ToString(), Block.Font).Width) * 0.5f;
+                    left += (float)(TextRenderer.MeasureText(c.ToString(), Block.Font).Width) * 0.4f;
                     Console.WriteLine(left.ToString() + " " + c.ToString());
                 }
             }
@@ -998,9 +1003,9 @@ namespace Spider
             {
                 foreach (RowPosition rp in c.rowPositions)
                 {
-                    if (x > rp.start && x < rp.end)
+                    if (x > rp.start + this.X && x < rp.end + this.X)
                     {
-                        if (y > rp.y && y < rp.y + 10)
+                        if (y > rp.y + this.Y && y < rp.y + this.Y + 21)
                         {
                             // Invoke link
                             foundLink = true;

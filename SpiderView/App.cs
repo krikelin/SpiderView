@@ -37,7 +37,10 @@ namespace Spider
 
         void spiderView_Navigate(object sender, SpiderView.NavigateEventArgs e)
         {
-            Host.Navigate(e.Uri.ToString());
+            if (!e.Uri.ToString().StartsWith("spotify:track:"))
+            {
+                Host.Navigate(e.Uri.ToString());
+            }
         }
         public void Start()
         {
@@ -75,11 +78,25 @@ namespace Spider
             if(this.Loaded != null)
                 this.Loaded(this, new EventArgs());
             LoadFinished();
+            if (error)
+            {
+                throw new Exception();
+            }
         }
-
+        bool error = false;
         void bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            e.Result = Loading(e.Argument);
+            EventHandler r = new EventHandler((object ow, EventArgs ex) => { throw new Exception();});
+
+            try
+            {
+                e.Result = Loading(e.Argument);
+            }
+            catch (Exception ex)
+            {
+                error = true;
+               
+            }
         }
 
         /// <summary>

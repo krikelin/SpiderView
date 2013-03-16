@@ -54,6 +54,7 @@ namespace Spider
             this.InfoBlock = (Block)style.Blocks["infobar::info"].Clone();
             this.Height = this.InfoBlock.Height;
             blinkTimer.Tick += blinkTimer_Tick;
+            blinkTimer.Interval = 50;
             
         }
         int count = 0;
