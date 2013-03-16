@@ -772,7 +772,9 @@ namespace Spider
 
                     x += elm.X;
                     y += elm.Y;
-                    if(elm.Visible)
+                    if(elm.Visible &&
+                        elm.X  - this.SpiderView.HorizontalScroll.Value < this.Width + 3 && elm.Y + elm.Height > this.SpiderView.VerticalScroll.Value &&
+                    elm.Y  - this.SpiderView.VerticalScroll.Value < this.Height + 3 && elm.X + elm.Width > this.SpiderView.HorizontalScroll.Value)
                         elm.Draw(bgc.Graphics, ref x, ref y);
                     elm.AbsoluteTop = y;
                     elm.AbsoluteLeft = x;

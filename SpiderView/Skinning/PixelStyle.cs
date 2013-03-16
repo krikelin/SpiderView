@@ -38,9 +38,11 @@ namespace Spider.Skinning
             // Get tab bar
             var tabTitle = new Block(this, bitmap.GetPixel(1, 0), bitmap.GetPixel(1, 0), bitmap.GetPixel(4, 0), bitmap.GetPixel(1, 0));
             this.blocks.Add(".adivider", new Block(this, bitmap.GetPixel(15, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0)));
-            this.blocks.Add(".h1", new Block(this, bitmap.GetPixel(15, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0)));
+            this.blocks.Add(".h1", new Block(this, Color.Transparent, bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0)));
             this.blocks[".h1"].Font = new Font("Helvetica", 10);
-            this.Blocks[".adivider"].Font = new Font("Tahoma", 18, FontStyle.Regular, GraphicsUnit.Pixel);
+            this.Blocks[".adivider"].Font = new Font("Helvetica", 13, FontStyle.Regular, GraphicsUnit.Pixel);
+            this.blocks[".adivider"].Height = 22;
+            this.blocks[".adivider"].Width = -1;
             this.blocks.Add("TabBar::title", tabTitle);
             tabTitle.Font = new Font("MS Sans Serif", 8f, FontStyle.Bold);
             this.Blocks.Add("TabBar", new Block(this, sliceBitmap(bitmap, new Rectangle(99, 1, 2, 23)), bitmap.GetPixel(1, 0), bitmap.GetPixel(4, 0), bitmap.GetPixel(0, 0)));

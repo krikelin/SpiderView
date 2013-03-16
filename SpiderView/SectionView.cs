@@ -46,6 +46,10 @@ namespace Spider
             if(this.Board != null)
             this.Board.Width = this.Width;
         }
+        protected override Point ScrollToControl(Control activeControl)
+        {
+            return this.AutoScrollPosition;
+        }
         public SectionView(Board board, SpiderView spiderView)
         {
             InitializeComponent();
@@ -54,7 +58,7 @@ namespace Spider
             board.AutoResize();
             this.Scroll += SectionView_Scroll;
             board.AutoResize();
-            this.AutoScroll = true;
+             this.AutoScroll = true;
             this.SpiderView = spiderView;
             if (overflow == null)
             {
@@ -68,24 +72,24 @@ namespace Spider
         public Overflow overflow;
         void SectionView_Scroll(object sender, ScrollEventArgs e)
         {
-            this.Invalidate();
-          /*  if (this.VerticalScroll.Value > this.Board.Height)
-            {
-                overflow.listView = ListView;
-                overflow.Show();
+            /*this.Invalidate();
+                        if (this.VerticalScroll.Value > this.Board.Height)
+                        {
+                            overflow.listView = ListView;
+                            overflow.Show();
                 
-                overflow.Left = 0;
-                overflow.Top =0;
-                overflow.Width = this.Width;
-                overflow.Height = 18;
-                overflow.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                overflow.BringToFront();
-            }
-            else
-            {
-                if (overflow != null)
-                    overflow.Hide();
-            }*/
+                            overflow.Left = 0;
+                            overflow.Top =0;
+                            overflow.Width = this.Width;
+                            overflow.Height = 18;
+                            overflow.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                            overflow.BringToFront();
+                        }
+                        else
+                        {
+                            if (overflow != null)
+                                overflow.Hide();
+                        }*/
         }
         private void SectionView_Load(object sender, EventArgs e)
         {

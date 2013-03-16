@@ -153,7 +153,12 @@ namespace Spider.Media
             : base(service)
         {
         }
-       
+
+        public TopList TopList;
+        public void LoadToplist()
+        {
+            TopList = this.Service.LoadTopListForResource(this);
+        }
     }
   
     public class Track : Resource

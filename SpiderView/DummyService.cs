@@ -220,7 +220,7 @@ namespace Spider
             t.Popularity = (float)pop / 100;
             return t;
         }
-
+        
         public ReleaseCollection LoadReleasesForGivenArtist(Artist artist, ReleaseType type, int page)
         {
             List<Release> items = new List<Release>();
@@ -232,6 +232,8 @@ namespace Spider
                 items.Add(r);
                 
             }
+            if (rc.Count < 1)
+                return null;
             return rc;
         }
 
@@ -340,9 +342,23 @@ namespace Spider
         public TopList LoadTopListForResource(Resource res)
         {
             TopList t = new TopList(this);
+            if (res.GetType() == typeof(Artist)) 
+            {
+                DataSet topTracks = MakeDataSet("SELECT TOP 5 * FROM track, artist, release WHERE track.artist = artist.id AND track.album = release.id AND artist.identifier = '" + res.Identifier + "' ORDER BY track.popularity DESC");
+                t.TopTracks = new TrackCollection(this, t, new List<Track>());
+                t.TopAlbums = new ReleaseCollection(this,  new List<Release>());
+                foreach (DataRow row in topTracks.Tables[0].Rows)
+                {
+                    Track _track = TrackFromDataRow(row);
+                    t.TopTracks.Add(_track);
+                }
+                if (topTracks.Tables[0].Rows.Count == 0)
+                    return null;
+                return t;
+            }
             if (res.GetType() == typeof(Country))
             {
-                DataSet topTracks = MakeDataSet("SELECT TOP 100  * FROM track, artist, release WHERE track.artist = artist.id AND track.album = release.id ORDER BY track.popularity DESC");
+                DataSet topTracks = MakeDataSet("SELECT TOP 5  * FROM track, artist, release WHERE track.artist = artist.id AND track.album = release.id ORDER BY track.popularity DESC");
                 t.TopTracks = new TrackCollection(this, t, new List<Track>());
                 t.TopAlbums = new ReleaseCollection(this,  new List<Release>());
                 foreach (DataRow row in topTracks.Tables[0].Rows)
@@ -356,6 +372,8 @@ namespace Spider
                     Release _album = ReleaseFromDataRow(row);
                     t.TopAlbums.Add(_album);
                 }
+                if (topAlbums.Tables[0].Rows.Count == 0)
+                    return null;
                 return t;
             }
             return null;

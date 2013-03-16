@@ -394,9 +394,14 @@ namespace Spider
         public String Alt { get; set; }
         public String Hyperlink { get; set; }
         int flex = 0;
-        public void ApplyStyle(String Block)
+        public void ApplyStyle(Block Block)
         {
-
+            this.Block.ForeColor = Block.ForeColor;
+            this.BackColor = Block.BackColor;
+            this.Block.Font = (Font)Block.Font.Clone();
+            this.Block.Padding = Block.Padding;
+            this.Width = Block.Width;
+            this.Height = Block.Height;
         }
         public Element(Board Host, XmlElement node)
         {
@@ -506,10 +511,15 @@ namespace Spider
                 this.AbsoluteHeight = 32;
                 this.Height = this.AbsoluteHeight;
             }
+            if (node.HasAttribute("class"))
+            {
+                this.ApplyStyle((Block)this.Stylesheet.Blocks["." + node.GetAttribute("class")].Clone());
+            }
             if (node.HasAttribute("style"))
             {
                 this.Block = new Block(node.GetAttribute("style"), Block);
             }
+           
             this.Text = node.InnerText;
             foreach (XmlNode elm in node.ChildNodes)
             {
@@ -546,8 +556,7 @@ namespace Spider
                 parent = value;
                 if (parent.Block != null && this.GetType() != typeof(track) && this.GetType() != typeof(img))
                 {
-                    this.Block = (Block)parent.Block.Clone();
-
+                   
                     this.BackColor = ParseColorAttribute("BackColor", ("bgcolor"), node);
 
 
@@ -686,7 +695,8 @@ namespace Spider
                 {
                   //  g.FillRectangle(new SolidBrush(elm.BackColor), new Rectangle(x + elm.X , y +elm.Y + this.Padding.Top, elm.Width - this.Padding.Left * 2, elm.Height - this.Padding.Top * 2));
                 }
-                elm.Draw(g, ref x, ref y);
+              
+                    elm.Draw(g, ref x, ref y);
                 elm.AbsoluteLeft = x;
                 elm.AbsoluteTop = y;
                 if (elm.GetType() == typeof(columnheader))
@@ -785,7 +795,7 @@ namespace Spider
 
         }
         private String textContent;
-        public String Text
+        public new String Text
         {
             get
             {
@@ -818,6 +828,10 @@ namespace Spider
             if (node.HasAttribute("italic"))
             {
                 this.Block.Font = new Font(this.Block.Font, this.Block.Font.Style | FontStyle.Italic);
+            }
+            if (node.HasAttribute("class"))
+            {
+                this.Block = (Block)this.Board.Stylesheet.Blocks["." + node.GetAttribute("class").Split(' ')[0]].Clone();
             }
         }
         private Bitmap bitmap;
@@ -872,6 +886,8 @@ namespace Spider
             base.Draw(g, ref  x, ref y);
             //if(bitmap != null)
             //   g.DrawImage(bitmap, new Point(x, y));
+            if (BackColor != null)
+                g.FillRectangle(new SolidBrush(BackColor), new Rectangle(x, y, Width, Height));
             this.Stylesheet.DrawString(g, Text, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
             
             
@@ -1372,6 +1388,7 @@ namespace Spider
     }
     public class img : Element
     {
+        public String Src;
         public override void BeforePackChildren()
         {
 
@@ -1380,16 +1397,15 @@ namespace Spider
         public img(Board host, XmlElement elm)
             : base(host, elm)
         {
-            if (elm.HasAttribute("src"))
-            {
-                this.LoadImage(elm.GetAttribute("src"));
-            }
-            
+            Src = elm.GetAttribute("src");
+            if (elm.HasAttribute("shadow"))
+                hasShadow = elm.GetAttribute("shadow") == "true" ;
         }
         
-        private bool hasShadow = true;
+        private bool hasShadow = false;
         public override void Draw(Graphics g, ref int x, ref int y)
         {
+
             Rectangle Bounds = new Rectangle(x, y, this.Width, this.Height);
             base.Draw(g, ref x, ref y);
             int shadowOffset = 8;
@@ -1440,24 +1456,35 @@ namespace Spider
             }
             if(image != null)
                 g.DrawImage(image, x, y, this.Width, this.Height);
+            else
+                if (Src != null && !isLoadingImage)
+                {
+                    this.LoadImage(Src);
+                    isLoadingImage = true;
+                }
         }
+        public bool isLoadingImage = false;
         public static Dictionary<String, Image> ImageCollection = new Dictionary<string, Image>();
         public void LoadImage(String url)
         {
-            if (url.StartsWith("res:"))
-            {
-                url = url.Replace("res:", "");
-                ImageCollection.Add("res:" + url, (Image)Properties.Resources.ResourceManager.GetObject(url));
-
-            }
-            if (String.IsNullOrEmpty(url) || !(url.StartsWith("http://") || url.StartsWith("https://")))
+            
+            if (String.IsNullOrEmpty(url) || !(url.StartsWith("http://") || url.StartsWith("https://") || url.StartsWith("res:")))
                 return;
             WebClient wc = new WebClient();
             if (!ImageCollection.ContainsKey(url))
             {
-
-                wc.DownloadDataCompleted += wc_DownloadDataCompleted;
-                wc.DownloadDataAsync(new Uri(url), url);
+                if (url.StartsWith("res:"))
+                {
+                    url = url.Replace("res:", "");
+                    Bitmap bImage = (Bitmap)Properties.Resources.ResourceManager.GetObject(url);
+                    ImageCollection.Add("res:" + url, bImage);
+                    this.image = bImage;
+                }
+                else
+                {
+                    wc.DownloadDataCompleted += wc_DownloadDataCompleted;
+                    wc.DownloadDataAsync(new Uri(url), url);
+                }
             }
             else
             {
@@ -1655,6 +1682,7 @@ namespace Spider
             int max_height = 0;
             foreach (Element child in this.Children)
             {
+#if(false)
                 if (child.Dock == Spider.Element.DockStyle.Right)
                 {
                     child.Width = this.Width - this.Padding.Right * 2 - child.Margin.Right * 2 - child.X;
@@ -1668,7 +1696,16 @@ namespace Spider
                 child.X = left;
                 child.Y = row;
                 left += child.Width + this.Padding.Left + child.Margin.Right;
+#endif
+
+                if (left + child.Width > this.Width)
+                {
+                    break;
+                }
+
+                child.X = left;
                 child.PackChildren();
+                left += child.Width + Padding.Left;
             }
         }
     }

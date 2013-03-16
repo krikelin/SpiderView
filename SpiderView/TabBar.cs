@@ -229,6 +229,6 @@ namespace Spider
     {
         public String ID;
         public String Title;
-        public int Width = 120;
+        public int Width = 90;
     }
 }

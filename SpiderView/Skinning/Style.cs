@@ -159,6 +159,7 @@ namespace Spider.Skinning
             }
             
         }
+        public int Width, Height;
         public Block(Style parent, Color backColor, Color foreColor, Color textShadowColor, Color alternateColor)
         {
             this.Font = new Font("MS Sans Serif", 8f, FontStyle.Regular);
@@ -194,6 +195,9 @@ namespace Spider.Skinning
             newSelector.Font = Font;
             newSelector.ForeColor = ForeColor;
             newSelector.Stylesheet = this.Stylesheet;
+            newSelector.Width = this.Width;
+            newSelector.Height = this.Height;
+
             return newSelector;
         }
     }
