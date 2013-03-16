@@ -189,8 +189,8 @@ namespace Spider
                     BeginDrag(this, new DragEventArgs() { Uri = this.Hyperlink, elm = this });
                 }
             }
-            if (this.MouseDown != null)
-                this.MouseDown(this, new MouseEventArgs(x, y));
+      //      if (this.MouseUp != null)
+        //        this.MouseUp(this, new MouseEventArgs(x, y));
             x -= this.X;
             y -= this.Y;
             foreach (Element elm in this.Children)
@@ -245,10 +245,10 @@ namespace Spider
                this.Board.SpiderView.BeginNavigate(new Uri(this.Hyperlink));
             }
             
-            this.OnClick(x, y);
+            this.OnMouseClick(x, y);
             Graphics g = this.Board.CreateGraphics();
           //  g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
-            this.OnClick(x, y);
+            this.OnMouseClick(x, y);
 
             if (this.node.HasAttribute("onClick"))
             {
@@ -282,7 +282,7 @@ namespace Spider
             this.OnMouseDown(x, y);
             Graphics g = this.Board.CreateGraphics();
        //     g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
-            this.OnClick(x, y);
+          //  this.OnClick(x, y);
 
             if (this.ElementEventHandlers.ContainsKey("onmousedown"))
             {
@@ -316,7 +316,7 @@ namespace Spider
             this.OnMouseUp(x, y);
             Graphics g = this.Board.CreateGraphics();
     //        g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
-            this.OnClick(x, y);
+            this.OnMouseClick(x, y);
 
             if (this.ElementEventHandlers.ContainsKey("onmoueup"))
             {
@@ -717,7 +717,7 @@ namespace Spider
 #endif
         }
         public bool mouseOver = false;
-        public virtual void OnClick(int x, int y)
+        public virtual void OnMouseClick(int x, int y)
         {
             if (this.Click != null)
             {
@@ -813,21 +813,21 @@ namespace Spider
                 this.bitmap = GenerateBitmap(); 
             }
         }
-        public override void OnClick(int x, int y)
+        public override void OnMouseClick(int x, int y)
         {
-            base.OnClick(x, y);
-            Console.WriteLine(x + " " + y);
+            base.OnMouseClick(x, y);
             foreach (Chunk c in Chunks)
             {
                 foreach (RowPosition rp in c.rowPositions)
                 {
-                    if (x > rp.start && x < rp.end)
+                    if (x > rp.start + this.X && x < rp.end + this.X)
                     {
-                        if (y > rp.y && y < rp.y + 81)
+                        if (y > rp.y + this.Y && y < rp.y + this.Y + 21)
                         {
                             // Invoke link
-                           
-                            Console.WriteLine(c.Content);
+                            Board.SpiderView.Host.Navigate(c.Uri.ToString());
+                            Console.WriteLine("Navigating to: " + c.Uri);
+                            break;
                         }
                     }
                 }
@@ -837,8 +837,8 @@ namespace Spider
         {
             t = t.Trim();
             Chunks = new List<Chunk>();
-            t = t.Replace("<br />", "\n");
-            t = t.Replace("<br/>", "\n");
+            t = t.Replace("<br xmlns=\"http://segurify.net/TR/2011\" /" + ">", "\n");
+            t = t.Replace("<br xmlns=\"http://segurify.net/TR/2011\" /" + ">", "\n");
 
             var tagList = new List<Chunk>();
             string pattern =  @"<link(.*?)uri=[""'](?<uri>.*?)[""'](.*?)>(?<text>.*?)</link>";
@@ -882,16 +882,7 @@ namespace Spider
                 {
                     
                     char c = ParsedText[i];
-                    if(c == '\n' || left > this.Width) {
-                        if (c == '\n')
-                        {
-                        }
-                        row += Block.Font.Height;
-                        currentRow = new RowPosition();
-                        currentRow.y = row;
-                        left = 0;
-                        continue;
-                    }
+                  
 
                     if (currentChunk != null)
                         if (i == currentChunk.EndIndex)
@@ -903,12 +894,31 @@ namespace Spider
 
                             currentChunk = null;
                         }
+                    if (c == '\n' || left > this.Width)
+                    {
+                        if (c == '\n')
+                        {
+                        }
+                        row += Block.Font.Height;
+                        left = 0;
+                        if (currentChunk != null)
+                        {
+                            currentRow.end = left;
+                           
+                            currentChunk.rowPositions.Add(currentRow);
+                            currentRow = new RowPosition();
+                            currentRow.start = 0;
+
+                            currentRow.y = row;
+                        }
+                    }
                     foreach (Chunk chunk in Chunks)
                     {
                         if (i == chunk.StartIndex)
                         {
                             currentChunk = chunk;
                             currentRow = new RowPosition();
+                            currentRow.y = row;
                             currentRow.start = left;
                           
                         }
@@ -986,7 +996,7 @@ namespace Spider
                 {
                     if (x > rp.start && x < rp.end)
                     {
-                        if (y > rp.y && y < rp.y + 70)
+                        if (y > rp.y && y < rp.y + 10)
                         {
                             // Invoke link
                             foundLink = true;
@@ -1539,7 +1549,7 @@ namespace Spider
         void Control_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             Element elm = (Element)((Control)sender).Tag;
-            elm.OnClick(e.X, e.Y);
+            elm.OnMouseClick(e.X, e.Y);
 
         }
     }
