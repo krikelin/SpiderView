@@ -833,6 +833,10 @@ namespace Spider
                 }
             }
         }
+        public int Diff(int x, int y)
+        {
+            return x > y ? x - y : y - x;
+        }
         private void ParseText(string t)
         {
             t = t.Trim();
@@ -843,7 +847,7 @@ namespace Spider
             var tagList = new List<Chunk>();
             string pattern =  @"<link(.*?)uri=[""'](?<uri>.*?)[""'](.*?)>(?<text>.*?)</link>";
             t = t.Replace(" xmlns=\"http://segurify.net/TR/2011\"", "");
-             var matches = Regex.Matches(t, pattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
+             var matches = Regex.Matches(t, pattern,  RegexOptions.IgnoreCase);
             int prevIndex = 0;
             int garbageCount = 0;
             if (matches.Count > 0)
@@ -865,7 +869,7 @@ namespace Spider
                     chunk.Uri = new Uri(matches[i].Groups[3].Value);
                     Chunks.Add(chunk);
                     ParsedText += chunk.Content;
-                    prevIndex += matches[i].Index + matches[i].Length;
+                    prevIndex = matches[i].Index + matches[i].Value.Length;
                     garbageCount += matches[i].Value.Length;
 
                 }
