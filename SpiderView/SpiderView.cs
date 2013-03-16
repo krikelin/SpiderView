@@ -133,48 +133,55 @@ namespace Spider
             if (obj == null)
                 return;
 #endif
-            
-            String DOM = Preprocessor.Preprocess(this.template, obj);
-            XmlDocument xmlDoc = new XmlDocument();
-            if (DOM == "NONCHANGE" || String.IsNullOrEmpty(DOM))
-                return;
             try
             {
-                xmlDoc.LoadXml(DOM);
-            } catch (Exception e) 
-            {
-                using (StreamReader sr = new StreamReader("views/error.xml"))
+                String DOM = Preprocessor.Preprocess(this.template, obj);
+                XmlDocument xmlDoc = new XmlDocument();
+                if (DOM == "NONCHANGE" || String.IsNullOrEmpty(DOM))
+                    return;
+                try
                 {
-                    String markup = sr.ReadToEnd();
-                    markup = markup.Replace("${error}", e.Message);
-                    xmlDoc.LoadXml(markup);
+                    xmlDoc.LoadXml(DOM);
                 }
-            }
-
-            XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");
-            foreach (XmlElement elmScript in scripts)
-            {
-                if (elmScript.HasAttribute("type"))
+                catch (Exception e)
                 {
-                    if (elmScript.GetAttribute("type") == "text/lua")
+                    using (StreamReader sr = new StreamReader("views/error.xml"))
                     {
-                        if (elmScript.HasAttribute("src"))
-                            Scripting.LoadFile(elmScript.GetAttribute("src"));
-                        else
-                            Scripting.LoadScript(elmScript.InnerText);
-
+                        String markup = sr.ReadToEnd();
+                        markup = markup.Replace("${error}", e.Message);
+                        xmlDoc.LoadXml(markup);
                     }
                 }
+
+                XmlNodeList scripts = xmlDoc.GetElementsByTagName("script");
+                foreach (XmlElement elmScript in scripts)
+                {
+                    if (elmScript.HasAttribute("type"))
+                    {
+                        if (elmScript.GetAttribute("type") == "text/lua")
+                        {
+                            if (elmScript.HasAttribute("src"))
+                                Scripting.LoadFile(elmScript.GetAttribute("src"));
+                            else
+                                Scripting.LoadScript(elmScript.InnerText);
+
+                        }
+                    }
+                }
+                if (this.Sections.Count > 0)
+                {
+                    this.LoadNodesAgain(xmlDoc.DocumentElement);
+                }
+                else
+                {
+                    this.LoadNodes(xmlDoc.DocumentElement);
+                }
+                this.tabBar.Refresh();
             }
-            if (this.Sections.Count > 0)
+            catch (Exception e)
             {
-                this.LoadNodesAgain(xmlDoc.DocumentElement);
+                this.Host.OnNotify(this.Host, new NotificationEventArgs() { Text = "An error occured", Type = NotificationType.Error });
             }
-            else
-            {
-                this.LoadNodes(xmlDoc.DocumentElement);
-            }
-            this.tabBar.Refresh();
            
         }
         public void LoadNodesAgain(XmlElement element)

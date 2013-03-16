@@ -15,6 +15,7 @@ using BungaSpotify09.Models;
 using System.Drawing.Drawing2D;
 using Spider.Media;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 
 namespace Spider
@@ -521,6 +522,7 @@ namespace Spider
             }
            
             this.Text = node.InnerText;
+            if(this.node.Name != "text")
             foreach (XmlNode elm in node.ChildNodes)
             {
                 if (elm.GetType() == typeof(XmlElement))
@@ -666,6 +668,7 @@ namespace Spider
                         }
                     }
                 }
+                Text = Text;
             }
         }
         public class MouseEventArgs {
@@ -714,7 +717,7 @@ namespace Spider
 #endif
         }
         public bool mouseOver = false;
-        public void OnClick(int x, int y)
+        public virtual void OnClick(int x, int y)
         {
             if (this.Click != null)
             {
@@ -789,6 +792,7 @@ namespace Spider
    
     public class text : Element
     {
+      
         public int FontSize { get; set; }
         public override void BeforePackChildren()
         {
@@ -805,18 +809,146 @@ namespace Spider
             set
             {
                 this.textContent = value;
+                ParseText(textContent);
                 this.bitmap = GenerateBitmap(); 
             }
+        }
+        public override void OnClick(int x, int y)
+        {
+            base.OnClick(x, y);
+            Console.WriteLine(x + " " + y);
+            foreach (Chunk c in Chunks)
+            {
+                foreach (RowPosition rp in c.rowPositions)
+                {
+                    if (x > rp.start && x < rp.end)
+                    {
+                        if (y > rp.y && y < rp.y + 81)
+                        {
+                            // Invoke link
+                           
+                            Console.WriteLine(c.Content);
+                        }
+                    }
+                }
+            }
+        }
+        private void ParseText(string t)
+        {
+            t = t.Trim();
+            Chunks = new List<Chunk>();
+            t = t.Replace("<br />", "\n");
+            t = t.Replace("<br/>", "\n");
+
+            var tagList = new List<Chunk>();
+            string pattern =  @"<link(.*?)uri=[""'](?<uri>.*?)[""'](.*?)>(?<text>.*?)</link>";
+            t = t.Replace(" xmlns=\"http://segurify.net/TR/2011\"", "");
+             var matches = Regex.Matches(t, pattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            int prevIndex = 0;
+            int garbageCount = 0;
+            if (matches.Count > 0)
+            {
+                for (int i = 0; i < matches.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        ParsedText += t.Substring(prevIndex , matches[i].Index - prevIndex);
+
+                    } else {
+                        ParsedText += t.Substring(prevIndex, matches[i].Index - prevIndex);
+                    }
+                    Chunk chunk = new Chunk();
+                    chunk.StartIndex = ParsedText.Length;
+                    chunk.EndIndex = ParsedText.Length + matches[i].Groups[4].Value.Length;
+                   
+                    chunk.Content = matches[i].Groups[4].Value;
+                    chunk.Uri = new Uri(matches[i].Groups[3].Value);
+                    Chunks.Add(chunk);
+                    ParsedText += chunk.Content;
+                    prevIndex += matches[i].Index + matches[i].Length;
+                    garbageCount += matches[i].Value.Length;
+
+                }
+                ParsedText = ParsedText.Trim() + " ";
+
+                RowPosition currentRow = new RowPosition();
+                Chunk currentChunk = null;
+                int row = 0;
+                int x1 = 0;
+                int j = 0;
+                float left = 0;
+                // Mark occurances
+                for (int i = 0; i < ParsedText.Length; i++)
+                {
+                    
+                    char c = ParsedText[i];
+                    if(c == '\n' || left > this.Width) {
+                        if (c == '\n')
+                        {
+                        }
+                        row += Block.Font.Height;
+                        currentRow = new RowPosition();
+                        currentRow.y = row;
+                        left = 0;
+                        continue;
+                    }
+
+                    if (currentChunk != null)
+                        if (i == currentChunk.EndIndex)
+                        {
+
+                            currentRow.end = left;
+
+                            currentChunk.rowPositions.Add(currentRow);
+
+                            currentChunk = null;
+                        }
+                    foreach (Chunk chunk in Chunks)
+                    {
+                        if (i == chunk.StartIndex)
+                        {
+                            currentChunk = chunk;
+                            currentRow = new RowPosition();
+                            currentRow.start = left;
+                          
+                        }
+                    }
+                    
+                    
+                    j++;
+                    left += (float)(TextRenderer.MeasureText(c.ToString(), Block.Font).Width) * 0.5f;
+                    Console.WriteLine(left.ToString() + " " + c.ToString());
+                }
+            }
+            else
+            {
+                ParsedText = t;
+            }
+        }
+        public String ParsedText = "";
+        public List<Chunk> Chunks;
+        public struct RowPosition {
+            public float start;
+            public float end;
+            public int y;
+        }
+        public class Chunk
+        {
+            public List<RowPosition> rowPositions = new List<RowPosition>();
+            public int StartIndex, EndIndex;
+            public Uri Uri;
+            public String Content;
         }
         
         public text(Board host, XmlElement node)
             : base(host, node)
         {
+            
             if (this.Parent != null && this.Parent.Block != null)
                 this.Block = (Block)this.Parent.Block.Clone();
             else
                 this.Block = (Block)this.Board.Stylesheet.Blocks["Body"].Clone();
-            Text = node.InnerText;
+            
             if (node.HasAttribute("fontSize"))
             {
                 this.Block.Font = new Font(this.Block.Font.FontFamily.Name, int.Parse(node.GetAttribute("fontSize")));
@@ -833,13 +965,38 @@ namespace Spider
             {
                 this.Block = (Block)this.Board.Stylesheet.Blocks["." + node.GetAttribute("class").Split(' ')[0]].Clone();
             }
+            Text = node.InnerXml;
         }
         private Bitmap bitmap;
         HtmlPanel htmlPanel = new HtmlPanel();
-         public override void OnMouseOver(int x, int y) 
+        public class IndexRange
         {
-            base.OnMouseOver(x, y);
-           
+            public int index;
+            public int startX;
+            public int endX;
+        }
+        public List<IndexRange> ranges = new List<IndexRange>();
+       
+        public override void OnMouseOver(int x, int y)
+        {
+            bool foundLink = false;
+            foreach (Chunk c in Chunks)
+            {
+                foreach (RowPosition rp in c.rowPositions)
+                {
+                    if (x > rp.start && x < rp.end)
+                    {
+                        if (y > rp.y && y < rp.y + 70)
+                        {
+                            // Invoke link
+                            foundLink = true;
+                          
+                        }
+                    }
+                }
+            }
+            this.Board.foundLink = foundLink;
+
         }
          public class Hyperlink
          {
@@ -888,7 +1045,7 @@ namespace Spider
             //   g.DrawImage(bitmap, new Point(x, y));
             if (BackColor != null)
                 g.FillRectangle(new SolidBrush(BackColor), new Rectangle(x, y, Width, Height));
-            this.Stylesheet.DrawString(g, Text, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
+            this.Stylesheet.DrawString(g, ParsedText, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
             
             
 

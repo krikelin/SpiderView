@@ -13,6 +13,7 @@ namespace Spider
 {
     public partial class SpiderHost : UserControl
     {
+        public event NotificationEventHandler Notify;
         Dictionary<String, IMusicService> Services { get; set; }
         public IMusicService MusicService { get; set; }
         public Dictionary<String, App> Apps = new System.Collections.Generic.Dictionary<string, App>();
@@ -152,9 +153,22 @@ namespace Spider
             }
             catch (Exception e)
             {
+                if (this.Notify != null)
+                {
+                    this.Notify(this, new NotificationEventArgs() { Text = "An error occured loading the app",  Type = NotificationType.Error });
+
+                }
             }
 
 
+        }
+        public void OnNotify(object sender, NotificationEventArgs e)
+        {
+            if (this.Notify != null)
+            {
+                this.Notify(sender, e);
+
+            }
         }
 
         /// <summary>
@@ -179,7 +193,10 @@ namespace Spider
         public delegate void SpiderNavigationEventHandler(object sender, SpiderNavigationEventArgs e);
         public event SpiderNavigationEventHandler Navigated;
         public delegate void SpiderAppEvent(object sender, SpiderAppEventArgs e);
+       
+        
         public event SpiderAppEvent AppStarted;
+      
         /// <summary>
         /// Loads an spider app into the host
         /// </summary>

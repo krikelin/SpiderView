@@ -37,6 +37,10 @@ namespace Spider.Skinning
         {
             // Get tab bar
             var tabTitle = new Block(this, bitmap.GetPixel(1, 0), bitmap.GetPixel(1, 0), bitmap.GetPixel(4, 0), bitmap.GetPixel(1, 0));
+            this.Blocks.Add("infobar::info", new Block(this, sliceBitmap(bitmap, new Rectangle(187, 98, 90 ,30)), Color.Black, Color.White, Color.Black));
+            this.blocks["infobar::info"].Height = 30;
+            this.blocks["infobar::info"].Padding.Left = 10;
+            this.blocks["infobar::info"].Padding.Top = 10;
             this.blocks.Add(".adivider", new Block(this, bitmap.GetPixel(15, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0)));
             this.blocks.Add(".h1", new Block(this, Color.Transparent, bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0), bitmap.GetPixel(16, 0)));
             this.blocks[".h1"].Font = new Font("Helvetica", 10);

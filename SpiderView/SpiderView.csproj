@@ -81,6 +81,12 @@
     <Compile Include="CSS\CSS.cs" />
     <Compile Include="DummyService.cs" />
     <Compile Include="Element.cs" />
+    <Compile Include="infobar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="infobar.Designer.cs">
+      <DependentUpon>infobar.cs</DependentUpon>
+    </Compile>
     <Compile Include="IPlayEngine.cs" />
     <Compile Include="ITrack.cs" />
     <Compile Include="LuaInterface\CheckType.cs" />
@@ -194,6 +200,9 @@
       <DependentUpon>Board.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="CListView.resx" />
+    <EmbeddedResource Include="infobar.resx">
+      <DependentUpon>infobar.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
