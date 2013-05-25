@@ -563,7 +563,6 @@ namespace Spider.Preprocessor
                 }
                 catch (Exception e)
                 {
-                    throw new Exception();
                   //  using ( System.IO.StreamReader SR = new System.IO.StreamReader("error.xml"))
                     {
                     //    return SR.ReadToEnd();

@@ -46,7 +46,10 @@ namespace Spider.Scripting
         {
             this.lua.RegisterFunction(function, target, func);
         }
-
+        public void RegisterFunction(string p, object obj, System.Reflection.MethodInfo methodInfo)
+        {
+            this.lua.RegisterFunction(p, obj, methodInfo);
+        }
         public SpiderView View
         {
             get { return this.host; }

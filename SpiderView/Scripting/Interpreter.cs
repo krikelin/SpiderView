@@ -64,5 +64,7 @@ namespace Spider
         /// Gets the view the script is attached to
         /// </summary>
         SpiderView View { get; }
+
+        void RegisterFunction(string p, object obj, System.Reflection.MethodInfo methodInfo);
     }
 }

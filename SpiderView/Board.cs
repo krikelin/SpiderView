@@ -124,6 +124,17 @@ namespace Spider
             wc.DownloadDataAsync(new Uri(url), new RequestState { URL = url, Callback = callback });
         }
 
+
+
+
+        /// <summary>
+        /// Send a spider request
+        /// </summary>
+        /// <param name="data"></param>
+        public void lua_send_request(object data)
+        {
+        }
+
         void wc_DownloadDataCompleted(object sender, DownloadDataCompletedEventArgs e)
         {
             RequestState state = (RequestState)e.UserState;
