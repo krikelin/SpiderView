@@ -456,7 +456,7 @@ namespace Spider
             {
                 foreach (Element elm in this.Children)
                 {
-                    if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                    //
                     {
                         elm.CheckMouseDown(e.X, e.Y);
                     }
@@ -572,6 +572,7 @@ namespace Spider
         public bool foundLink = false;
         void Board_MouseMove(object sender, MouseEventArgs e)
         {
+            HoveredElement = null;
             if (DragStartPosition != null)
             {
                 if (dragURI != null)
@@ -596,11 +597,11 @@ namespace Spider
             int y = e.Y;
             foreach (Element elm in Children)
             {
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+               // if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
                     elm.CheckHover(x, y);
                 }
-                else
+                //else
                 {
                 }
             }
@@ -714,7 +715,7 @@ namespace Spider
             element.PackChildren();
         }
         public Spider.Skinning.Padding BoxPadding { get; set; }
-        BufferedGraphicsContext BGC = new BufferedGraphicsContext();
+        public BufferedGraphicsContext BGC = new BufferedGraphicsContext();
         public void LoadNodes(XmlElement root)
         {
             if (root.HasAttribute("bgcolor"))
@@ -756,6 +757,14 @@ namespace Spider
             public int x, y;
             public Element elm;
         }
+        BufferedGraphics bgc;
+        public BufferedGraphics BufferedGraphics
+        {
+            get
+            {
+                return bgc;
+            }
+        }
         public List<DrawBuffer> overflows = new List<DrawBuffer>();
         public void Draw(Graphics g, ref int x, ref int y, Rectangle target)
         {
@@ -764,7 +773,7 @@ namespace Spider
             this.BackColor = Block.BackColor;
             try
             {
-                BufferedGraphics bgc = BGC.Allocate(g, target);
+                bgc = BGC.Allocate(g, target);
                 bgc.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
                 bgc.Graphics.FillRegion(new SolidBrush(this.Block.BackColor), new System.Drawing.Region(new Rectangle(0, 0, this.Width, this.Height)));
                 foreach (Element elm in Children)

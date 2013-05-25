@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -107,7 +108,36 @@ namespace Spider.Skinning
         public Block()
         {
         }
-        public Block(String code, Block parent)
+        public class CSSFunction
+        {
+            public String Name;
+            public String[] Arguments;
+            public CSSFunction(String code)
+            {
+                Regex regex = new Regex(@"(?<function_name>.*?)\((?<parameters>.*?)\)");
+                if (regex.IsMatch(code))
+                {
+                    var d = regex.Match(code);
+                    String func_name = d.Captures[0].Value;
+                    String arguments = d.Captures[1].Value;
+                    this.Arguments = arguments.Split(',');
+                }
+                else
+                {
+                    throw new Exception("");
+                }
+
+            }
+        }
+         public Bitmap sliceBitmap(Bitmap src, Rectangle region)
+        {
+            Bitmap target = new Bitmap(region.Width, region.Height);
+            Graphics g = Graphics.FromImage(src);
+            Graphics targetGraphics = Graphics.FromImage(target);
+            targetGraphics.DrawImage(src, 0, 0, region, GraphicsUnit.Pixel);
+            return target;
+        }
+        public Block(Style parentStyle, String code, Block parent)
         {
            
             Aleros.CSS.Selector selector = new Aleros.CSS.Selector("@internal", code);
@@ -125,7 +155,23 @@ namespace Spider.Skinning
                 }
                 if (rule.rule == "background" || rule.rule == "background-color")
                 {
-                    this.BackColor = ColorTranslator.FromHtml(rule.value);
+                    try
+                    {
+                        CSSFunction func = new CSSFunction(rule.value);
+                        String imageName = func.Arguments[0];
+                        int x = int.Parse(func.Arguments[1]);
+                        int y = int.Parse(func.Arguments[2]);
+                        int width = int.Parse(func.Arguments[3]);
+                        int height = int.Parse(func.Arguments[4]);
+                        if (func.Name == "-spider-slice-bitmap")
+                        {
+                            this.BackgroundImage = sliceBitmap((Bitmap)parentStyle.Images[imageName], new Rectangle(x, y, width, height));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        this.BackColor = ColorTranslator.FromHtml(rule.value);
+                    }
                 }
                 else
                 {
@@ -203,12 +249,13 @@ namespace Spider.Skinning
     }
     public interface Style
     {
+        Dictionary<String, Image> Images { get; }
         /// <summary>
         /// Get selectors
         /// </summary>
         Dictionary<String, Block> Blocks { get; }
         void DrawString(Graphics g, String text, Font font, SolidBrush brush, Rectangle pos);
-        Size MeasureString(String text, Font font);
+        Size MeasureString(Graphics g, String text, Font font);
     }
     
 }

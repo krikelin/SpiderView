@@ -9,6 +9,13 @@ using System.Drawing.Drawing2D;
 using Spider.Skinning;
 namespace Spider
 {
+    public class ItemInsertEventArgs
+    {
+        public Uri Uri { get; set; }
+        public int Position { get; set; }
+    }
+     public delegate void ItemInsertEventHandler(object sender, ItemInsertEventArgs e) ;
+        
     [Serializable]
     public partial class SPListView : UserControl
     {
@@ -179,14 +186,14 @@ namespace Spider
                                 if (existingItem != null)
                                     this.Items.Insert(Items.IndexOf(itemC), existingItem);
                                 else
-                                    this.InsertItem(Items.IndexOf(itemC), new Uri(data));
+                                    this.InsertItem(Items.IndexOf(itemC), new Uri(data), false);
                             }
                             else
                             {
                                 if (existingItem != null)
                                     this.Items.Add(existingItem);
                                 else
-                                    this.AddItem(new Uri(data));
+                                    this.AddItem(new Uri(data), false);
                             }
                         }
                         this.Refresh();
@@ -423,20 +430,32 @@ namespace Spider
             }
             return positive;
         }
-        public SPListItem InsertItem(int pos, Uri uri)
+        public SPListItem InsertItem(int pos, Uri uri, bool delivery)
         {
             SPListItem c = new SPListItem(this, uri.ToString());
 
-
+            
             this.Items.Insert(pos, c);
+            if(!delivery)
+            if (this.ItemInserted != null)
+            {
+                this.ItemInserted(this, new ItemInsertEventArgs() { Uri = uri, Position = pos });
+            }
+            
             return c;
         }
-        public SPListItem AddItem(Uri uri)
+        public event ItemInsertEventHandler ItemInserted;
+        public SPListItem AddItem(Uri uri, bool delivery)
         {
             SPListItem c = new SPListItem(this, uri.ToString());
            
 
             this.Items.Add(c);
+            if(!delivery)
+            if (this.ItemInserted != null)
+            {
+                this.ItemInserted(this, new ItemInsertEventArgs() { Uri = uri, Position = -1});
+            }
             return c;
         }
         public SPListItem AddItem(int index, Uri uri)
@@ -447,7 +466,7 @@ namespace Spider
             this.Items.Insert(index, c);
             return c;
         }
-        public SPListItem AddItem(String text, Uri uri)
+        public SPListItem AddItem(String text, Uri uri, bool delivery)
         {
             SPListItem c = new SPListItem(this, uri.ToString(), text);
             c.Text = text;

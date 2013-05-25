@@ -10,6 +10,14 @@ namespace Spider.Skinning
 {
     public class SpotifyStyle : Style
     {
+        private Dictionary<String, Image> images;
+        public Dictionary<String, Image> Images
+        {
+            get
+            {
+                return images;
+            }
+        }
         public Bitmap SliceBitmap(Bitmap src, Rectangle region)
         {
             Bitmap target = new Bitmap(region.Width, region.Height);
@@ -142,7 +150,7 @@ namespace Spider.Skinning
         }
 
 
-        public Size MeasureString(string text, Font font)
+        public Size MeasureString(Graphics g, string text, Font font)
         {
             throw new NotImplementedException();
         }

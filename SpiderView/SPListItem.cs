@@ -124,7 +124,7 @@ namespace Spider
                 g.DrawString(this.Text, this.Block.Font, new SolidBrush(foreColor), new Point(level + 32, pos + 2));
                 if (this.SubText != null)
                 {
-                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(this.Text, this.Block.Font).Width;
+                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(g, this.Text, this.Block.Font).Width;
                     g.DrawString(this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Point(left, pos + 3));
 
                 }
@@ -143,7 +143,7 @@ namespace Spider
                 this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(foreColor), new Rectangle(level + 32, pos + 3, this.parent.Width, this.Height));
                 if (this.SubText != null)
                 {
-                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(this.Text, this.Block.Font).Width;
+                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(g, this.Text, this.Block.Font).Width;
        //             this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(ChangeColorBrightness(intermediateColor, -0.6f)), new Rectangle(left, pos + 2, this.parent.Width, this.Height));
                     this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Rectangle(left, pos + 3, this.parent.Width, this.Height));
 

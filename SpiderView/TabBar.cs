@@ -40,13 +40,13 @@ namespace Spider
                 // Get width of all titles
                 foreach (Link l in Titles)
                 {
-                    strW += this.Block.Stylesheet.MeasureString(l.Title, new System.Drawing.Font("MS Sans Serif", 8.0f, FontStyle.Bold)).Width * 1.1f;
+                    strW += this.Block.Stylesheet.MeasureString(Graphics, l.Title, new System.Drawing.Font("MS Sans Serif", 8.0f, FontStyle.Bold)).Width * 1.1f;
 
                 }
                 float left = this.Width - strW - 24;
                 foreach (Link l in Titles)
                 {
-                    float xx = this.Block.Stylesheet.MeasureString(l.Title, new System.Drawing.Font("MS Sans Serif", 8.0f, FontStyle.Bold)).Width * 1.1f;
+                    float xx = this.Block.Stylesheet.MeasureString(Graphics, l.Title, new System.Drawing.Font("MS Sans Serif", 8.0f, FontStyle.Bold)).Width * 1.1f;
                     if (e.X > left && e.X < left + xx)
                     {
                         SpiderView.Host.Navigate(l.Uri.ToString());
@@ -73,14 +73,14 @@ namespace Spider
                 bool foundLink = false;
                 foreach (Link l in Titles)
                 {
-                    strW += this.Block.Stylesheet.MeasureString(l.Title, TitleBlock.Font).Width * 1.1f;
+                    strW += this.Block.Stylesheet.MeasureString(Graphics, l.Title, TitleBlock.Font).Width * 1.1f;
 
                 }
                 float left = this.Width - strW - 24;
                 
                 foreach (Link l in Titles)
                 {
-                    float xx = this.Block.Stylesheet.MeasureString(l.Title, TitleBlock.Font).Width * 1.1f;
+                    float xx = this.Block.Stylesheet.MeasureString(Graphics, l.Title, TitleBlock.Font).Width * 1.1f;
                     if (e.X > left && e.X < left + xx)
                     {
                         foundLink = true;
@@ -133,7 +133,7 @@ namespace Spider
                         graphics.Graphics.DrawLine(new Pen(TabDivider.ForeColor, 1f), new Point(x+1, 1), new Point(x+1, this.Height-2));
 
                     }
-                    float strWidth = this.Block.Stylesheet.MeasureString(tab.Title, new Font("MS Sans Serif", 8)).Width;
+                    float strWidth = this.Block.Stylesheet.MeasureString(g, tab.Title, new Font("MS Sans Serif", 8)).Width;
                     float left = x + ((float)tab.Width / 2.0f) - (strWidth / 2.0f);
                     this.Block.Stylesheet.DrawString(graphics.Graphics, tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(Block.TextShadowColor), new Rectangle((int)left, 3, 320, 50));
                     this.Block.Stylesheet.DrawString(graphics.Graphics, tab.Title, new Font("MS Sans Serif", 8), new SolidBrush(Block.ForeColor), new Rectangle((int)left, 4, 320, 50));
@@ -150,14 +150,14 @@ namespace Spider
                     // Get width of all titles
                     foreach (Link l in Titles)
                     {
-                        strW += this.Block.Stylesheet.MeasureString(l.Title, TitleBlock.Font).Width * 1.1f;
+                        strW += this.Block.Stylesheet.MeasureString(g, l.Title, TitleBlock.Font).Width * 1.1f;
 
                     }
                     float left = this.Width - strW - 24;
                     int i = 0;
                     foreach (Link l in Titles)
                     {
-                        float xx = this.Block.Stylesheet.MeasureString(l.Title, TitleBlock.Font).Width * 1.1f;
+                        float xx = this.Block.Stylesheet.MeasureString(g, l.Title, TitleBlock.Font).Width * 1.1f;
                         this.Block.Stylesheet.DrawString(graphics.Graphics, l.Title, TitleBlock.Font, new SolidBrush(Color.Black), new Rectangle((int)left, 5, (int)xx, 18));
                         this.Block.Stylesheet.DrawString(graphics.Graphics, l.Title, TitleBlock.Font, new SolidBrush(Color.White), new Rectangle((int)left, 4, (int)xx, 18));
                         left += xx;

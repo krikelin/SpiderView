@@ -33,10 +33,10 @@ namespace Spider
         public String Title;
         public Block InfoBlock;
         public NotificationType Type = NotificationType.Info;
+        BufferedGraphicsContext bgc = new BufferedGraphicsContext();
        
         protected override void OnPaintBackground(PaintEventArgs e)
         {
-            BufferedGraphicsContext bgc = new BufferedGraphicsContext();
             BufferedGraphics bg = bgc.Allocate(e.Graphics, e.ClipRectangle);
             Draw(bg.Graphics);
             bg.Render();
@@ -91,7 +91,6 @@ namespace Spider
         void infobar_Paint(object sender, PaintEventArgs e)
         {
 
-            BufferedGraphicsContext bgc = new BufferedGraphicsContext();
             BufferedGraphics bg = bgc.Allocate(e.Graphics, e.ClipRectangle);
             Draw(bg.Graphics);
             bg.Render();

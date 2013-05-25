@@ -129,22 +129,24 @@ namespace Spider
         }
         public DockStyle Dock;
         public void CheckHover(int x, int y)
+        
         {
+            if ((x > this.X && x < this.X + this.Width) && (y > this.Y && y < this.Y + this.Height))
+            {
+                Board.HoveredElement = this;
 
-            Board.HoveredElement = this;
-            this.OnMouseOver(x, y);
+                this.OnMouseOver(x, y);
+            }
             x -= this.X;
             y -= this.Y;
             foreach (Element elm in Children)
             {
 
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
-                {
+                
+                
                     elm.CheckHover(x, y);
-                }
-                else
-                {
-                }
+                
+                
             }
             x += this.X;
             y += this.Y;
@@ -154,19 +156,22 @@ namespace Spider
         public event MouseEventHandler MouseMove;
         public virtual void OnMouseOver(int x, int y)
         {
-            this.Board.HoveredElement = this;
-            if (!String.IsNullOrEmpty(this.Hyperlink) && this.GetType() != typeof(track))
+            if ((x > AbsoluteLeft && x < AbsoluteTop + Width) && (y > AbsoluteTop && y < AbsoluteTop + Height))
             {
-                this.Board.foundLink = true;
-            }
-            if (this.MouseMove != null)
-                this.MouseMove(this, new MouseEventArgs(x, y));
+                this.Board.HoveredElement = this;
+                if (!String.IsNullOrEmpty(this.Hyperlink) && this.GetType() != typeof(track))
+                {
+                    this.Board.foundLink = true;
+                }
 
+                if (this.MouseMove != null)
+                    this.MouseMove(this, new MouseEventArgs(x, y));
+            }
             x -= this.X;
             y -= this.Y;
             foreach (Element elm in this.Children)
             {
-                if ((x > elm.AbsoluteLeft && x < elm.AbsoluteTop + elm.Width) && (y > elm.AbsoluteTop && y < elm.AbsoluteTop + elm.Height))
+               
                 {
                     elm.OnMouseOver(x, y);
                 }
@@ -210,21 +215,26 @@ namespace Spider
         }
         public virtual void OnMouseDown(int x, int y)
         {
-            if (!String.IsNullOrEmpty(this.Hyperlink))
+            if ((x > X && x < Y + Width) && (y > Y && y < Y + Height))
             {
-                this.Board.foundLink = true;
-                if (BeginDrag != null)
+                if (!String.IsNullOrEmpty(this.Hyperlink))
                 {
-                    BeginDrag(this, new DragEventArgs() { Uri = this.Hyperlink, elm = this });
+                    this.Board.foundLink = true;
+                    if (BeginDrag != null)
+                    {
+                        BeginDrag(this, new DragEventArgs() { Uri = this.Hyperlink, elm = this });
+                        this.Board.foundLink = false;
+                    }
                 }
+
+                if (this.MouseDown != null)
+                    this.MouseDown(this, new MouseEventArgs(x, y));
             }
-            if (this.MouseDown != null)
-                this.MouseDown(this, new MouseEventArgs(x, y));
             x -= this.X;
             y -= this.Y;
             foreach (Element elm in this.Children)
             {
-                if ((x > elm.X && x < elm.Y + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+               
                 {
                     elm.OnMouseDown(x, y);
                 }
@@ -240,16 +250,16 @@ namespace Spider
         }
         public void CheckClick(int x, int y)
         {
+            if ((x > X && x < X + Width) && (y > Y && y < Y + Height)) {
+                if(this.Hyperlink != null) {
+                   this.Board.SpiderView.BeginNavigate(new Uri(this.Hyperlink));
+                }
             
-            if(this.Hyperlink != null) {
-               this.Board.SpiderView.BeginNavigate(new Uri(this.Hyperlink));
+                this.OnMouseClick(x, y);
+                Graphics g = this.Board.CreateGraphics();
+              //  g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+             //  this.OnMouseClick(x, y);
             }
-            
-            this.OnMouseClick(x, y);
-            Graphics g = this.Board.CreateGraphics();
-          //  g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
-            this.OnMouseClick(x, y);
-
             if (this.node.HasAttribute("onClick"))
             {
                 this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.node.GetAttribute("onClick"), Element = this, Event = "click", View = this.Board.SpiderView });
@@ -261,11 +271,11 @@ namespace Spider
             foreach (Element elm in Children)
             {
 
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                
                 {
                     elm.CheckClick(x, y);
                 }
-                else
+               
                 {
 
                 }
@@ -277,29 +287,30 @@ namespace Spider
         }
         public void CheckMouseDown(int x, int y)
         {
-
-
-            this.OnMouseDown(x, y);
-            Graphics g = this.Board.CreateGraphics();
-       //     g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
-          //  this.OnClick(x, y);
-
-            if (this.ElementEventHandlers.ContainsKey("onmousedown"))
+            if ((x > X && x < X + Width) && (y > Y && y < Y + Height))
             {
-                this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.ElementEventHandlers["mousedown"], Element = this, Event = "mousedown", View = this.Board.SpiderView });
 
+                this.OnMouseDown(x, y);
+                Graphics g = this.Board.CreateGraphics();
+                    g.DrawRectangle(new Pen(Color.Green), this.X, this.Y, 20, 20);
+                //  this.OnClick(x, y);
+
+                if (this.ElementEventHandlers.ContainsKey("onmousedown"))
+                {
+                    this.Board.InvokeScript(new Board.ScriptInvokeEventArgs() { Command = this.ElementEventHandlers["mousedown"], Element = this, Event = "mousedown", View = this.Board.SpiderView });
+
+                }
             }
-
             x -= this.X;
             y -= this.Y;
             foreach (Element elm in Children)
             {
 
-                if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
+                //if ((x > elm.X && x < elm.X + elm.Width) && (y > elm.Y && y < elm.Y + elm.Height))
                 {
                     elm.CheckMouseDown(x, y);
                 }
-                else
+                //else
                 {
 
                 }
@@ -518,7 +529,7 @@ namespace Spider
             }
             if (node.HasAttribute("style"))
             {
-                this.Block = new Block(node.GetAttribute("style"), Block);
+                this.Block = new Block(this.Stylesheet, node.GetAttribute("style"), Block);
             }
            
             this.Text = node.InnerText;
@@ -658,7 +669,7 @@ namespace Spider
                     }
                     if (node.HasAttribute("style"))
                     {
-                        this.Block = new Block(node.GetAttribute("style"), Block);
+                        this.Block = new Block(this.Stylesheet, node.GetAttribute("style"), Block);
                     }
                     if (node.HasAttribute("fontWeight"))
                     {
@@ -916,8 +927,7 @@ namespace Spider
                             currentChunk.rowPositions.Add(currentRow);
                             currentRow = new RowPosition();
                             currentRow.start = 0;
-
-                            currentRow.y = row;
+                           
                         }
                         continue;
                     }
@@ -935,7 +945,7 @@ namespace Spider
                     
                     
                     j++;
-                    left += (float)(TextRenderer.MeasureText(c.ToString(), Block.Font).Width) * 0.4f;
+                    left += (float)(Block.Stylesheet.MeasureString(this.Board.CreateGraphics(), c.ToString(), Block.Font).Width * 1f);
                     Console.WriteLine(left.ToString() + " " + c.ToString());
                 }
             }
@@ -1064,7 +1074,7 @@ namespace Spider
             //   g.DrawImage(bitmap, new Point(x, y));
             if (BackColor != null)
                 g.FillRectangle(new SolidBrush(BackColor), new Rectangle(x, y, Width, Height));
-            this.Stylesheet.DrawString(g, ParsedText, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
+            this.Stylesheet.DrawString(this.Board.BufferedGraphics.Graphics, ParsedText, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
             
             
 
@@ -1288,7 +1298,7 @@ namespace Spider
                         ((track)track).Parent = this;
                         track.X = 0;
                         track.Y = i * trackHeight;
-                        if (i % 2 == 0)
+                        if (i % 2 == 1)
                         {
                             track.Block = this.Stylesheet.Blocks["track::even"];
                         }
@@ -1331,6 +1341,79 @@ namespace Spider
         public int Width;
         public int Index;
     }
+    public class br : Element
+    {
+        public br(Board host, XmlElement node)
+            : base(host, node)
+        {
+        }
+        public override void BeforePackChildren()
+        {
+
+        }
+        public override void PackChildren()
+        {
+
+        }
+    }
+    public class table : Element
+    {
+        public table(Board host, XmlElement node)
+            : base(host, node)
+        {
+        }
+        public override void PackChildren()
+        {
+            int width = this.AbsoluteWidth;
+            int height = this.AbsoluteHeight;
+            int rows = 0;
+            int cols = 0;
+            List<int> rowheights = new List<int>();
+            // Calculate each unit
+            int cheight = 0;
+
+            // Calculate each rows height
+            foreach (Element e in this.Children)
+            {
+                if (e.AbsoluteHeight > height)
+                {
+                    cheight = e.AbsoluteHeight;
+                }
+                if (e.GetType() == typeof(br))
+                {
+                    rowheights.Add(cheight);
+                    cheight = 0; // reset cheight
+                    rows += 1;
+                }
+                else
+                {
+                    cols += 1;
+                }
+            }
+            int row = 0;
+            int ypos = 0;
+            int column = 0;
+            foreach (Element e in this.Children)
+            {
+                e.X =( width / cols) * column;
+                e.Y = ypos;
+                e.Width = this.Width / cols;
+                if (e.GetType() == typeof(br))
+                {
+                    ypos += rowheights[row];
+                    row++;
+                }
+                else
+                {
+                    column++;
+                }
+            }
+        }
+        public override void BeforePackChildren()
+        {
+
+        }
+    }
     public class track : Element
     {
        
@@ -1339,20 +1422,46 @@ namespace Spider
         {
 
         }
+        public override void OnMouseClick(int x, int y)
+        {
+            base.OnMouseClick(x, y);
+            foreach (KeyValuePair<String, ColumnHeader> ch in columnHeader.ColumnHeaders)
+            {
+                if (x > ch.Value.Left && x < ch.Value.Left + ch.Value.Width)
+                {
+                    if (ch.Key == "artist")
+                    {
+                        this.Board.SpiderView.Host.Navigate(this.Track.Artists[0].Uri);
+                    }
+                    if (ch.Key == "album")
+                    {
+                        this.Board.SpiderView.Host.Navigate(this.Track.Album.Uri);
+                    }
+                }
+            }
+        }
         public override void CheckDoubleClick(int x, int y)
         {
             base.CheckDoubleClick(x, y);
             if (this.Track != null)
             {
-                this.Track.Play();
-                this.Board.SpiderView.Host.PlayContext = this.Board;
-                this.Board.Invalidate(new Rectangle(X, Y, Width, Height));
+                if (this.Track.Play())
+                {
+                    this.Board.SpiderView.Host.PlayContext = this.Board;
+                    this.Board.Invalidate(new Rectangle(X, Y, Width, Height));
+                }
+                else
+                {
+                    Board.SpiderView.Host.OnNotify(Board.SpiderView.Host, new NotificationEventArgs() { Text = "The track you selected is not available", Type = NotificationType.Error });
+
+                }
             }
         }
         public playlist Playlist {get;set;}
         public Track Track { get; set; }
         public bool Selected { get; set; }
         public Block SelectedBlock;
+        public Block UnavailableBlock;
         private XmlElement node;
         public track(Board host, XmlElement node)
             : base(host, node)
@@ -1375,6 +1484,8 @@ namespace Spider
             this.Block = (Block)this.Board.Stylesheet.Blocks["track"].Clone();
             this.Block.Font = new Font("MS Sans Serif", 11, FontStyle.Regular, GraphicsUnit.Pixel);
             this.SelectedBlock = (Block)this.Board.Stylesheet.Blocks["track::selected"].Clone();
+            this.UnavailableBlock = (Block)this.Board.Stylesheet.Blocks["track::unavailable"].Clone();
+
 
         }
 
@@ -1397,7 +1508,22 @@ namespace Spider
         public override void OnMouseOver(int x, int y)
         {
             base.OnMouseOver(x, y);
+            try
+            {
+                foreach (KeyValuePair<String, ColumnHeader> ch in columnHeader.ColumnHeaders)
+                {
+                    if (x > ch.Value.Left && x < ch.Value.Left + ch.Value.Width)
+                    {
+                        if (ch.Key == "artist" || ch.Key == "album")
+                            this.Board.foundLink = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+            }
         }
+        
         public override void Draw(Graphics g, ref int x, ref int y)
         {
             base.Draw(g, ref x, ref y);
@@ -1410,7 +1536,7 @@ namespace Spider
                     break;
                 case Spider.Media.Resource.State.Removed:
                 case Spider.Media.Resource.State.NotAvailable:
-                    fgColor = Color.FromArgb(255, Color.FromArgb(100,50,50));
+                    fgColor = this.UnavailableBlock.ForeColor;
                     break;
             }
             if (Track.Playing)
@@ -1876,6 +2002,7 @@ namespace Spider
 
                 if (left + child.Width > this.Width)
                 {
+                    row += child.Height;
                     break;
                 }
 

@@ -6,18 +6,28 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using Aleros.CSS;
+using System.IO;
 
 namespace Spider.Skinning
 {
     public class PixelStyle : Style
     {
-
+        private Dictionary<String, Image> images;
+        public Dictionary<String, Image> Images
+        {
+            get
+            {
+                return images;
+            }
+        }
         public PixelStyle()
         {
 
             this.blocks = new Dictionary<string, Block>();
-            Skin = Properties.Resources.skin;
+            
             // Partialize skin
+            this.Skin = Properties.Resources.skin;
         }
         private Bitmap skin;
         public Bitmap Skin
@@ -35,6 +45,7 @@ namespace Spider.Skinning
        
         public void Slice(Bitmap bitmap)
         {
+#if (true)
             // Get tab bar
             var tabTitle = new Block(this, bitmap.GetPixel(1, 0), bitmap.GetPixel(1, 0), bitmap.GetPixel(4, 0), bitmap.GetPixel(1, 0));
             this.Blocks.Add("infobar::info", new Block(this, sliceBitmap(bitmap, new Rectangle(187, 98, 90 ,30)), Color.Black, Color.White, Color.Black));
@@ -64,6 +75,7 @@ namespace Spider.Skinning
             track.AlternateBackColor = bitmap.GetPixel(9, 0);
             track.Font = new Font("MS Sans Serif", 8);
             this.Blocks.Add("track::playing", new Block(this, Color.Black, Color.LightGreen, Color.Black, Color.White));
+            this.Blocks.Add("track::unavailable", new Block(this, Color.Transparent, bitmap.GetPixel(22, 0), Color.Black, Color.DarkRed));
 
             this.Blocks.Add("Divider", new Block(this, sliceBitmap(bitmap, new Rectangle(0, 24, 50, 23)), Color.White, Color.Black, Color.White));
             this.Blocks.Add("::selection", new Block(this, bitmap.GetPixel(6, 0), bitmap.GetPixel(5, 0), Color.Black, Color.White));
@@ -92,6 +104,7 @@ namespace Spider.Skinning
             this.blocks.Add("header", new Block(this, sliceBitmap(bitmap, new Rectangle(214, 0, 92, 55)), Color.Black, Color.White, Color.Black));
             this.blocks.Add("tab:divider", new Block(this, bitmap.GetPixel(123, 3), bitmap.GetPixel(97, 3), Color.Black, Color.Black));
             this.blocks.Add("::sub", new Block(this, bitmap.GetPixel(17, 0), bitmap.GetPixel(17, 0), bitmap.GetPixel(17, 0), bitmap.GetPixel(17, 0)));
+#endif
         }
         public Bitmap sliceBitmap(Bitmap src, Rectangle region)
         {
@@ -111,21 +124,27 @@ namespace Spider.Skinning
         }
         private Dictionary<string, Block> blocks { get; set; }
 
-
+        BufferedGraphicsContext bgc = new BufferedGraphicsContext();
         public void DrawString(Graphics g, string text, Font font, SolidBrush brush, Rectangle pos)
         {
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
           
-            //  g.DrawString(text, font, new SolidBrush(Color.FromArgb(127, Color.Black)), new Rectangle(pos.X, pos.Y -1 , pos.Width, pos.Height));
-            BufferedGraphicsContext bgc = new BufferedGraphicsContext();
-
+        //      g.DrawString(text, font, new SolidBrush(Color.FromArgb(127, Color.Black)), new Rectangle(pos.X, pos.Y -1 , pos.Width, pos.Height));
+            
+#if(!Renderer)
             TextRenderer.DrawText(g, text, font, new Rectangle(pos.Left, pos.Top, pos.Width, pos.Height), brush.Color, Color.Transparent, TextFormatFlags.Left | TextFormatFlags.WordBreak);
-            //g.DrawString( text, font, brush, pos);
-            //g.DrawString(text, font, brush, pos);
+#else
+
+            g.DrawString( text, font, brush, pos);
+#endif          
         }
-        public Size MeasureString(string text, Font font)
+        public Size MeasureString(Graphics g, string text, Font font)
         {
-            return TextRenderer.MeasureText(text, font);
+#if(Renderer)
+            return TextRenderer.MeasureText(g, text, font, Size.Empty, TextFormatFlags.NoPadding);
+#else
+            return TextRenderer.MeasureText(text, font,Size.Empty, TextFormatFlags.NoPadding);
+#endif
         }
     }
 }

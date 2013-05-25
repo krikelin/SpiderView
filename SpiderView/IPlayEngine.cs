@@ -10,6 +10,21 @@ using System.Threading.Tasks;
 namespace Spider.Media
 {
     /// <summary>
+    /// Abstract ontology for each realm
+    /// </summary>
+    public interface IOntologyService
+    { 
+        /// <summary>
+        /// Namespace of the service
+        /// </summary>
+        String Namespace { get; }
+
+        /// <summary>
+        /// Name of the service
+        /// </summary>
+        String Name { get; }
+    }
+    /// <summary>
     /// A resource is a certain resource
     /// </summary>
     public abstract class Resource
@@ -64,20 +79,30 @@ namespace Spider.Media
         }
         public String Identifier { get; set; }
         public String Name { get; set; }
-        public IMusicService  Service { get; set; }
         public String Image { get; set; }
-        
+        public IOntologyService Service { get; set; }
         /// <summary>
         /// Creates a new resource
         /// </summary>
         /// <param name="service"></param>
-        public Resource(IMusicService service)
+        public Resource(IOntologyService service)
         {
             this.Service = service;
             this.Image = "http://o.scdn.co/300/69bfa0d62f92a60ffbc98a7c3df87928da6d5c39";
         }
     }
-    public class Country : Resource
+    public abstract class MusicResource : Resource
+    {
+        public IMusicService Service { get; set; }
+        public MusicResource(IMusicService service) :
+            base(service)
+        {
+            
+            this.Service = service;
+        }
+        
+    }
+    public class Country : MusicResource
     {
         public Country(IMusicService service, String name)
             : base(service)
@@ -118,7 +143,7 @@ namespace Spider.Media
         /// The artist he/she represents
         /// </summary>
         public Artist Artist { get; set; }
-        public User(IMusicService service)
+        public User(IOntologyService service)
             : base(service)
         {
 
@@ -127,7 +152,7 @@ namespace Spider.Media
     /// <summary>
     /// Artist
     /// </summary>
-    public class Artist : Resource
+    public class Artist : MusicResource
     {
         public String Biography { get; set; }
         public int Year { get; set; }
@@ -161,13 +186,13 @@ namespace Spider.Media
         }
     }
   
-    public class Track : Resource
+    public class Track : MusicResource
     {
         public String Zerofill(int number)
         {
             return number > 10 ? number.ToString() : "0" + number.ToString();
         }
-        
+        public Dictionary<String, Object> Attributes = new Dictionary<string, object>();
         public track Element { get; set; }
         public Artist[] Artists { get; set; }
         public Release Album { get; set; }
@@ -250,6 +275,7 @@ namespace Spider.Media
             this.Album = t.Album;
             this.Status = t.Status;
             this.Popularity = t.Popularity;
+            this.Attributes = t.Attributes;
             this.Name = t.Name;
             e.Result = t;
            
@@ -257,11 +283,12 @@ namespace Spider.Media
         /// <summary>
         /// Play the track
         /// </summary>
-        public void Play()
+        public bool Play()
         {
             if (this.Status != State.Available)
             {
-                return;
+
+                return false;
             }
             this.Service.Play(this);
             if (Element != null)
@@ -273,6 +300,7 @@ namespace Spider.Media
                     Item.Spawn.Section.SpiderView.Host.PlayContext = Item.Spawn.Section.Board;
                 Item.Spawn.Invalidate();
             }
+            return true;
         }
         public Track(IMusicService service)
             : base(service)
@@ -466,7 +494,7 @@ namespace Spider.Media
         }
     }
    
-    public class Context : Resource
+    public class Context : MusicResource
     {
         public List<Track> Tracks { get; set; }
         public Context(IMusicService service)
@@ -607,7 +635,7 @@ namespace Spider.Media
     /// <summary>
     /// An engine
     /// </summary>
-    public interface IMusicService
+    public interface IMusicService : IOntologyService
     {
         
         event TrackChangedEventHandler TrackDeleted;
@@ -617,15 +645,7 @@ namespace Spider.Media
         event UserObjectsventHandler ObjectsDelivered;
 
         
-        /// <summary>
-        /// Namespace of the service
-        /// </summary>
-        String Namespace { get; }
-
-        /// <summary>
-        /// Name of the service
-        /// </summary>
-        String Name { get; }
+       
         /// <summary>
         /// Plays the track
         /// </summary>
@@ -808,6 +828,13 @@ namespace Spider.Media
         /// <param name="oldPos"></param>
         /// <param name="newPos"></param>
         void insertUserObject(String uri, int pos);
+        
+        /// <summary>
+        /// Append user object to the end of the collection
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="pos"></param>
+        void AddUserObject(String uri);
 
         TrackCollection GetCollection(String type, String identifier);
     }

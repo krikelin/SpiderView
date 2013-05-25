@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Spider.Media;
+using System.Net;
+using System.Xml;
 
 namespace Spider
 {
@@ -71,11 +73,28 @@ namespace Spider
         {
 
         }
+        
         void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+           
             spiderView.LoadFile(Template);
             spiderView.refresh(e.Result);
             if(this.Loaded != null)
+                this.Loaded(this, new EventArgs());
+            LoadFinished();
+            if (error)
+            {
+                throw new Exception();
+            }
+        }
+
+        void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(e.Result);
+            spiderView.LoadNodes(xmlDoc.DocumentElement);
+            spiderView.refresh(e.Result);
+            if (this.Loaded != null)
                 this.Loaded(this, new EventArgs());
             LoadFinished();
             if (error)
@@ -88,15 +107,16 @@ namespace Spider
         {
             EventHandler r = new EventHandler((object ow, EventArgs ex) => { throw new Exception();});
 
-            try
+            // If template starts with http look like thi
+            if (Template.StartsWith("spider://"))
             {
+                WebClient wc = new WebClient();
+                String page = wc.DownloadString(new Uri("http://localhost:8080/" + Template));
+            } 
+            
                 e.Result = Loading(e.Argument);
-            }
-            catch (Exception ex)
-            {
-                error = true;
-               
-            }
+            
+
         }
 
         /// <summary>

@@ -211,11 +211,13 @@ namespace Spider
         {
             InitializeComponent();
         }
-        public SpiderHost(IMusicService defaultService)
+        public SpiderHost(IOntologyService defaultService)
         {
             InitializeComponent();
-            this.MusicService = defaultService;
-            this.MusicService.PlaybackFinished += MusicService_PlaybackFinished;
+      
+                this.MusicService = (IMusicService)defaultService;
+                this.MusicService.PlaybackFinished += MusicService_PlaybackFinished;
+            
         }
         void MusicService_PlaybackFinished(object sender, EventArgs e)
         {

@@ -33,6 +33,12 @@
   <PropertyGroup>
     <StartupObject>Spider.TestingProgram</StartupObject>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Graphics|AnyCPU'">
+    <OutputPath>bin\Graphics\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Renderer|AnyCPU'">
+    <OutputPath>bin\Renderer\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotLiquid, Version=1.7.0.0, Culture=neutral, PublicKeyToken=82e46016ecf9f07c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -88,6 +94,7 @@
       <DependentUpon>infobar.cs</DependentUpon>
     </Compile>
     <Compile Include="IPlayEngine.cs" />
+    <Compile Include="ISocialService.cs" />
     <Compile Include="ITrack.cs" />
     <Compile Include="LuaInterface\CheckType.cs" />
     <Compile Include="LuaInterface\GenerateEventAssembly.cs" />
@@ -236,6 +243,25 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="LuaInterface\Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="AxWMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>aximp</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+    <COMReference Include="WMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

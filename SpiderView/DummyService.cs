@@ -17,12 +17,22 @@ namespace Spider
         {
             return new OleDbConnection(CONNECTION_PATH);
         }
+        WMPLib.WindowsMediaPlayerClass wmplayer;
         public DummyService()
         {
 
             timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += timer_Tick;
+            wmplayer = new WMPLib.WindowsMediaPlayerClass();
+            wmplayer.PositionChange += wmplayer_PositionChange;
+    
+        }
+
+        void wmplayer_PositionChange(double oldPosition, double newPosition)
+        {
+            this.position = (int)newPosition;
+            
         }
         private Track nowPlayingTrack;
         public Track NowPlayingTrack
@@ -65,19 +75,24 @@ namespace Spider
         }
         int position = 0;
         private Track CurrentTrack;
+        int duration = 0;
         public void Play(Track track)
         {
             this.nowPlayingTrack = track;
-
-            timer.Start();
-
+            if (track.Attributes.ContainsKey("fileUrl"))
+            {
+                this.wmplayer.URL = "file://" + (String)track.Attributes["fileUrl"];
+                this.duration = (int)this.wmplayer.currentItem.duration;
+      //          timer.Start();
+            }
         }
 
         public void Stop()
         {
             if (nowPlayingTrack == null)
                 return;
-            timer.Stop(); // Stop "playback"
+           // timer.Stop(); // Stop "playback"
+            this.wmplayer.stop();
             position = 0; // Reset position
             nowPlayingTrack = null;
         }
@@ -86,7 +101,7 @@ namespace Spider
         {
             if (nowPlayingTrack == null)
                 return;
-            timer.Stop();
+            this.wmplayer.pause();
         }
 
         public void Seek(int pos)
@@ -94,7 +109,8 @@ namespace Spider
             if (CurrentTrack == null)
                 return;
             position = pos;
-            if (position >= CurrentTrack.Duration)
+            this.wmplayer.currentPosition = pos;
+            if (position >= duration)
             {
                 if (PlaybackFinished != null)
                 {
@@ -214,8 +230,11 @@ namespace Spider
                     Name = (String)dr["release.title"],
                     Status = (Spider.Media.Resource.State)dr["release.status"],
 
-                }
+                },
+                Status = dr["fileUrl"].GetType() != typeof(DBNull) ? Spider.Media.Resource.State.Available : Resource.State.NotAvailable
             };
+            if(dr["fileUrl"].GetType() != typeof(DBNull))
+                t.Attributes.Add("fileUrl", dr["fileUrl"]);
             var pop = ((decimal)dr["track.popularity"]);
             t.Popularity = (float)pop / 100;
             return t;
@@ -281,7 +300,7 @@ namespace Spider
         public TrackCollection LoadTracksForGivenRelease(Release release)
         {
             String sql = "SELECT * FROM track, release, artist WHERE (release.ID = track.album) AND (artist.ID = track.artist) AND (artist.ID = track.artist)  AND " +
-                "release.identifier = '" + release.Identifier + "'";
+                "release.identifier = '" + release.Identifier + "' ORDER BY trackNumber ASC";
             DataSet result = MakeDataSet(sql);
             TrackCollection tc = new TrackCollection(this, release, new List<Track>());
             foreach (DataRow row in result.Tables[0].Rows)
@@ -314,6 +333,9 @@ namespace Spider
             t.Artists = new Artist[] { new Artist(this) { Name = (String)track["artist.title"], Identifier = (String)track["artist.identifier"] } };
             t.Album = new Release(this);
             t.Duration = (int)track[25];
+            t.Status = track["fileUrl"].GetType() != typeof(DBNull) ? Spider.Media.Resource.State.Available : Resource.State.NotAvailable;
+            if (track["fileUrl"].GetType() != typeof(DBNull))
+                t.Attributes.Add("fileUrl", track["fileUrl"]);
             t.Album = new Release(this) 
             {
                 Name = (String)track["release.title"],
@@ -344,7 +366,7 @@ namespace Spider
             TopList t = new TopList(this);
             if (res.GetType() == typeof(Artist)) 
             {
-                DataSet topTracks = MakeDataSet("SELECT TOP 5 * FROM track, artist, release WHERE track.artist = artist.id AND track.album = release.id AND artist.identifier = '" + res.Identifier + "' ORDER BY track.popularity DESC");
+                DataSet topTracks = MakeDataSet("SELECT TOP 5 * FROM track, artist, release WHERE track.artist = artist.id AND track.album = release.id AND artist.identifier = '" + res.Identifier + "' AND release.status = 0 ORDER BY track.popularity DESC");
                 t.TopTracks = new TrackCollection(this, t, new List<Track>());
                 t.TopAlbums = new ReleaseCollection(this,  new List<Release>());
                 foreach (DataRow row in topTracks.Tables[0].Rows)
@@ -419,10 +441,15 @@ namespace Spider
         {
             get { return SessionState.LoggedIn; }
         }
-
+        private string username = "drsounds";
         public LogInResult LogIn(string userName, string passWord)
         {
-            return LogInResult.Success;
+            DataSet t = MakeDataSet("SELECT * FROM users WHERE identifier = '" + username + "'");
+            if (t.Tables[0].Rows.Count > 0)
+                return LogInResult.Success;
+            else
+
+                return LogInResult.Failure;
         }
 
         public User GetCurrentUser()
@@ -593,7 +620,7 @@ namespace Spider
         void bw_DoWork(object sender, DoWorkEventArgs e)
         {
             Thread.Sleep(100);
-            DataSet ds = MakeDataSet("SELECT favorites FROM users WHERE users.identifier = 'drsounds'");
+            DataSet ds = MakeDataSet("SELECT favorites FROM users WHERE users.identifier = '" + this.username + "'");
             String d = "";
             try
             {
@@ -624,7 +651,7 @@ namespace Spider
            
             int _oldPos = ((int[])parameters)[0];
             int _newPos = ((int[])parameters)[1];
-            DataSet ds = MakeDataSet("SELECT * FROM user WHERE identifier = 'drsounds'");
+            DataSet ds = MakeDataSet("SELECT * FROM user WHERE identifier = '" + this.username + "'");
             DataRow _playlist = ds.Tables[0].Rows[0];
             String tracks = (String)_playlist["favorites"];
 
@@ -635,20 +662,58 @@ namespace Spider
 
             OleDbConnection conn = MakeConnection();
             conn.Open();
-            OleDbCommand command = new OleDbCommand("UPDATE user SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE user.identifier = 'drsounds'", conn);
+            OleDbCommand command = new OleDbCommand("UPDATE user SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE user.identifier = '" + this.username + "'", conn);
             command.ExecuteNonQuery();
             conn.Close();
         }
+        public void AddUserObject(string uri)
+        {
+            //Thread t = new Thread(_insertUserObject);
 
+            DataSet ds = MakeDataSet("SELECT * FROM users WHERE identifier = '" + this.username + "'");
+            DataRow _playlist = ds.Tables[0].Rows[0];
+            String tracks = (String)_playlist["favorites"];
+
+            List<String> Rows = new List<string>(tracks.Split('&'));
+
+            Rows.Add(uri);
+
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE users SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE users.identifier = '" + this.username + "'", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
+        }
+        
         public void insertUserObject(string uri, int pos)
         {
-            Thread t = new Thread(_insertUserObject);
+            //Thread t = new Thread(_insertUserObject);
+            
+            DataSet ds = MakeDataSet("SELECT * FROM users WHERE identifier = '" + this.username + "'");
+            DataRow _playlist = ds.Tables[0].Rows[0];
+            String tracks = (String)_playlist["favorites"];
+
+            List<String> Rows = new List<string>(tracks.Split('&'));
+            try
+            {
+                Rows.Insert(pos, uri);
+            }
+            catch (Exception e)
+            {
+                Rows.Add(uri);
+            }
+            OleDbConnection conn = MakeConnection();
+            conn.Open();
+            OleDbCommand command = new OleDbCommand("UPDATE users SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE users.identifier = '" + this.username + "'", conn);
+            command.ExecuteNonQuery();
+            conn.Close();
         }
+        
         private void _insertUserObject(object parameters)
         {
             String uri = (String)((Object[])parameters)[0];
             int pos = (int)((Object[])parameters)[1];
-            DataSet ds = MakeDataSet("SELECT * FROM user WHERE identifier = 'drsounds'");
+            DataSet ds = MakeDataSet("SELECT * FROM user WHERE identifier = '" + this.username + "'");
             DataRow _playlist = ds.Tables[0].Rows[0];
             String tracks = (String)_playlist["favorites"];
 
@@ -658,7 +723,7 @@ namespace Spider
 
             OleDbConnection conn = MakeConnection();
             conn.Open();
-            OleDbCommand command = new OleDbCommand("UPDATE user SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE user.identifier = 'drsounds'", conn);
+            OleDbCommand command = new OleDbCommand("UPDATE user SET favorites = '" + String.Join("&", Rows.ToArray()) + "' WHERE user.identifier = '" + this.username + "'", conn);
             command.ExecuteNonQuery();
             conn.Close();
         }
