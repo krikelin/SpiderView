@@ -1784,14 +1784,26 @@ namespace Spider
                 }
                 else
                 {
-                    wc.DownloadDataCompleted += wc_DownloadDataCompleted;
-                    wc.DownloadDataAsync(new Uri(url), url);
+                    BackgroundWorker bw = new BackgroundWorker();
+                    bw.DoWork += bw_DoWork;
+
                 }
             }
             else
             {
                 this.image = ImageCollection[url];
             }
+        }
+
+        void bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            WebClient wc = new WebClient();
+            byte[] bytes = wc.DownloadData((Uri)e.Argument);
+            Image image = Image.FromStream(new MemoryStream(bytes, false));
+            this.image = image;
+            ImageCollection[((Uri)e.Argument).ToString()] = image;
+
+
         }
         public override void PackChildren()
         {
