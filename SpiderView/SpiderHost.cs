@@ -13,6 +13,7 @@ namespace Spider
 {
     public partial class SpiderHost : UserControl
     {
+     
         public event NotificationEventHandler Notify;
         Dictionary<String, IMusicService> Services { get; set; }
         public IMusicService MusicService { get; set; }

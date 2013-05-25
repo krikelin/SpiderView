@@ -133,7 +133,7 @@ namespace Spider
             if (obj == null)
                 return;
 #endif
-            try
+            //try
             {
                 String DOM = Preprocessor.Preprocess(this.template, obj);
                 XmlDocument xmlDoc = new XmlDocument();
@@ -178,9 +178,10 @@ namespace Spider
                 }
                 this.tabBar.Refresh();
             }
-            catch (Exception e)
+           
+           //catch (Exception e)
             {
-                this.Host.OnNotify(this.Host, new NotificationEventArgs() { Text = "An error occured", Type = NotificationType.Error });
+         //       this.Host.OnNotify(this.Host, new NotificationEventArgs() { Text = "An error occured", Type = NotificationType.Error });
             }
            
         }

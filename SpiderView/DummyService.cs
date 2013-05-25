@@ -465,12 +465,24 @@ namespace Spider
         {
             DataSet t = MakeDataSet("SELECT * FROM playlist WHERE identifier = '" + playlist.Identifier + "'");
             DataRow _playlist = t.Tables[0].Rows[0];
-            String tracks = (String)_playlist["data"];
-
-            List<String> Rows = new List<string>(tracks.Split('&')); 
-
-            Rows.Insert(pos, "spotify:track:" + track.Identifier + ":user:drsounds");
-            
+            String tracks = "";
+            try
+            {
+                tracks = (String)_playlist["data"];
+            }
+            catch (Exception e)
+            {
+                tracks = "";
+            }
+            List<String> Rows = new List<string>(tracks.Split('&'));
+            try
+            {
+                Rows.Insert(pos, "spotify:track:" + track.Identifier + ":user:drsounds");
+            }
+            catch (Exception e)
+            {
+                Rows.Add("spotify:track:" + track.Identifier + ":user:" + this.username);
+            }
             OleDbConnection conn = MakeConnection();
             conn.Open();
             OleDbCommand command = new OleDbCommand("UPDATE playlist SET data = '" + String.Join("&", Rows.ToArray()) + "' WHERE playlist.identifier = '" + playlist.Identifier + "'", conn);

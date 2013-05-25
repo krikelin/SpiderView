@@ -131,7 +131,8 @@ namespace Spider.Skinning
           
         //      g.DrawString(text, font, new SolidBrush(Color.FromArgb(127, Color.Black)), new Rectangle(pos.X, pos.Y -1 , pos.Width, pos.Height));
             
-#if(!Renderer)
+#if(Renderer)
+            
             TextRenderer.DrawText(g, text, font, new Rectangle(pos.Left, pos.Top, pos.Width, pos.Height), brush.Color, Color.Transparent, TextFormatFlags.Left | TextFormatFlags.WordBreak);
 #else
 
