@@ -23,7 +23,7 @@ namespace Spider
         public Stack<String> Future = new Stack<string>();
         public Form Form;
         public String CurrentURI = "";
-        public Board PlayContext; // The context of playback
+        public SectionView PlayContext; // The context of playback
         public void Play(track track)
         {
             track.Track.Play();
@@ -34,7 +34,7 @@ namespace Spider
             if(PlayContext != null)
             for (int i = 0; i <  PlayContext.Tracks.Count; i++)
             {
-                track track = PlayContext.Tracks[i];
+                track track = PlayContext.TrackElements[i];
                 if (lastTrack != null && lastTrack.Status == Track.State.Available)
                 {
                     MusicService.Stop();
@@ -50,7 +50,7 @@ namespace Spider
             }
             try
             {
-                foreach (Spider.CListView.CListViewItem t in this.PlayContext.Section.ListView.Items)
+                foreach (Spider.CListView.CListViewItem t in this.PlayContext.ListView.Items)
                 {
 
                     Track track = t.Track;
@@ -72,7 +72,13 @@ namespace Spider
         }
         public App LoadApp(String uri)
         {
-            String[] segments = uri.Split(':');
+            string[] navigation = uri.Split('#');
+            uri = navigation[0];
+            string section = "overview";
+            if (navigation.Length > 1)
+                section = navigation[1];
+        
+            String[] segments = navigation[0].Split(new char[] {':'});
             var ns = segments[1];
             String appId = uri;
             String[] arguments = new String[segments.Length - 2];
@@ -84,6 +90,7 @@ namespace Spider
                 App app = Apps[appId];
                
                 app.Navigate(arguments);
+                app.spiderView.SetSection(section);
                 if (this.Navigated != null)
                     this.Navigated(this, new SpiderNavigationEventArgs() { Arguments = arguments });
                 Future.Clear();
@@ -96,6 +103,7 @@ namespace Spider
             appClass.Tag = Form;
             Apps.Add(appId, appClass);
             appClass.Navigate(segments);
+            appClass.spiderView.SetSection(section);
             this.Controls.Add(appClass);
 
             appClass.Dock = DockStyle.Fill;
@@ -108,9 +116,16 @@ namespace Spider
         {
             try
             {
-                String[] segments = uri.Split(':');
+                string[] navigation = uri.Split('#');
+                uri = navigation[0];
+                CurrentURI = uri;
+                string section = "overview";
+                if (navigation.Length > 1)
+                    section = navigation[1];
+
+                String[] segments = navigation[0].Split(new char[] { ':' });
                 var ns = segments[1];
-                String appId = uri ;
+                String appId = uri;
                 String[] arguments = new String[segments.Length - 2];
                 System.Array.Copy(segments, 2, arguments, 0, segments.Length - 2);
                 // If app is already loaded bring it to front
@@ -123,7 +138,7 @@ namespace Spider
                     if (this.Navigated != null)
                         this.Navigated(this, new SpiderNavigationEventArgs() { Arguments = arguments });
                     Future.Clear();
-                    
+                    app.spiderView.SetSection(section);
                     app.Show();
                     foreach (Control a in this.Controls)
                     {
@@ -137,6 +152,7 @@ namespace Spider
                 appClass.Tag = Form;
                 Apps.Add(appId, appClass);
                 appClass.Navigate(segments);
+                appClass.spiderView.SetSection(section);
                 this.Controls.Add(appClass);
                 
                 appClass.Dock = DockStyle.Fill;
@@ -217,14 +233,27 @@ namespace Spider
             InitializeComponent();
       
                 this.MusicService = (IMusicService)defaultService;
+                this.MusicService.PlaybackStarted += MusicService_PlaybackStarted;
                 this.MusicService.PlaybackFinished += MusicService_PlaybackFinished;
-            
+                
         }
+
+        void MusicService_PlaybackStarted(object sender, EventArgs e)
+        {
+            this.PlayHistory.Push(MusicService.NowPlayingTrack);
+            List<Track> tracks = this.Apps[CurrentURI].spiderView.activeBoard.GetQueue(MusicService.NowPlayingTrack);
+            PlayQueue.Clear();
+            foreach (Track track in tracks)
+            {
+                PlayQueue.Enqueue(track);
+            }
+        }
+        public Queue<Track> PlayQueue = new Queue<Track>();
         void MusicService_PlaybackFinished(object sender, EventArgs e)
         {
             PlayNext();
         }
-
+        public Stack<Track> PlayHistory = new Stack<Track>();
         private void SpiderHost_Load(object sender, EventArgs e)
         {
 

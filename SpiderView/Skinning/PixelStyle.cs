@@ -125,27 +125,26 @@ namespace Spider.Skinning
         private Dictionary<string, Block> blocks { get; set; }
 
         BufferedGraphicsContext bgc = new BufferedGraphicsContext();
-        public void DrawString(Graphics g, string text, Font font, SolidBrush brush, Rectangle pos)
+        public void DrawString(Graphics g, string text, Font font, SolidBrush brush, Rectangle pos, bool final)
         {
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
           
         //      g.DrawString(text, font, new SolidBrush(Color.FromArgb(127, Color.Black)), new Rectangle(pos.X, pos.Y -1 , pos.Width, pos.Height));
             
-#if(Renderer)
-            
+if(final)
             TextRenderer.DrawText(g, text, font, new Rectangle(pos.Left, pos.Top, pos.Width, pos.Height), brush.Color, Color.Transparent, TextFormatFlags.Left | TextFormatFlags.WordBreak);
-#else
 
+else
             g.DrawString( text, font, brush, pos);
-#endif          
+        
         }
-        public Size MeasureString(Graphics g, string text, Font font)
+        public Size MeasureString(Graphics g, string text, Font font, bool final)
         {
-#if(Renderer)
+if(final)
             return TextRenderer.MeasureText(g, text, font, Size.Empty, TextFormatFlags.NoPadding);
-#else
+else
             return TextRenderer.MeasureText(text, font,Size.Empty, TextFormatFlags.NoPadding);
-#endif
+
         }
     }
 }

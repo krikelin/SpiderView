@@ -124,7 +124,7 @@ namespace Spider
                 g.DrawString(this.Text, this.Block.Font, new SolidBrush(foreColor), new Point(level + 32, pos + 2));
                 if (this.SubText != null)
                 {
-                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(g, this.Text, this.Block.Font).Width;
+                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(g, this.Text, this.Block.Font, true).Width;
                     g.DrawString(this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Point(left, pos + 3));
 
                 }
@@ -132,20 +132,20 @@ namespace Spider
             else if (this.Text.StartsWith("#"))
             {
                 foreColor = SelectedBlock.TextShadowColor;
-                this.Block.Stylesheet.DrawString(g, this.Text.ToUpper().Replace("#", ""), this.Block.Font, new SolidBrush(foreColor), new Rectangle(4, pos + 0, this.parent.Width, this.Height));
-                this.Block.Stylesheet.DrawString(g, this.Text.ToUpper().Replace("#", ""), this.Block.Font, new SolidBrush(Block.TextShadowColor), new Rectangle(4, pos - 1, this.Parent.Width, this.Height));
+                this.Block.Stylesheet.DrawString(g, this.Text.ToUpper().Replace("#", ""), this.Block.Font, new SolidBrush(foreColor), new Rectangle(4, pos + 0, this.parent.Width, this.Height), true);
+                this.Block.Stylesheet.DrawString(g, this.Text.ToUpper().Replace("#", ""), this.Block.Font, new SolidBrush(Block.TextShadowColor), new Rectangle(4, pos - 1, this.Parent.Width, this.Height), true);
             }
             else
             {
          //       this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(Block.TextShadowColor), new Rectangle(level + 32, pos + 2, this.parent.Width, this.Height));
           //      g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-          
-                this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(foreColor), new Rectangle(level + 32, pos + 3, this.parent.Width, this.Height));
+
+                this.Block.Stylesheet.DrawString(g, this.Text, this.Block.Font, new SolidBrush(foreColor), new Rectangle(level + 32, pos + 3, this.parent.Width, this.Height), true);
                 if (this.SubText != null)
                 {
-                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(g, this.Text, this.Block.Font).Width;
+                    int left = level + 32 + (int)this.Block.Stylesheet.MeasureString(g, this.Text, this.Block.Font, true).Width;
        //             this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(ChangeColorBrightness(intermediateColor, -0.6f)), new Rectangle(left, pos + 2, this.parent.Width, this.Height));
-                    this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Rectangle(left, pos + 3, this.parent.Width, this.Height));
+                    this.Block.Stylesheet.DrawString(g, this.SubText, this.Block.Font, new SolidBrush(intermediateColor), new Rectangle(left, pos + 3, this.parent.Width, this.Height), true);
 
                 }
             }

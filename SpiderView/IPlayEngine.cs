@@ -93,6 +93,7 @@ namespace Spider.Media
     }
     public abstract class MusicResource : Resource
     {
+        
         public IMusicService Service { get; set; }
         public MusicResource(IMusicService service) :
             base(service)
@@ -297,7 +298,7 @@ namespace Spider.Media
             }
             if (Item != null)
             {
-                    Item.Spawn.Section.SpiderView.Host.PlayContext = Item.Spawn.Section.Board;
+                    Item.Spawn.Section.SpiderView.Host.PlayContext = Item.Spawn.Section;
                 Item.Spawn.Invalidate();
             }
             return true;
@@ -465,6 +466,18 @@ namespace Spider.Media
         public ArtistCollection(IMusicService service, List<Artist> artists)
             : base(service, artists)
         {
+        }
+    }
+    public class PlayQueue : MusicResource
+    {
+        public Stack<Track> History { get; set; }
+        public Queue<Track> Queue { get; set; }
+        public PlayQueue(IMusicService service)
+            : base(service)
+        {
+            History = new Stack<Track>();
+            Queue = new Queue<Track>();
+            
         }
     }
     public class TrackCollection : ResourceCollection<Track>
@@ -642,6 +655,7 @@ namespace Spider.Media
         event TrackChangedEventHandler TrackAdded;
         event TrackChangedEventHandler TrackReordered;
         event PlayStateChangedEventHandler PlaybackFinished;
+        event PlayStateChangedEventHandler PlaybackStarted;
         event UserObjectsventHandler ObjectsDelivered;
 
         
@@ -690,7 +704,7 @@ namespace Spider.Media
         /// <param name="page"></param>
         /// <returns></returns>
         ReleaseCollection LoadReleasesForGivenArtist(Artist artist, ReleaseType type, int page);
-
+        SearchResult GetCollection(string collection, int page);
         /// <summary>
         /// Loads an album, with a list of songs.
         /// </summary>

@@ -31,6 +31,7 @@ namespace Spider
         /// <param name="function">Function name</param>
         /// <param name="arguments">Arguments to send</param>
         object[] InvokeFunction(String function, params Object[] arguments);
+        object[] InvokeFunction(Object function, params Object[] arguments);
         /// <summary>
         /// Gets the content type of the script engine
         /// </summary>

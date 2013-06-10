@@ -46,7 +46,7 @@ namespace Spider
         public void Draw(Graphics g)
         {
             g.DrawImage(this.InfoBlock.BackgroundImage, new Rectangle(0, 0, (int)((float)this.Width * 3.3f), this.Height));
-            stylesheet.DrawString(g, Text, this.InfoBlock.Font, new SolidBrush(InfoBlock.ForeColor), new Rectangle(this.InfoBlock.Padding.Left, this.InfoBlock.Padding.Top, this.Width - this.InfoBlock.Padding.Right * 2, this.Height - this.InfoBlock.Padding.Bottom*2));
+            stylesheet.DrawString(g, Text, this.InfoBlock.Font, new SolidBrush(InfoBlock.ForeColor), new Rectangle(this.InfoBlock.Padding.Left, this.InfoBlock.Padding.Top, this.Width - this.InfoBlock.Padding.Right * 2, this.Height - this.InfoBlock.Padding.Bottom * 2), true);
         }
         public infobar(Style style)
         {

@@ -131,6 +131,18 @@
     <Compile Include="SectionView.Designer.cs">
       <DependentUpon>SectionView.cs</DependentUpon>
     </Compile>
+    <Compile Include="SPCoverBar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SPCoverBar.Designer.cs">
+      <DependentUpon>SPCoverBar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SPSidebar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SPSidebar.Designer.cs">
+      <DependentUpon>SPSidebar.cs</DependentUpon>
+    </Compile>
     <Compile Include="Skinning\SpotifyStyle.cs" />
     <Compile Include="SpiderHost.cs">
       <SubType>UserControl</SubType>
@@ -216,6 +228,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SectionView.resx">
       <DependentUpon>SectionView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SPCoverBar.resx">
+      <DependentUpon>SPCoverBar.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SPSidebar.resx">
+      <DependentUpon>SPSidebar.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SpiderHost.resx">
       <DependentUpon>SpiderHost.cs</DependentUpon>

@@ -113,6 +113,29 @@ namespace Spider
             activeBoard = board;
             
         }
+        public void SetSection(string sectionId)
+        {
+            try
+            {
+                SectionView board = Sections[sectionId];
+                this.deck.Controls.Clear();
+                this.Deck.Controls.Add(board);
+                board.Show();
+                board.Dock = DockStyle.Fill;
+                activeBoard = board;
+                foreach (Tab tab in tabBar.Tabs)
+                {
+                    if (tab.ID == sectionId)
+                    {
+                        tabBar.ActiveTab = tab;
+                        tabBar.Refresh();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+            }
+        }
         private String template;
         public void LoadFile(String fileName)
         {

@@ -16,6 +16,7 @@ using LuaInterface;
 using Spider.Scripting;
 using Newtonsoft.Json;
 using Spider.Skinning;
+using Spider.Media;
 namespace Spider
 {
     public partial class Board : UserControl
@@ -30,40 +31,6 @@ namespace Spider
         /// <summary>
         /// Tracklist
         /// </summary>
-        public List<track> Tracks
-        {
-            get
-            {
-                List<track> playlist = new List<track>();
-                foreach (Element e in this.Children)
-                {
-                    if (e.GetType() == typeof(track))
-                    {
-                        playlist.Add((track)e);
-                    }
-                    foreach (track track in e.Tracks)
-                    {
-                        playlist.Add(track);
-                    }
-                }
-                
-                return playlist;
-            }
-        }
-        public List<track> SelectedTracks
-        {
-            get
-            {
-                List<track> playlist = new List<track>();
-                foreach (track e in this.Tracks)
-                {
-                    if (e.Selected)
-                        playlist.Add(e);
-                }
-
-                return playlist;
-            }
-        }
         
         #region ScriptMethods
 
@@ -254,68 +221,7 @@ namespace Spider
             IAsyncResult iar = request.BeginGetRequestStream(new AsyncCallback(this.lua_web_response), new RequestState() { Request=(HttpWebRequest)request, Callback = callback, URL = url });
 
         }
-        public void SelectNext()
-        {
-            track lastTrack = null;
-
-            for (int i = 0; i < Tracks.Count; i++)
-            {
-                track track = this.Tracks[i];
-                if (lastTrack != null)
-                {
-                    track.Selected = true;
-                    
-                    foreach(track t in this.Tracks) {
-                        if (t != track)
-                        {
-                            t.Selected = false;
-                        }
-                    }
-                    if (track.Y + track.Height < this.Section.VerticalScroll.Value)
-                    {
-                        this.Section.VerticalScroll.Value = track.Y;
-                    }
-                    if (track.Y + track.Height > this.Section.VerticalScroll.Value + this.Section.Height)
-                    {
-                        this.Section.VerticalScroll.Value = track.Y - track.Height;
-                    }
-                    return;
-                }
-                if (track.Selected)
-                {
-                    lastTrack = track;
-
-                }
-
-            }
-        }
-        public void SelectPrev()
-        {
-            track lastTrack = null;
-
-            for (int i = Tracks.Count-1; i >= 0; i--)
-            {
-                track track = this.Tracks[i];
-                if (lastTrack != null)
-                {
-                    track.Selected = true;
-                    foreach (track t in this.Tracks)
-                    {
-                        if (t != track)
-                        {
-                            t.Selected = false;
-                        }
-                    }
-                    return;
-                }
-                if (track.Selected)
-                {
-                    lastTrack = track;
-
-                }
-
-            }
-        }
+        
         public void lua_web_response(IAsyncResult pass)
         {
             RequestState rs = (RequestState)pass.AsyncState;  //Récupération de l'objet etat 
@@ -421,10 +327,10 @@ namespace Spider
             switch (e.KeyCode)
             {
                 case Keys.Down:
-                    SelectNext();
+                    Section.SelectNext();
                     break;
                 case Keys.Up:
-                    SelectPrev();
+                    Section.SelectPrev();
                     break;
             }
         }
@@ -447,7 +353,7 @@ namespace Spider
 
 
 
-                foreach (track t in Tracks)
+                foreach (track t in Section.TrackElements)
                 {
                     try
                     {
@@ -562,6 +468,10 @@ namespace Spider
             tmrDraw.Start();
             this.MouseMove += Board_MouseMove;
             this.MouseDoubleClick += Board_MouseDoubleClick;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+   ControlStyles.UserPaint |
+   ControlStyles.DoubleBuffer,
+   true);    
         }
 
         void Board_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -624,7 +534,7 @@ namespace Spider
         {
            Graphics g = this.CreateGraphics();
            int x=0, y=0;
-           Draw(g, ref x, ref y, new Rectangle(0, 0, Width, Height));
+           Draw(g, ref x, ref y, new Rectangle(0, 0, Width, Height), true);
         }
         private Timer tmrDraw;
 
@@ -639,7 +549,7 @@ namespace Spider
         {
             int x = 0;
             int y = 0;
-            Draw(e.Graphics, ref x, ref y, e.ClipRectangle);
+          //  Draw(e.Graphics, ref x, ref y, e.ClipRectangle);
         }
         public void AutoResize()
         {
@@ -777,7 +687,7 @@ namespace Spider
             }
         }
         public List<DrawBuffer> overflows = new List<DrawBuffer>();
-        public void Draw(Graphics g, ref int x, ref int y, Rectangle target)
+        public void Draw(Graphics g, ref int x, ref int y, Rectangle target, bool final)
         {
             if (!this.Visible)
                 return;
@@ -795,7 +705,7 @@ namespace Spider
                     if(elm.Visible &&
                         elm.X  - this.SpiderView.HorizontalScroll.Value < this.Width + 3 && elm.Y + elm.Height > this.SpiderView.VerticalScroll.Value &&
                     elm.Y  - this.SpiderView.VerticalScroll.Value < this.Height + 3 && elm.X + elm.Width > this.SpiderView.HorizontalScroll.Value)
-                        elm.Draw(bgc.Graphics, ref x, ref y);
+                        elm.Draw(bgc.Graphics, ref x, ref y, final);
                     elm.AbsoluteTop = y;
                     elm.AbsoluteLeft = x;
                     if (elm.GetType() == typeof(columnheader))
@@ -808,7 +718,7 @@ namespace Spider
                 }
                 foreach (DrawBuffer db in overflows)
                 {
-                    db.elm.Draw(bgc.Graphics, ref db.x, ref db.y); 
+                    db.elm.Draw(bgc.Graphics, ref db.x, ref db.y, final); 
                 }
                 overflows.Clear();
                 
@@ -823,7 +733,7 @@ namespace Spider
         protected override void OnPaintBackground(PaintEventArgs e)
         {
             int x = 0, y = 0;
-            Draw(e.Graphics, ref x, ref y, e.ClipRectangle);
+            Draw(e.Graphics, ref x, ref y, e.ClipRectangle, false);
         }
     }
     

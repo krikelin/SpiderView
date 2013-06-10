@@ -254,8 +254,8 @@ namespace Spider.Skinning
         /// Get selectors
         /// </summary>
         Dictionary<String, Block> Blocks { get; }
-        void DrawString(Graphics g, String text, Font font, SolidBrush brush, Rectangle pos);
-        Size MeasureString(Graphics g, String text, Font font);
+        void DrawString(Graphics g, String text, Font font, SolidBrush brush, Rectangle pos, bool final);
+        Size MeasureString(Graphics g, String text, Font font, bool final);
     }
     
 }

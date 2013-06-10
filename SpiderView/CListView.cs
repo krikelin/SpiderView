@@ -479,7 +479,7 @@ namespace Spider
             }
         }
         public Block PlayingBlock;
-        void DrawCore(Graphics g)
+        void DrawCore(Graphics g, bool final)
         {
             int ColumnCount = Columns.Count;
            
@@ -546,7 +546,7 @@ namespace Spider
                                     }
                                 }
                                 P = P.TrimStart('$');
-                                this.Block.Stylesheet.DrawString(g, P, this.Font, new SolidBrush(FG), new Rectangle(2 + left, top + GetItemPosition(ItemHeight, 16), 300, 20));
+                                this.Block.Stylesheet.DrawString(g, P, this.Font, new SolidBrush(FG), new Rectangle(2 + left, top + GetItemPosition(ItemHeight, 16), 300, 20), final);
                                 left += d.Width;
                             }
                            
@@ -581,8 +581,8 @@ namespace Spider
         }
         void CListView_Paint(object sender, PaintEventArgs e)
         {
-            BufferedGraphics D = (new BufferedGraphicsContext()).Allocate(e.Graphics, e.ClipRectangle);
-            DrawCore(D.Graphics);
+            BufferedGraphics D = (new BufferedGraphicsContext()).Allocate(e.Graphics, new Rectangle(0, 0, this.Width, this.Height));
+            DrawCore(D.Graphics, true);
             D.Render();
 
         }
@@ -761,7 +761,7 @@ namespace Spider
             HoveredElement = GetElementUnderPosition(this.PointToClient(new Point(e.X, e.Y)));
             BufferedGraphicsContext g = new BufferedGraphicsContext();
             BufferedGraphics i = g.Allocate(this.CreateGraphics(), new Rectangle(0, 0, this.Width, this.Height));
-            this.DrawCore(i.Graphics);
+            this.DrawCore(i.Graphics, true);
             
             i.Graphics.DrawLine(new Pen(Color.White), new Point(0, ItemHeight * (this.Items.IndexOf(HoveredElement) + 1)), new Point(this.Width, ItemHeight * (this.Items.IndexOf(HoveredElement) + 1)));
             i.Render();

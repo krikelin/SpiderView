@@ -55,6 +55,19 @@ namespace Spider.Scripting
             get { return this.host; }
         }
 
+        public object[] InvokeFunction(object function, params object[] arguments)
+        {
+            try
+            {
+
+                return this.lua.callFunction(function, arguments);
+            }
+            catch (Exception e)
+            {
+                return new Object[] { };
+            }
+        }
+
         /// <summary>
         /// Invoke the function
         /// </summary>

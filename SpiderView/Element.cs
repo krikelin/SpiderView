@@ -694,7 +694,7 @@ namespace Spider
         public delegate void MouseEventHandler(object sender, MouseEventArgs e);
         public event MouseEventHandler Click;
         public event MouseEventHandler MouseDown;
-        public virtual void Draw(Graphics g, ref int x, ref int y)
+        public virtual void Draw(Graphics g, ref int x, ref int y, bool final)
         {
             if (this.Stylesheet == null)
             {
@@ -710,7 +710,7 @@ namespace Spider
                   //  g.FillRectangle(new SolidBrush(elm.BackColor), new Rectangle(x + elm.X , y +elm.Y + this.Padding.Top, elm.Width - this.Padding.Left * 2, elm.Height - this.Padding.Top * 2));
                 }
               
-                    elm.Draw(g, ref x, ref y);
+                    elm.Draw(g, ref x, ref y, final);
                 elm.AbsoluteLeft = x;
                 elm.AbsoluteTop = y;
                 if (elm.GetType() == typeof(columnheader))
@@ -787,9 +787,9 @@ namespace Spider
             this.Block = (Block)this.Stylesheet.Blocks["hr"].Clone();
             this.Height = 50;
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             g.DrawLine(new Pen(Block.ForeColor, 1), new Point(0, this.Height / 2 + y), new Point(this.Board.Width, y + this.Height / 2));
         }
         public override void BeforePackChildren()
@@ -945,7 +945,7 @@ namespace Spider
                     
                     
                     j++;
-                    left += (float)(Block.Stylesheet.MeasureString(this.Board.CreateGraphics(), c.ToString(), Block.Font).Width * 1f);
+                    left += (float)(Block.Stylesheet.MeasureString(this.Board.CreateGraphics(), c.ToString(), Block.Font, true).Width * 1f);
                     Console.WriteLine(left.ToString() + " " + c.ToString());
                 }
             }
@@ -1067,14 +1067,14 @@ namespace Spider
         /// Draw
         /// </summary>
         /// <param name="g"></param>
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref  x, ref y);
+            base.Draw(g, ref  x, ref y, final);
             //if(bitmap != null)
             //   g.DrawImage(bitmap, new Point(x, y));
             if (BackColor != null)
                 g.FillRectangle(new SolidBrush(BackColor), new Rectangle(x, y, Width, Height));
-            this.Stylesheet.DrawString(this.Board.BufferedGraphics.Graphics, ParsedText, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height));
+            this.Stylesheet.DrawString(this.Board.BufferedGraphics.Graphics, ParsedText, this.Block.Font,  new SolidBrush(this.Block.ForeColor), new Rectangle(x, y, Width, Height), final);
             
             
 
@@ -1132,9 +1132,9 @@ namespace Spider
             Control.DrawToBitmap(bitmap, new Rectangle(0, 0, Control.Width, Control.Height));
             return bitmap;
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             if (bitmap == null)
                 bitmap = createBitmap();
             g.DrawImage(bitmap, x, y);
@@ -1226,9 +1226,9 @@ namespace Spider
             this.ColumnHeaders.Add("album", new ColumnHeader() { Name = "Album", Left = 625, Width = 310 });
 
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             int nX = x;
             int nY = y - this.Board.Section.VerticalScroll.Value;
             if (nY < 0)
@@ -1447,7 +1447,7 @@ namespace Spider
             {
                 if (this.Track.Play())
                 {
-                    this.Board.SpiderView.Host.PlayContext = this.Board;
+                    this.Board.SpiderView.Host.PlayContext = this.Board.Section;
                     this.Board.Invalidate(new Rectangle(X, Y, Width, Height));
                 }
                 else
@@ -1498,9 +1498,9 @@ namespace Spider
         {
             base.OnMouseDown(x, y);
             // Deselect all previous tracks
-            for (int i = 0; i < Board.Tracks.Count; i++)
+            for (int i = 0; i < Board.Section.Tracks.Count; i++)
             {
-                Board.Tracks[i].Selected = false;
+                Board.Section.TrackElements[i].Selected = false;
             }
             this.Selected = true;
             Board.Invalidate(new Region(new Rectangle(this.X, this.Y, this.Width, this.Height)));
@@ -1524,9 +1524,9 @@ namespace Spider
             }
         }
         
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             Color fgColor = this.Block.ForeColor;
             Color bgColor = this.Block.BackColor;
             switch (Track.Status)
@@ -1559,11 +1559,11 @@ namespace Spider
             {
                 //
 
-                this.Stylesheet.DrawString(g, Track.Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(10 + x + columnHeader.ColumnHeaders["name"].Left, 1 + y, 300, 30));
+                this.Stylesheet.DrawString(g, Track.Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(10 + x + columnHeader.ColumnHeaders["name"].Left, 1 + y, 300, 30), final);
                 if(Track.Artists != null && Track.Artists.Length > 0)
-                    this.Stylesheet.DrawString(g, Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y, 300, 30));
+                    this.Stylesheet.DrawString(g, Track.Artists[0].Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(x + columnHeader.ColumnHeaders["artist"].Left, 1 + y, 300, 30), final);
                 if(Track.Album != null)
-                this.Stylesheet.DrawString(g, Track.Album.Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(x + columnHeader.ColumnHeaders["album"].Left, 1 + y, 300, 30));
+                this.Stylesheet.DrawString(g, Track.Album.Name, this.Block.Font, new SolidBrush(fgColor), new Rectangle(x + columnHeader.ColumnHeaders["album"].Left, 1 + y, 300, 30), final);
                 if (columnHeader.ColumnHeaders.ContainsKey("popularity"))
                 {
                     ColumnHeader cp = columnHeader.ColumnHeaders["popularity"];
@@ -1638,9 +1638,9 @@ namespace Spider
             base.mouseDown = true;
             this.Board.Invalidate(new Rectangle(x, y, this.Width, this.Height));
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             Image bgImage = base.mouseDown ? this.PressedBlock.BackgroundImage : this.Block.BackgroundImage;
             if (bgImage != null)
             {
@@ -1649,9 +1649,9 @@ namespace Spider
             }
              
         }
-        public void DrawPressed(Graphics g, ref int x, ref int y)
+        public void DrawPressed(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             g.DrawImageUnscaled(this.PressedBlock.BackgroundImage, new Rectangle(x, y, this.Block.BackgroundImage.Width, this.Block.BackgroundImage.Height));
             g.DrawString(this.Text, this.Block.Font, new SolidBrush(this.Block.ForeColor), new Point(x + 20, y + 2));
 
@@ -1705,11 +1705,11 @@ namespace Spider
         }
         
         private bool hasShadow = false;
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
 
             Rectangle Bounds = new Rectangle(x, y, this.Width, this.Height);
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             int shadowOffset = 8;
             if (hasShadow)
             {
@@ -1837,7 +1837,7 @@ namespace Spider
         {
             
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
             int spacingLeft = this.Parent != null ? this.Parent.Margin.Left : this.Board.Padding.Left;
             int spacingTop = this.Parent != null ? this.Parent.Margin.Top : this.Board.Padding.Top;
@@ -1846,7 +1846,7 @@ namespace Spider
 
             g.FillRectangle(new SolidBrush(BackColor), x + spacingLeft, y + spacingTop, Width - spacingRight, Height - spacingBottom);
          //   g.FillRectangle(new SolidBrush(BackColor), x, y, this.Width,this.Height);
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
         }
 
       
@@ -1935,13 +1935,13 @@ namespace Spider
 
         }
        
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
             if(mouseOver)
                 g.FillRectangle(new SolidBrush(Color.DarkGray), new Rectangle(x, y, Width, Height));
 
                  
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
         }
     }
     public class divider : Element
@@ -1957,11 +1957,11 @@ namespace Spider
             this.Block = parent.Stylesheet.Blocks["Divider"];
             imgDivider = this.Block.BackgroundImage;
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
             g.DrawImage(imgDivider, new Rectangle(x, y, (int)((float)this.Width * 1.5), this.Height));
             g.DrawString(this.Text, Block.Font, new SolidBrush(Block.ForeColor), new Point(x, y));
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
 
         }
 
@@ -1983,9 +1983,9 @@ namespace Spider
             : base(parent, node)
         {
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
             
             
         }
@@ -2037,7 +2037,7 @@ namespace Spider
             : base(parent, node)
         {
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
             int spacingLeft = this.Parent != null ? this.Parent.Margin.Left : this.Board.Padding.Left;
             int spacingTop = this.Parent != null ? this.Parent.Margin.Top : this.Board.Padding.Top;
@@ -2046,7 +2046,7 @@ namespace Spider
 
             g.FillRectangle(new SolidBrush(BackColor), x + spacingLeft, y + spacingTop, Width - spacingRight, Height - spacingBottom);
             //   g.FillRectangle(new SolidBrush(BackColor), x, y, this.Width,this.Height);
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
         }
 
 
@@ -2123,7 +2123,7 @@ namespace Spider
             : base(parent, node)
         {
         }
-        public override void Draw(Graphics g, ref int x, ref int y)
+        public override void Draw(Graphics g, ref int x, ref int y, bool final)
         {
             int spacingLeft = this.Parent != null ? this.Parent.Margin.Left : this.Board.Padding.Left;
             int spacingTop = this.Parent != null ? this.Parent.Margin.Top : this.Board.Padding.Top;
@@ -2132,7 +2132,7 @@ namespace Spider
 
             g.FillRectangle(new SolidBrush(BackColor), x + spacingLeft, y + spacingTop, Width - spacingRight, Height - spacingBottom);
             //   g.FillRectangle(new SolidBrush(BackColor), x, y, this.Width,this.Height);
-            base.Draw(g, ref x, ref y);
+            base.Draw(g, ref x, ref y, final);
         }
 
 

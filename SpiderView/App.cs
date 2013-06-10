@@ -36,7 +36,9 @@ namespace Spider
             spiderView.Dock = DockStyle.Fill;
             spiderView.Navigate += spiderView_Navigate;
         }
-
+        public void ArgumentsChanged(string[] arguments)
+        {
+        }
         void spiderView_Navigate(object sender, SpiderView.NavigateEventArgs e)
         {
             if (!e.Uri.ToString().StartsWith("spotify:track:"))

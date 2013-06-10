@@ -144,13 +144,13 @@ namespace Spider.Skinning
         }
 
 
-        public void DrawString(Graphics g, string text, Font font, SolidBrush brush, Rectangle pos)
+        public void DrawString(Graphics g, string text, Font font, SolidBrush brush, Rectangle pos, bool final)
         {
             throw new NotImplementedException();
         }
 
 
-        public Size MeasureString(Graphics g, string text, Font font)
+        public Size MeasureString(Graphics g, string text, Font font, bool final)
         {
             throw new NotImplementedException();
         }

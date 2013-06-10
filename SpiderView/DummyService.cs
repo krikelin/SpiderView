@@ -85,6 +85,10 @@ namespace Spider
                 this.duration = (int)this.wmplayer.currentItem.duration;
       //          timer.Start();
             }
+            if (PlaybackStarted != null)
+            {
+                  PlaybackStarted(this, new EventArgs());
+            }
         }
 
         public void Stop()
@@ -740,23 +744,50 @@ namespace Spider
             conn.Close();
         }
 
-
+        public SearchResult GetCollection(string type, int page)
+        {
+            switch (type)
+            {
+                case "home":
+                    {
+                        SearchResult sr = new SearchResult(this);
+                        ReleaseCollection RC = new ReleaseCollection(this, new List<Release>());
+                        DataSet DS = MakeDataSet("SELECT * FROM artist, release, whatsnew WHERE whatsnew.release_id = release.id AND release.artist = artist.id ORDER BY release.release_date DESC");
+                        foreach (DataRow dr in DS.Tables[0].Rows)
+                        {
+                            Release t = ReleaseFromDataRow(dr);
+                            RC.Add(t);
+                        }
+                        sr.Albums = RC;
+                        return sr;
+                    }
+            }
+            return null;
+        }
         public TrackCollection GetCollection(string type, string identifier)
         {
             switch (type)
             {
                 case "own":
-                    TrackCollection TC = new TrackCollection(this, null, new List<Track>());
-                    DataSet DS = MakeDataSet("SELECT * FROM track, artist, release, users WHERE release.id = track.album AND track.artist = artist.id AND users.artist = artist.id ORDER BY release.release_date DESC");
-                    foreach (DataRow dr in DS.Tables[0].Rows)
                     {
-                        Track t = TrackFromDataRow(dr);
-                        TC.Add(t);
+                        TrackCollection TC = new TrackCollection(this, null, new List<Track>());
+                        DataSet DS = MakeDataSet("SELECT * FROM track, artist, release, users WHERE release.id = track.album AND track.artist = artist.id AND users.artist = artist.id ORDER BY release.release_date DESC");
+                        foreach (DataRow dr in DS.Tables[0].Rows)
+                        {
+                            Track t = TrackFromDataRow(dr);
+                            TC.Add(t);
+                        }
+                        return TC;
                     }
-                    return TC;
-                   
+               
             }
             return null;
         }
+
+
+
+
+
+        public event PlayStateChangedEventHandler PlaybackStarted;
     }
 }
